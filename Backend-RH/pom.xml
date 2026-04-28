@@ -3,301 +3,258 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <version>3.5.13</version>
+        <relativePath/>
     </parent>
 
     <groupId>com.Innovx</groupId>
     <artifactId>GestionRH</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>GestionRH</name>
-    <description>GestionRH</description>
-    <properties>
-        <java.version>17</java.version>
-        <spring-ai.version>0.8.1</spring-ai.version>
-        <maven.compiler.source>22</maven.compiler.source>
-        <maven.compiler.target>22</maven.compiler.target>
-    </properties>
-    <dependencies>
-        <!-- Spring Boot Starter dependencies -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
+    <description>GestionRH – HRFLOW by INNOVX</description>
 
+    <properties>
+        <!-- Single source of truth for Java version — Spring Boot parent wires this into compiler plugin -->
+        <java.version>21</java.version>
+
+        <!-- Third-party library versions not managed by Spring Boot BOM -->
+        <jjwt.version>0.11.5</jjwt.version>
+        <springdoc.version>2.8.3</springdoc.version>
+        <poi.version>5.2.5</poi.version>
+        <itext7.version>7.2.5</itext7.version>
+        <pdfbox.version>2.0.32</pdfbox.version>
+        <tika.version>2.9.2</tika.version>
+        <tess4j.version>5.11.0</tess4j.version>
+        <google-api-client.version>2.4.0</google-api-client.version>
+        <google-cloud-vision.version>3.43.0</google-cloud-vision.version>
+        <microsoft-graph.version>6.5.1</microsoft-graph.version>
+        <sib-sdk.version>7.0.0</sib-sdk.version>
+        <mailersend.version>1.0.0</mailersend.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ================================================ -->
+        <!-- SPRING BOOT STARTERS (versions from BOM)         -->
+        <!-- ================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>6.2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-
-
-
-        <!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-crypto -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
-            <version>6.2.3</version>
-        </dependency>
-
-        <!-- Spring AI dependencies -->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-postgresml-spring-boot-starter</artifactId>
-        </dependency>
-        <!-- Other dependencies -->
-        <dependency>
-            <groupId>com.microsoft.graph</groupId>
-            <artifactId>microsoft-graph</artifactId>
-            <version>6.5.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.api-client</groupId>
-            <artifactId>google-api-client</artifactId>
-            <version>2.4.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.17.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.17.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
-
-
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.16.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Dev tools (hot reload, excluded from production build) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+
+        <!-- ================================================ -->
+        <!-- SECURITY — JWT                                    -->
+        <!-- ================================================ -->
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ================================================ -->
+        <!-- DATABASE DRIVERS (versions from BOM)             -->
+        <!-- ================================================ -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-        <!--Swagger-->
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-boot-starter</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-        <!-- Bean Validation API -->
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>2.0.1.Final</version> <!-- Check for the latest version -->
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-        <!-- Hibernate Validator (implementation of the Bean Validation API) -->
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>6.0.18.Final</version> <!-- Check for the latest version -->
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.1.0-M2</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sendinblue</groupId>
-            <artifactId>sib-api-v3-sdk</artifactId>
-            <version>7.0.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>4.0.1</version> <!-- Or the version compatible with your project -->
-            <scope>provided</scope>
-        </dependency>
-        <!-- AOP for audit logging -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-
-        <!-- Spring Boot Starter Data Elasticsearch -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>2.0.24</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-vision</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-
-        <!-- Elasticsearch High Level REST Client -->
+        <!-- ================================================ -->
+        <!-- ELASTICSEARCH — Legacy High-Level REST Client     -->
+        <!-- Keep for backward-compat with existing services  -->
+        <!-- ================================================ -->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>7.10.2</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
+            <version>7.17.25</version>
         </dependency>
 
+        <!-- ================================================ -->
+        <!-- API DOCUMENTATION — springdoc (replaces springfox) -->
+        <!-- springfox 3.0.0 is incompatible with Spring Boot 3 -->
+        <!-- ================================================ -->
         <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-core</artifactId>
-            <version>2.5.0</version>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
-        <!-- Tess4J for OCR capabilities (to extract text from images) -->
-        <dependency>
-            <groupId>net.sourceforge.tess4j</groupId>
-            <artifactId>tess4j</artifactId>
-            <version>5.0.0</version>
-        </dependency>
-        <!-- Elasticsearch High-Level REST Client -->
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>7.10.2</version> <!-- Make sure this version matches your Elasticsearch server version -->
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.mailersend</groupId>
-            <artifactId>java-sdk</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <!-- Apache POI 5.x for Excel reports -->
+
+        <!-- ================================================ -->
+        <!-- DOCUMENT & FILE PROCESSING                       -->
+        <!-- ================================================ -->
+        <!-- Apache POI — Excel reports -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>5.2.5</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
+            <version>${poi.version}</version>
         </dependency>
-        <!-- iText7 for PDF reports -->
+
+        <!-- iText 7 — PDF reports -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itext7-core</artifactId>
-            <version>7.2.5</version>
+            <version>${itext7.version}</version>
             <type>pom</type>
         </dependency>
+
+        <!-- Apache PDFBox — PDF processing -->
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version> <!-- or the latest version -->
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-slides -->
+
+        <!-- Apache Tika — file-type detection -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+
+        <!-- Tess4J — OCR -->
+        <dependency>
+            <groupId>net.sourceforge.tess4j</groupId>
+            <artifactId>tess4j</artifactId>
+            <version>${tess4j.version}</version>
+        </dependency>
+
+        <!-- ================================================ -->
+        <!-- GOOGLE & MICROSOFT INTEGRATIONS                  -->
+        <!-- ================================================ -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>${google-api-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-vision</artifactId>
+            <version>${google-cloud-vision.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-slides</artifactId>
             <version>v1-rev20210322-1.31.5</version>
         </dependency>
-    </dependencies>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-bom</artifactId>
-                <version>${spring-ai.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
+        <dependency>
+            <groupId>com.microsoft.graph</groupId>
+            <artifactId>microsoft-graph</artifactId>
+            <version>${microsoft-graph.version}</version>
+        </dependency>
 
-        </dependencies>
-    </dependencyManagement>
+        <!-- ================================================ -->
+        <!-- EMAIL SERVICE SDKs                               -->
+        <!-- ================================================ -->
+        <dependency>
+            <groupId>com.sendinblue</groupId>
+            <artifactId>sib-api-v3-sdk</artifactId>
+            <version>${sib-sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mailersend</groupId>
+            <artifactId>java-sdk</artifactId>
+            <version>${mailersend.version}</version>
+        </dependency>
+
+        <!-- ================================================ -->
+        <!-- UTILITIES (versions managed by Spring Boot BOM)  -->
+        <!-- ================================================ -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <!-- ================================================ -->
+        <!-- TESTING                                          -->
+        <!-- ================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 
     <build>
         <plugins>
@@ -310,30 +267,18 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </exclude>
-
                     </excludes>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.5.2</version>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-    </repositories>
 
 </project>

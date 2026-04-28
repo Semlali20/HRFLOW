@@ -2,6 +2,8 @@ package com.innovx.gestionrh.Service;
 
 import com.innovx.gestionrh.Entity.Collaborateurs;
 import com.innovx.gestionrh.Repository.CollaborateursRepository;
+import com.innovx.gestionrh.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,77 +18,120 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class CollaborateursServiceImpl implements CollaborateursService {
+
     @Autowired
     private CollaborateursRepository collaborateursRepository;
 
     @Override
     public List<Collaborateurs> getAllCollaborateurs() {
-        List<Collaborateurs> allCollaborateurs = collaborateursRepository.findAll();
-        return allCollaborateurs.stream()
-                .filter(collaborateurs -> !collaborateurs.isDeleted())
-                .map(this::formatCollaborateurDates)
-                .collect(Collectors.toList());
+        try {
+            return collaborateursRepository.findAll().stream()
+                    .filter(c -> !c.isDeleted())
+                    .map(this::formatCollaborateurDates)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to fetch all collaborateurs: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch collaborateurs", e);
+        }
     }
 
     @Override
     public Optional<Collaborateurs> getCollaborateursById(Long id) {
-        Optional<Collaborateurs> collaborateursOpt = collaborateursRepository.findById(id);
-        return collaborateursOpt.map(this::formatCollaborateurDates);
+        try {
+            return collaborateursRepository.findById(id)
+                    .map(this::formatCollaborateurDates);
+        } catch (Exception e) {
+            log.error("Failed to fetch collaborateur id={}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch collaborateur", e);
+        }
     }
 
     @Override
     public List<String> getAllCollaborateursDateNaissance() {
-        return collaborateursRepository.findAll().stream()
-                .filter(collaborateurs -> !collaborateurs.isDeleted())
-                .map(Collaborateurs::getDate_naissance) // This method reference should return a String
-                .collect(Collectors.toList());
+        try {
+            return collaborateursRepository.findAll().stream()
+                    .filter(c -> !c.isDeleted())
+                    .map(Collaborateurs::getDate_naissance)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to fetch birthdays: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch birth dates", e);
+        }
     }
 
     @Override
     public Collaborateurs createCollaborateurs(Collaborateurs collaborateur) {
-        return collaborateursRepository.save(collaborateur);
+        try {
+            return collaborateursRepository.save(collaborateur);
+        } catch (Exception e) {
+            log.error("Failed to create collaborateur: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create collaborateur", e);
+        }
     }
 
     @Override
     public Collaborateurs updateCollaborateurs(Long id, Collaborateurs updatedCollaborateur) {
-        updatedCollaborateur.setMatricule(id);
-        Collaborateurs existingCollaborateur = collaborateursRepository.findById(id).orElse(null);
-        if (existingCollaborateur != null) {
-            BeanUtils.copyProperties(updatedCollaborateur, existingCollaborateur);
-            return collaborateursRepository.save(existingCollaborateur);
+        try {
+            Collaborateurs existing = collaborateursRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Collaborateur", "id", id));
+            updatedCollaborateur.setMatricule(id);
+            BeanUtils.copyProperties(updatedCollaborateur, existing);
+            return collaborateursRepository.save(existing);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to update collaborateur id={}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Failed to update collaborateur", e);
         }
-        return null;
     }
 
     @Override
     public String deleteCollaborateurs(Long id) {
-        Collaborateurs collaborateur = collaborateursRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Collaborateur not found with ID: " + id));
-        collaborateursRepository.delete(collaborateur);
-        return "Collaborateur deleted successfully.";
+        try {
+            Collaborateurs collaborateur = collaborateursRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Collaborateur", "id", id));
+            collaborateursRepository.delete(collaborateur);
+            log.info("Collaborateur id={} deleted", id);
+            return "Collaborateur deleted successfully.";
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to delete collaborateur id={}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Failed to delete collaborateur", e);
+        }
     }
 
     @Override
     public List<String> getAllBirthdays() {
-        return collaborateursRepository.findAll().stream()
-                .map(Collaborateurs::getDate_naissance)
-                .collect(Collectors.toList());
+        try {
+            return collaborateursRepository.findAll().stream()
+                    .map(Collaborateurs::getDate_naissance)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to fetch all birthdays: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch birthdays", e);
+        }
     }
 
     private Collaborateurs formatCollaborateurDates(Collaborateurs collaborateur) {
-        // Format date_entree
-        String formattedDateEntree = formatDate(collaborateur.getDate_entree());
-        collaborateur.setDate_entree(formattedDateEntree);
-
-        // Format date_naissance
-        String formattedDateNaissance = formatDate(collaborateur.getDate_naissance());
-        collaborateur.setDate_naissance(formattedDateNaissance);
-
+        try {
+            if (collaborateur.getDate_entree() != null) {
+                collaborateur.setDate_entree(formatDate(collaborateur.getDate_entree()));
+            }
+            if (collaborateur.getDate_naissance() != null) {
+                collaborateur.setDate_naissance(formatDate(collaborateur.getDate_naissance()));
+            }
+        } catch (DateTimeParseException e) {
+            log.warn("Could not parse date for collaborateur id={}: {}", collaborateur.getMatricule(), e.getMessage());
+        }
         return collaborateur;
     }
 
     private String formatDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) return dateStr;
+
         DateTimeFormatter[] formatters = new DateTimeFormatter[]{
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd"),
@@ -96,24 +141,16 @@ public class CollaborateursServiceImpl implements CollaborateursService {
 
         for (DateTimeFormatter formatter : formatters) {
             try {
-                // Try parsing as LocalDateTime
                 LocalDateTime dateTime = LocalDateTime.parse(dateStr, formatter);
                 return dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-            } catch (DateTimeParseException e) {
-                // Ignore and try next formatter
-            }
+            } catch (DateTimeParseException ignored) {}
 
             try {
-                // Try parsing as LocalDate
                 LocalDate date = LocalDate.parse(dateStr, formatter);
                 return date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-            } catch (DateTimeParseException e) {
-                // Ignore and try next formatter
-            }
+            } catch (DateTimeParseException ignored) {}
         }
 
-        // If all parsing attempts fail, return the original string or handle the error
-        throw new DateTimeParseException("Unparseable date: " + dateStr, dateStr, 0);
+        return dateStr;
     }
-
 }

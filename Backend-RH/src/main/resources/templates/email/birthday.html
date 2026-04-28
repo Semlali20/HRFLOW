@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Joyeux Anniversaire</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Arial, sans-serif; }
+        .wrapper { width: 100%; background-color: #f4f4f4; padding: 30px 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 32px; letter-spacing: 1px; }
+        .header .emoji { font-size: 60px; display: block; margin-bottom: 10px; }
+        .body { padding: 40px 30px; }
+        .body p { color: #555555; font-size: 16px; line-height: 1.7; margin: 0 0 16px; }
+        .body .greeting { font-size: 20px; color: #333333; font-weight: 600; }
+        .divider { border: none; border-top: 1px solid #eeeeee; margin: 30px 0; }
+        .footer { background-color: #f9f9f9; padding: 20px 30px; text-align: center; }
+        .footer p { color: #999999; font-size: 13px; margin: 0; }
+        .footer .brand { color: #667eea; font-weight: 700; }
+        .balloon { font-size: 24px; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <div class="header">
+            <span class="emoji">🎂</span>
+            <h1>Joyeux Anniversaire !</h1>
+        </div>
+        <div class="body">
+            <p class="greeting">
+                Cher(e) <span th:text="${nom + ' ' + prenom}">Prénom Nom</span>,
+            </p>
+            <p>
+                En ce jour spécial, toute l'équipe <strong>INNOVX</strong> vous adresse ses plus chaleureuses félicitations et vous souhaite un <strong>joyeux anniversaire</strong> !
+            </p>
+            <p>
+                <span class="balloon">🎈</span> Que cette nouvelle année soit remplie de bonheur, de santé, de succès et de belles surprises.
+                Nous sommes ravis de vous compter parmi nous et apprécions chaque jour votre précieuse contribution à l'équipe.
+            </p>
+            <p>
+                Profitez pleinement de cette journée qui vous est dédiée !
+            </p>
+            <hr class="divider"/>
+            <p style="font-size:14px; color:#888888; text-align:center;">
+                Avec toute notre affection et notre estime 💜
+            </p>
+        </div>
+        <div class="footer">
+            <p>Ce message vous est envoyé automatiquement par la plateforme <span class="brand">HRFLOW – INNOVX</span>.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Congé Approuvé</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Arial, sans-serif; }
+        .wrapper { width: 100%; background-color: #f4f4f4; padding: 30px 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 35px 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; text-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .header .icon { font-size: 55px; display: block; margin-bottom: 10px; }
+        .body { padding: 35px 30px; }
+        .body p { color: #555555; font-size: 15px; line-height: 1.7; margin: 0 0 14px; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .info-table td { padding: 12px 16px; border: 1px solid #eeeeee; font-size: 15px; }
+        .info-table td:first-child { background-color: #f0fdf4; font-weight: 600; color: #166534; width: 40%; }
+        .info-table td:last-child { color: #333; }
+        .approved-badge { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; background-color: #dcfce7; color: #166534; }
+        .divider { border: none; border-top: 1px solid #eeeeee; margin: 25px 0; }
+        .footer { background-color: #f9f9f9; padding: 20px 30px; text-align: center; }
+        .footer p { color: #999999; font-size: 13px; margin: 0; }
+        .brand { color: #43e97b; font-weight: 700; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <div class="header">
+            <span class="icon">✅</span>
+            <h1>Votre Congé a été Approuvé !</h1>
+        </div>
+        <div class="body">
+            <p>
+                Bonjour <strong th:text="${employePrenom}">Prénom</strong>,
+            </p>
+            <p>
+                Nous avons le plaisir de vous informer que votre demande de congé a été <strong>approuvée</strong>.
+                Voici le récapitulatif de votre congé validé :
+            </p>
+            <table class="info-table">
+                <tr>
+                    <td>Type de congé</td>
+                    <td th:text="${typeConge}">Congé annuel</td>
+                </tr>
+                <tr>
+                    <td>Date de début</td>
+                    <td th:text="${dateDebut}">01/05/2026</td>
+                </tr>
+                <tr>
+                    <td>Date de fin</td>
+                    <td th:text="${dateFin}">10/05/2026</td>
+                </tr>
+                <tr>
+                    <td>Durée</td>
+                    <td><span th:text="${duree}">8</span> jours ouvrables</td>
+                </tr>
+                <tr>
+                    <td>Approuvé par</td>
+                    <td th:text="${approbateur}">Manager RH</td>
+                </tr>
+                <tr>
+                    <td>Statut</td>
+                    <td><span class="approved-badge">✓ Approuvé</span></td>
+                </tr>
+                <tr th:if="${commentaire != null and !commentaire.isEmpty()}">
+                    <td>Commentaire</td>
+                    <td th:text="${commentaire}">Bon repos !</td>
+                </tr>
+            </table>
+            <hr class="divider"/>
+            <p>Profitez bien de votre congé ! 🌴</p>
+        </div>
+        <div class="footer">
+            <p>Notification automatique — <span class="brand">HRFLOW – INNOVX</span></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
