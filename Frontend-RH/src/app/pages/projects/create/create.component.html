@@ -1,0 +1,133 @@
+<app-loader></app-loader>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Stagiaires information</label>
+                    <div class="text-center">
+                        <div class="position-relative d-inline-block">
+                            <div class="position-absolute bottom-0 end-0">
+                                <label for="project-image-input" class="mb-0">
+                                    <div class="avatar-xs">
+                                        <div class="avatar-title bg-light border rounded-circle text-muted cursor-pointer shadow font-size-16">
+                                            <input class="form-control d-none" id="project-image-input" type="file" (change)="displayImage($event)">
+                                            <img *ngIf="!imageURL" src="placeholder.jpg" alt="Select Image" class="avatar-img" />
+                                            <img *ngIf="imageURL" [src]="imageURL" alt="Selected Image" class="avatar-img" />
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="stagiairename-input" class="form-label">Stagiaire Nom :</label>
+                    <input id="stagiairename-input" type="text" class="form-control" placeholder="Enter name..." [(ngModel)]="stagiaireName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="stagiaireprenom-input" class="form-label">Stagiaire Prénom :</label>
+                    <input id="stagiaireprenom-input" type="text" class="form-control" placeholder="Enter prenom..." [(ngModel)]="prenom" required>
+                </div>
+                <div class="mb-3">
+                  <label for="stagiaireprenom-input" class="form-label">Stagiaire Cin :</label>
+                  <input id="stagiaireprenom-input" type="text" class="form-control" placeholder="Enter cin..." [(ngModel)]="cin" required>
+              </div>
+                <div class="mb-3">
+                    <label for="projectdesc-input" class="form-label">Sujet de stage :</label>
+                    <textarea class="form-control" id="projectdesc-input" rows="3" placeholder="Enter sujet de stage..." [(ngModel)]="sujetDeStage" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="departement-input" class="form-label">Département :</label>
+                    <input id="departement-input" type="text" class="form-control" placeholder="Enter Département..." [(ngModel)]="departement" required>
+                </div>
+                <div class="mb-3">
+                    <label for="universite-input" class="form-label">Université :</label>
+                    <input id="universite-input" type="text" class="form-control" placeholder="Enter Université..." [(ngModel)]="universite" required>
+                </div>
+                <div class="mb-3">
+                    <label for="typestage-input" class="form-label">Type de stage :</label>
+
+                    <select class="form-select" id="project-typeDeStage-input"  [(ngModel)]="typeDeStage">
+                      <option>Stage d'observation</option>
+                      <option >Stage de pfa </option>
+                      <option  selected> stage de projet fin d etude (PFE)</option>
+
+                  </select>
+                </div>
+                <div class="mb-3">
+                <label for="typestage-input" class="form-label">Nom de l’encadrant :</label>
+                <ng-select [(ngModel)]="selectedCollaborateur" bindLabel="fullName" bindValue="id"
+           [items]="collaborateurs" searchable="true" class="custom-ng-select"
+           (change)="onCollaborateurSelect($event)">
+            </ng-select>
+              </div>
+                <div class="mb-3">
+                    <div class="row">
+
+                        <!-- Columns for documents -->
+                        <label for="typestage-input" class="form-label">Dossier Document :</label>
+                        <div class="col-md-6">
+                          <div class="mb-3" *ngFor="let doc of documents.slice(0,5)">
+                            <label>{{ doc.label }}</label>
+                            <div class="form-check form-switch">
+                              <input class="form-check-input" type="checkbox" id="{{doc.id}}" [(ngModel)]="doc.isValid">
+                              <label class="form-check-label" for="{{doc.id}}">{{doc.isValid ? 'Valid' : 'Not Valid'}}</label>
+                            </div>
+                          </div>
+                         </div>
+
+                            <!-- Column 2 for the next five documents -->
+                            <div class="col-md-6">
+                              <div class="mb-3" *ngFor="let doc of documents.slice(5,10)">
+                                <label>{{ doc.label }}</label>
+                                <div class="form-check form-switch">
+                                  <input class="form-check-input" type="checkbox" id="{{doc.id}}" [(ngModel)]="doc.isValid">
+                                  <label class="form-check-label" for="{{doc.id}}">{{doc.isValid ? 'Valid' : 'Not Valid'}}</label>
+                                </div>
+                              </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end card body -->
+        </div>
+        <!-- end card -->
+    </div>
+    <!-- end col -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Status dossier adminiistrateur</h5>
+                <select class="form-select" id="project-status-input" [(ngModel)]="status">
+                    <option value="Complete">Complete</option>
+                    <option value="En progression">En progression</option>
+                </select>
+            </div>
+            <!-- end card body -->
+        </div>
+        <!-- end card -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Date début de stage</h5>
+                <input id="date-debut-input" type="date" class="form-control" [(ngModel)]="startDate" placeholder="Entrez la date de début">
+            </div>
+            <!-- end card body -->
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Date fin de stage</h5>
+                <input id="date-fin-input" type="date" class="form-control" [(ngModel)]="endDate" placeholder="Entrez la date de fin">
+            </div>
+            <!-- end card body -->
+        </div>
+        <!-- end card -->
+    </div>
+    <!-- end col -->
+    <div class="col-lg-8">
+        <div class="text-end mb-4">
+            <button type="button" (click)="onSubmit()" class="btn btn-primary">Créer Stagiaire</button>
+        </div>
+    </div>
+</div>
+<!-- end row -->

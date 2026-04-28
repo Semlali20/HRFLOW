@@ -1,0 +1,254 @@
+// Define color variables
+$primary-color: #4CAF50; // Green
+$secondary-color: #555; // Dark grey
+$background-color: #f9f9f9; // Very light grey
+$border-color: #e0e0e0; // Light grey
+$highlight-color: #010a24; // Gold for emphasis
+
+// Typography
+$font-primary: 'Segoe UI', 'Arial', sans-serif;
+$font-secondary: 'Roboto', sans-serif;
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  background: $background-color;
+  color: $secondary-color;
+  font-family: $font-primary;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin: 30px;
+  overflow: hidden;
+
+  .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: white;
+
+      .profile-pic-name {
+          display: flex;
+          align-items: center;
+
+          img {
+              width: 100px;
+              height: 100px;
+              border-radius: 50%;
+              border: 3px solid transparent;
+          }
+
+          .name-info {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              margin-left: 20px;
+
+              .name {
+                  font-size: 24px;
+                  font-weight: bold;
+                  color: $secondary-color;
+              }
+          }
+      }
+
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: $primary-color;
+        }
+    }
+
+    .profile-info {
+        display: flex;
+        flex-wrap: wrap;
+        background: white;
+        padding: 20px;
+
+        .info-item {
+            width: 50%;
+            padding: 10px;
+
+
+            span {
+                font-weight: bold;
+                color: $highlight-color; // Highlight the names in gold
+            }
+        }
+    }
+
+    .documents-card {
+        background: white;
+        padding: 20px;
+        border-top: 1px solid $border-color;
+
+
+    }
+    .doc-count {
+      font-size: 20px;
+      font-weight: bold;
+      justify-content: space-between;
+  }
+    .alerts {
+        background: white;
+        padding: 20px;
+
+
+        .alert-item {
+            font-size: 16px;
+            margin-bottom: 10px;
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+
+.stat-item {
+  flex: 1 1 auto; /* Adjusts the size of each stat-item to use equal space */
+  text-align: center; /* Center aligns the text within each stat-item */
+  margin: 10px; /* Adds some space around each stat-item */
+}
+
+.stat-item p, .stat-item h4 {
+  margin: 0 0 10px 0; /* Zero margin on the top and sides, 10px margin below */
+}
+.statistics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Defines 4 columns */
+  gap: 10px; /* Space between the grid items */
+  margin-top: 20px; /* Space above the grid container */
+
+}
+.h2{
+  font-size: 20px;
+  font-weight: bold;
+  justify-content: space-between;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column; /* Aligns children (p and h4) in a column */
+  align-items: center; /* Centers children horizontally */
+width: 320px;
+  height: 120px;
+  color: white;
+  border-radius: 15px;
+  font-size: 20px;
+  padding: 15px; /* Adds padding inside each stat-item */
+  justify-content: space-between; /* Positions children at the start and end of the container */
+}
+
+.stat-item p {
+  white-space: nowrap; /* Prevents text from wrapping to the next line */
+  overflow: hidden; /* Hides text that overflows the element's box */
+  text-overflow: ellipsis; /* Adds an ellipsis (...) if the text overflows */
+  font-size: 14px; /* Smaller font size for <p> */
+  font-weight: bold; /* Makes text bold */
+  margin-right: auto; /* Ensures <p> stays on the left */
+
+
+}
+.stat-item h4 {
+  margin-left: 90%; /* Ensures <h4> stays on the right */
+  font-size: 25px;
+  font-weight: bold; /* Slightly smaller font size than the general */
+}
+
+.stat-item.red { background-color: rgb(255, 46, 46); }
+.stat-item.orange { background-color: rgb(255, 171, 16); }
+.stat-item.green { background-color: rgb(2, 150, 2); }
+.meeting-list {
+  margin-top: 20px;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
+}
+.meeting-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.meeting-date {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+.meeting-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.status-indicator {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 10px;
+}
+.red {
+  background-color: red;
+}
+.green {
+  background-color: green;
+}
+.icon-open {
+  margin-left: auto;
+  font-size: 16px;
+  cursor: pointer;
+}
+.show-more a {
+  display: inline-block;
+  color: #0000ff;
+  text-decoration: none;
+}
+.document-container {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background: #fff;
+}
+
+.document-section {
+  flex: 1;
+  margin: 10px;
+  padding: 20px;
+  border-radius: 8px;
+  background: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.document-section h3 {
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.document-section p {
+  font-weight: bold;
+}
+
+.valid-documents li, .invalid-documents li {
+  list-style-type: none;
+  padding: 8px;
+  margin: 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.valid-documents li {
+  color: green; /* Green for valid documents */
+  border-left: 5px solid green;
+}
+
+.invalid-documents li {
+  color: red; /* Red for invalid documents */
+  border-left: 5px solid red;
+}
+
+.valid-documents li:hover, .invalid-documents li:hover {
+  background-color: #eef;
+}

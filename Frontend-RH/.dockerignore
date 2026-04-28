@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.git/
+.gitignore
+*.md
+*.log
+.angular/
+.vscode/
+.DS_Store
+Thumbs.db
+karma.conf.js
+src/**/*.spec.ts
+e2e/
+coverage/

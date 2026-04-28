@@ -1,0 +1,31 @@
+.app-search {
+  text-align: right;
+}
+
+.app-search .position-relative {
+  display: inline-block;
+}.badge {
+  font-size: 0.75rem;
+  padding: 0.5em;
+  border-radius: 50%;
+}
+
+.position-absolute {
+  position: absolute;
+}
+
+.notification-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;  // Adjust size as needed
+  height: 20px; // Adjust size as needed
+  background-color: #dc3545; // Bootstrap danger color
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  position: absolute;
+  top: 14px; // Adjust to move the badge down
+  right: 10px; // Adjust to move the badge horizontally
+  transform: translate(50%, -50%);
+}

@@ -1,0 +1,111 @@
+<div class="container-fluid">
+  <app-loader></app-loader>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="col-md-6 col-sm-12">
+            <h2>Stagiaiers <b>Details</b></h2>
+          </div>
+          <div class="row mb-2">
+            <div class="col-sm">
+              <div class="d-flex align-items-center search-filter-container">
+                <input type="text" class="form-control" autocomplete="off" id="searchTableList" placeholder="Search..." [(ngModel)]="searchText" (input)="onSearchChange()">
+                <select class="form-select ms-2" [(ngModel)]="searchColumn">
+                  <option value="" disabled selected>Filters</option>
+                  <option value="matricule">Matricule</option>
+                  <option value="nom">Nom</option>
+                  <option value="prenom">Prénom</option>
+                  <option value="cin">CIN</option>
+                  <option value="sujetDeStage">Sujet de stage</option>
+                  <option value="département">Département</option>
+                  <option value="nomEncadrant">Nom de l’encadrant</option>
+                  <option value="ecoleUniversité">Université</option>
+                  <option value="typeDeStage">type De Stage</option>
+                  <option value="durée">Durée</option>
+                  <option value="status">Status</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-sm-auto">
+              <div class="text-sm-end">
+                <a routerLink="/stagiaires/create" class="btn btn-success btn-rounded" id="addProject-btn"><i class="mdi mdi-plus me-1"></i> Add New Stagiaires</a>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="table-responsive">
+              <table class="table project-list-table align-middle table-nowrap dt-responsive nowrap w-100 table-borderless" id="projectList-table">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col" style="width: 100px" (click)="sortTable('matricule')">#<i class="fa" [ngClass]="getSortIcon('matricule')"></i></th>
+                    <th scope="col" (click)="sortTable('nom')">Nom<i class="fa" [ngClass]="getSortIcon('nom')"></i></th>
+                    <th scope="col" (click)="sortTable('prenom')">Prénom <i class="fa" [ngClass]="getSortIcon('prenom')"></i></th>
+                    <th scope="col" (click)="sortTable('cin')">CIN<i class="fa" [ngClass]="getSortIcon('cin')"></i></th>
+                    <th scope="col" (click)="sortTable('sujetDeStage')">Sujet de stage<i class="fa" [ngClass]="getSortIcon('sujetDeStage')"></i></th>
+                    <th scope="col" (click)="sortTable('département')">Département<i class="fa" [ngClass]="getSortIcon('département')"></i></th>
+                    <th scope="col" (click)="sortTable('nomEncadrant')">Nom de l’encadrant<i class="fa" [ngClass]="getSortIcon('nomEncadrant')"></i></th>
+                    <th scope="col" (click)="sortTable('ecoleUniversité')">Université<i class="fa" [ngClass]="getSortIcon('ecoleUniversité')"></i></th>
+                    <th scope="col" (click)="sortTable('durée')">Durée<i class="fa" [ngClass]="getSortIcon('durée')"></i></th>
+                    <th scope="col" (click)="sortTable('status')">Status<i class="fa" [ngClass]="getSortIcon('status')"></i></th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let stagiaire of paginatedStagiaires; let i = index">
+                    <td>{{ stagiaire.matricule }}</td>
+                    <td>{{ stagiaire.nom }}</td>
+                    <td>{{ stagiaire.prenom }}</td>
+                    <td>{{ stagiaire.cin }}</td>
+                    <td>{{ stagiaire.sujetDeStage }}</td>
+                    <td>{{ stagiaire['département'] }}</td>
+                    <td>{{ stagiaire.nomEncadrant }}</td>
+                    <td>{{ stagiaire['ecoleUniversité'] }}</td>
+                    <td>{{ stagiaire['durée'] }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="{ 'bg-light': stagiaire.status === 'Terminé','bg-success': stagiaire.status === 'Complete',
+                      'bg-warning': stagiaire.status === 'En progression',
+                      }">{{stagiaire.status}}</span>
+                    </td>
+                    <td>
+                      <a class="view" title="Viewa" (click)="viewStagiaires(stagiaire)">
+                        <i class="material-icons">&#xE417;</i>
+                      </a>
+                      <a class="edit" title="Edit" data-toggle="tooltip" (click)="editStagiaires(stagiaire)">
+                        <i class="material-icons">&#xE254;</i>
+                      </a>
+                      <a class="delete" title="Delete" data-toggle="tooltip" (click)="deleteStagiaires(stagiaire)"><i class="material-icons">&#xE872;</i></a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="row entries-page">
+          <div class="col-lg-6 d-flex align-items-center">
+            <label for="entriesPerPage" class="me-2">Show</label>
+            <select id="entriesPerPage" class="form-select w-auto" [(ngModel)]="entriesPerPage" (change)="onEntriesPerPageChange()">
+              <option *ngFor="let size of [10, 15, 25, 50, 100]" [value]="size">{{ size }}</option>
+            </select>
+            <label for="entriesPerPage" class="ms-2">entries</label>
+          </div>
+          <div class="col-lg-6 d-flex justify-content-end">
+            <ul class="pagination pagination-rounded mt-2 mb-5">
+              <li class="page-item" [class.disabled]="page <= 1">
+                <a class="page-link" (click)="onPageChange(page - 1)" aria-label="Previous">Previous</a>
+              </li>
+              <li class="page-item" *ngFor="let pg of totalPagesArray; let i = index" [class.active]="pg === page">
+                <a class="page-link" (click)="onPageChange(pg)">{{ pg }}</a>
+              </li>
+              <li class="page-item" [class.disabled]="page >= totalPages">
+                <a class="page-link" (click)="onPageChange(page + 1)" aria-label="Next">Next</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

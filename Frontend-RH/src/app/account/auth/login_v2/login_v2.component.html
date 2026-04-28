@@ -1,0 +1,29 @@
+<body>
+  <img src="../../../../assets/images/logoX.png" alt="Icon Image">
+  <section>
+    <form>
+      <h1>Login</h1>
+      <div class="inputbox">
+        <input type="email" [(ngModel)]="email"   name="emails" placeholder="Emails" required>
+        <label  >Email</label>
+      </div>
+      <div class="inputbox">
+        <input type="password" [(ngModel)]="password" name="passwords" placeholder="Passwords" required>
+        <label >Password</label>
+      </div>
+
+      <div class="forget">
+
+        <label>
+          <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe"> Remember Me
+        </label>
+        <a href="#">Forgot Password</a>
+
+      </div>
+
+      <button type="submit" (click)="login()">Log in</button>
+
+    </form>
+  </section>
+
+</body>

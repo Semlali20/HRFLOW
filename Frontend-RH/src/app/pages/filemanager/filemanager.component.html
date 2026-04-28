@@ -1,0 +1,103 @@
+<div class="container-fluid position-relative">
+  <app-page-title title="File Manager" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+  <app-loader></app-loader>
+
+  <div class="d-xl-flex">
+    <div class="w-100">
+      <div class="d-md-flex">
+        <div class="card filemanager-sidebar me-md-2">
+          <div class="card-body">
+            <div class="d-flex flex-column h-100">
+              <div class="mb-4">
+                <div class="mb-3">
+                  <div class="dropdown" dropdown>
+                    <a href="/UploadsCv" class="btn btn-light dropdown-toggle w-100" role="button" aria-haspopup="true" aria-expanded="false">
+                      <i class="mdi mdi-folder-upload"></i> Upload File
+                    </a>
+                  </div>
+                  <button (click)="deleteAllFiles()" class="btn btn-danger mt-2 w-100">
+                    <i class="mdi mdi-delete me-1"></i> Delete All
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- filemanager-leftsidebar -->
+
+        <div class="w-100 position-relative">
+          <div *ngIf="isLoading" class="loading-overlay">
+            <div class="loading-spinner"></div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div>
+                <div class="row mb-3">
+                  <div class="col-xl-3 col-sm-6">
+                    <div class="mt-2">
+                      <h5>My CV's</h5>
+                    </div>
+                  </div>
+                  <div class="col-xl-9 col-sm-6">
+                    <form (ngSubmit)="searchFiles()" class="mt-4 mt-sm-0 float-sm-end d-flex align-items-center">
+                      <div class="search-box mb-2 me-2">
+                        <div class="position-relative">
+                          <input type="text" class="form-control bg-light border-light rounded" placeholder="Search..."
+                            [(ngModel)]="searchKeyword" name="searchKeyword" (keyup)="searchFiles()" (keyup.enter)="searchFiles()">
+                          <i class="bx bx-search-alt search-icon" (click)="searchFiles()"></i>
+                        </div>
+                      </div>
+
+                      <div class="dropdown mb-0" dropdown>
+                        <a class="btn btn-link text-muted dropdown-toggle mt-n2" dropdownToggle role="button" data-toggle="dropdown" aria-haspopup="true">
+                          <i class="mdi mdi-dots-vertical font-size-20"></i>
+                        </a>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <!-- end row -->
+              </div>
+
+              <div class="mt-4">
+                <hr class="mt-2">
+                <div class="table-responsive">
+                  <table class="table align-middle table-nowrap table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Date modified</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let file of files" (dblclick)="openFile(file.name)">
+                        <td>
+                          <a href="javascript: void(0);" class="text-dark fw-medium">
+                            <i [class]="getFileIcon(file.name)"></i> {{ file.name }}
+                          </a>
+                        </td>
+                        <td>{{ file.dateModified }}</td>
+                        <td>
+                          <div class="delete">
+                            <a class="delete" title="Delete" data-toggle="tooltip" (click)="deleteFile(file.name)">
+                              <i class="material-icons">&#xE872;</i>
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- end card -->
+        </div>
+        <!-- end w-100 -->
+      </div>
+    </div>
+  </div>
+  <!-- end row -->
+</div>

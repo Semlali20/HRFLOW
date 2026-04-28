@@ -1,0 +1,91 @@
+<div
+  style="
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    width: 100%;
+    height: 100%;
+  "
+>
+  <div class="card mini-stats-wid" style="width: 100%">
+    <div
+      class="card-body"
+      style="
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        gap: 8px;
+      "
+    >
+        <div class="d-flex">
+          <div class="flex-grow-1">
+            <p class="text-muted fw-medium">collaborateurs</p>
+            <h4 class="mb-0">{{totalCollaborateurs}}</h4>
+          </div>
+          <div class="flex-shrink-0 align-self-center">
+            <div class="mini-stat-icon avatar-sm rounded-circle bg-primary">
+              <span class="avatar-title">
+                <i class="bx bx-user font-size-24"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+        style="
+          background-color: rgb(220, 225, 245);
+          border-radius: 8px;
+          padding: 10px 27px;
+          font-weight: 600;
+          display: flex;
+          justify-content: space-between;
+        "
+      >
+        <a href="/collaborateur" class="text-primary">Voir tous les collaborateurs</a>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#556EE6" class="bi bi-list-nested" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M4.5 11.5A.5.5 0 0 1 5 11h10a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5m-2-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m-2-4A.5.5 0 0 1 1 3h10a.5.5 0 0 1 0 1H1a.5.5 0 0 1-.5-.5"/>
+        </svg>
+      </div>
+    </div>
+    <!-- end card-body -->
+  </div>
+  <!-- end card -->
+  <div class="card mini-stats-wid" style="width: 100%">
+    <div class="card-body" style="
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+  ">
+      <div class="d-flex" style="">
+        <div class="flex-grow-1">
+          <p  class="text-muted fw-medium">Stagiaires</p>
+          <h4 class="mb-0">{{totalStagiares}}</h4>
+        </div>
+        <div class="flex-shrink-0 align-self-center">
+          <div class="mini-stat-icon avatar-sm rounded-circle bg-primary">
+            <span class="avatar-title">
+              <i class="bx bx-user font-size-24"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+      style="
+        background-color: rgb(220, 225, 245);
+        border-radius: 8px;
+        padding: 10px 27px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+      "
+    >
+      <a href="/stagiaires/list" class="text-primary">Voir tous les stagiaires</a>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#556EE6" class="bi bi-list-nested" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M4.5 11.5A.5.5 0 0 1 5 11h10a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5m-2-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m-2-4A.5.5 0 0 1 1 3h10a.5.5 0 0 1 0 1H1a.5.5 0 0 1-.5-.5"/>
+      </svg>
+    </div>
+    </div>
+    <!-- end card-body -->
+  </div>
+  <!-- end card -->
+</div>

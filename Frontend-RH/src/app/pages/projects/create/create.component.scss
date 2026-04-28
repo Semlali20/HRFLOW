@@ -1,0 +1,77 @@
+.custom-day {
+    text-align: center;
+    padding: 0.185rem 0.25rem;
+    display: inline-block;
+    height: 2rem;
+    width: 2rem;
+}
+
+.custom-day.focused {
+    background-color: #e6e6e6;
+}
+
+.custom-day.range,
+.custom-day:hover {
+    background-color: #556ee6;
+    color: white;
+}
+
+.custom-day.faded {
+    background-color: #556ee6;
+}
+.avatar-title {
+  width: 80px;
+  height: 80px;
+  position: fixed;
+
+}
+
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%; /* Transforme l'image en cercle */
+
+}
+.form-check-input {
+  margin-top: 0.3rem;
+  margin-left: 1rem;
+}
+.form-check-label {
+  margin-left: 0.5rem;
+}
+
+/* Custom styles for ng-select */
+.ng-select {
+  --ng-select-bg-color: #fff;
+  --ng-select-border-color: #ccc;
+  --ng-select-border-radius: 4px;
+  --ng-select-selected-item-bg-color: #f0f0f0;
+}
+
+/* Styling the dropdown panel */
+.ng-dropdown-panel {
+  border-color: var(--ng-select-border-color);
+  border-radius: var(--ng-select-border-radius);
+}
+
+/* Styling the selected items */
+.ng-value {
+  background-color: var(--ng-select-selected-item-bg-color);
+}
+.custom-ng-select .ng-select-container {
+  background-color: white; /* Set background color to white */
+  color: black;            /* Optional: change font color if needed */
+}
+
+.custom-ng-select .ng-dropdown-panel {
+  background-color: white; /* Ensure dropdown panel is also white */
+}
+::ng-deep .custom-ng-select .ng-select-container {
+  background-color: white;
+}
+
+::ng-deep .custom-ng-select .ng-dropdown-panel {
+  background-color: white;
+}

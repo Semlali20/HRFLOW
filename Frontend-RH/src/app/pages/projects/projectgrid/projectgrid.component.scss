@@ -1,0 +1,248 @@
+$primary-color: #007bff;
+$hover-color: #5a5a5a;
+$background-color: #f8f9fa;
+$text-color: #343a40;
+$light-gray: #ccc;
+$dark-gray: #333;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  max-width: 960px;
+  margin: 20px auto;
+  background-color: $background-color;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.top-section, .profile-info, .document-section {
+  margin-bottom: 20px;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center; // Center the content horizontally
+  justify-content: flex-start; // Align contents to the left
+  padding: 20px;
+
+  .profile-pic-name {
+    display: flex;
+    align-items: center; // Ensure icon and image are aligned at their centers
+    gap: 8px; // Creates space between the icon and the image
+
+    img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid $hover-color;
+    }
+
+    .image-edit-icon {
+      font-size: 24px; // Adjust icon size as needed
+      color: $hover-color;
+      cursor: pointer;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: $hover-color; // Change color on hover
+      }
+    }
+  }
+}
+
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+
+  label {
+    font-size: 0.9rem;
+    color: $dark-gray;
+  }
+
+  input, span {
+    padding: 8px;
+    border: 1px solid $light-gray;
+    border-radius: 4px;
+    transition: all 0.3s;
+
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 8px rgba($primary-color, 0.2);
+    }
+  }
+}
+
+button[type="submit"] {
+  align-self: flex-end;
+  padding: 10px 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+    margin: 10px auto;
+  }
+
+  .top-section {
+    flex-direction: column;
+  }
+
+  .image-container, .status-container {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.profile-info, .document-section {
+  animation: fadeIn 0.5s ease-out;
+}
+.image-change-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  background-color: $primary-color;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  i {
+    margin-right: 5px; // Adds spacing between the icon and text
+  }
+
+  &:hover {
+    background-color: $hover-color;
+  }
+}
+  .status-container {
+    display: fixed;
+    align-items: center;
+    position:absolute;
+    right: 21%;
+    top: 18%;
+
+    .status-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+   /* Status Menu Styles */
+.status-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: white;
+  border: 1px solid #ccc;
+  position: absolute;
+  top: 30px; /* Position below the status circle */
+  left: 0;
+  z-index: 1000;
+
+  li {
+    padding: 8px 15px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  }
+}
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+
+    label {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    select {
+      padding: 8px 10px;
+      font-size: 1rem;
+      overflow: hidden;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: white;
+      -webkit-appearance: none; /* Removes default styling on WebKit browsers like Chrome and Safari */
+      -moz-appearance: none;    /* Removes default styling on Firefox */
+      appearance: none;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24"><path stroke="%23333" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"></path></svg>'); /* Custom arrow icon */
+      background-repeat: no-repeat;
+      background-position: right 10px center; /* Position the icon on the right */
+      background-size: 10px; /* Icon size */
+      transition: border-color 0.3s;
+
+      &:hover {
+        border-color: #888; /* Hover effect on border */
+      }
+
+      &:focus {
+        border-color: #0056b3;
+        outline: none;
+      }
+    }
+  }
+  .valid-doc {
+    color: green;
+}
+
+.invalid-section {
+  margin-bottom: 10px;
+}
+
+.invalid-documents {
+  list-style: none;
+  padding: 0;
+}
+
+.invalid-documents li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+}
+
+.form-check-input {
+  margin-right: 5px;
+}
+
+/* Button Styles */
+.update-btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.update-btn:hover {
+  background-color: #0056b3;
+}

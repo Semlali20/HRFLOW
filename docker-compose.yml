@@ -1,0 +1,169 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: rh-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-rhmanager}
+      POSTGRES_USER:     ${POSTGRES_USER:-rhuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rhpassword}
+      PGDATA:            /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - rh-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rhuser} -d ${POSTGRES_DB:-rhmanager}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Elasticsearch ───────────────────────────────────────────────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    container_name: rh-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type:          single-node
+      xpack.security.enabled:  "false"
+      ES_JAVA_OPTS:            "-Xms512m -Xmx512m"
+      bootstrap.memory_lock:   "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    networks:
+      - rh-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Spring Boot Backend ─────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./Backend-RH
+      dockerfile: Dockerfile
+    image: rh-backend:latest
+    container_name: rh-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      # ── Database ──────────────────────────────────────────────────────────
+      SPRING_DATASOURCE_URL:                  jdbc:postgresql://postgres:5432/${POSTGRES_DB:-rhmanager}
+      SPRING_DATASOURCE_USERNAME:             ${POSTGRES_USER:-rhuser}
+      SPRING_DATASOURCE_PASSWORD:             ${POSTGRES_PASSWORD:-rhpassword}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME:    org.postgresql.Driver
+
+      # ── JPA / Hibernate ───────────────────────────────────────────────────
+      # IMPORTANT: use 'update' in Docker — 'create-drop' destroys data on restart
+      SPRING_JPA_HIBERNATE_DDL_AUTO:          ${DDL_AUTO:-update}
+      SPRING_JPA_SHOW_SQL:                    "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
+      # ── Elasticsearch ─────────────────────────────────────────────────────
+      SPRING_ELASTICSEARCH_REST_URIS:         http://elasticsearch:9200
+      ELASTICSEARCH_HOST:                     elasticsearch
+      ELASTICSEARCH_PORT:                     "9200"
+
+      # ── Server ────────────────────────────────────────────────────────────
+      SERVER_PORT: "8090"
+
+      # ── JWT ───────────────────────────────────────────────────────────────
+      INNOVX_APP_JWTSECRET:       ${JWT_SECRET:-======================Innovx=Spring===========================}
+      INNOVX_APP_JWTEXPIRATIONMS: ${JWT_EXPIRATION_MS:-86400000}
+
+      # ── CORS ──────────────────────────────────────────────────────────────
+      # Allow requests from Nginx (frontend), localhost, and any custom domain
+      APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost,http://localhost:80,http://localhost:4200}
+
+      # ── Logging ───────────────────────────────────────────────────────────
+      LOGGING_LEVEL_ROOT:                         ${LOG_LEVEL:-INFO}
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:          ${LOG_LEVEL:-INFO}
+      LOGGING_LEVEL_ORG_HIBERNATE:                ${LOG_LEVEL:-INFO}
+      LOGGING_LEVEL_COM_INNOVX_GESTIONRH:         ${APP_LOG_LEVEL:-DEBUG}
+
+      # ── Email (SMTP) ──────────────────────────────────────────────────────
+      SPRING_MAIL_HOST:     ${SMTP_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT:     ${SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SMTP_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
+
+      # ── File Storage ──────────────────────────────────────────────────────
+      FILE_UPLOAD_PATH:    /app/uploads
+      FILE_CV_PATH:        /app/uploads/cv
+      FILE_STORED_CVS:     /app/stored-cvs
+    volumes:
+      - uploads-data:/app/uploads
+      - stored-cvs-data:/app/stored-cvs
+    ports:
+      # Port 8090 is exposed so the Angular app (which currently hardcodes
+      # localhost:8090) can reach the API during development/transition.
+      # Once environment.prod.ts is updated to use relative URLs (/api/...),
+      # remove this mapping and rely solely on Nginx proxying.
+      - "${BACKEND_PORT:-8090}:8090"
+    networks:
+      - rh-network
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8090 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # ── Angular Frontend (Nginx) ────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./Frontend-RH
+      dockerfile: Dockerfile
+    image: rh-frontend:latest
+    container_name: rh-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - rh-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+# ── Networks ────────────────────────────────────────────────────────────────
+networks:
+  rh-network:
+    driver: bridge
+    name: rh-network
+
+# ── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+    name: rh-postgres-data
+  elasticsearch-data:
+    name: rh-elasticsearch-data
+  uploads-data:
+    name: rh-uploads-data
+  stored-cvs-data:
+    name: rh-stored-cvs-data

@@ -1,0 +1,45 @@
+<div class="profile-page">
+  <header class="profile-header">
+    <h1>Profil Utilisateur</h1>
+  </header>
+  <div class="profile-content">
+    <div class="profile-section profile-info">
+      <div class="profile-item">
+        <mat-icon>person</mat-icon>
+        <span>{{ firstName }} {{ lastName }}</span>
+      </div>
+      <div class="profile-item">
+        <mat-icon>email</mat-icon>
+        <span>{{ email }}</span>
+      </div>
+      <div class="profile-item">
+        <mat-icon>work</mat-icon>
+        <span>{{ title }}</span>
+      </div>
+    </div>
+    <div class="profile-section profile-actions">
+      <button *ngIf="isAdmin()" mat-raised-button color="primary" (click)="createUser()">Créer un utilisateur</button>
+      <button mat-raised-button color="accent" (click)="editPassword()">Modifier le mot de passe</button>
+    </div>
+  </div>
+</div>
+<div class="profile-charts" [ngSwitch]="userRole">
+    <div class="chart" *ngSwitchCase="'ADMIN'">
+        <h2>Graphique en Barres pour le Type de Stage</h2>
+        <apx-chart [series]="typeDeStageOptions.series" [chart]="typeDeStageOptions.chart" [xaxis]="typeDeStageOptions.xaxis" [yaxis]="typeDeStageOptions.yaxis" [title]="typeDeStageOptions.title"></apx-chart>
+      </div>
+      <div class="chart" *ngSwitchCase="'ADMIN'">
+        <h2>Histogramme pour l'Âge des Collaborateurs</h2>
+        <apx-chart [series]="ageDesCollaborateursOptions.series" [chart]="ageDesCollaborateursOptions.chart" [xaxis]="ageDesCollaborateursOptions.xaxis" [yaxis]="ageDesCollaborateursOptions.yaxis" [title]="ageDesCollaborateursOptions.title"></apx-chart>
+      </div>
+    <div class="chart" *ngSwitchCase="'STAGIAIRE_RH'">
+      <h2>Graphique en Barres pour le Type de Stage</h2>
+      <apx-chart [series]="typeDeStageOptions.series" [chart]="typeDeStageOptions.chart" [xaxis]="typeDeStageOptions.xaxis" [yaxis]="typeDeStageOptions.yaxis" [title]="typeDeStageOptions.title"></apx-chart>
+    </div>
+    <div class="chart" *ngSwitchCase="'COLLABORATEUR_RH'">
+      <h2>Histogramme pour l'Âge des Collaborateurs</h2>
+      <apx-chart [series]="ageDesCollaborateursOptions.series" [chart]="ageDesCollaborateursOptions.chart" [xaxis]="ageDesCollaborateursOptions.xaxis" [yaxis]="ageDesCollaborateursOptions.yaxis" [title]="ageDesCollaborateursOptions.title"></apx-chart>
+    </div>
+  </div>
+
+

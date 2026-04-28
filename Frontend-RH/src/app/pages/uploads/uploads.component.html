@@ -1,0 +1,38 @@
+<div class="container-fluid">
+  <app-loader></app-loader>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title">File Import</div>
+          <p class="card-title-desc">Import Word, PDF, or Image files.</p>
+          <div>
+            <ngx-dropzone class="dropzone" (change)="onSelect($event)" [accept]="'.pdf,.docx,image/*'">
+              <ngx-dropzone-label class="dz-message needsclick">
+                <div class="mb-3">
+                  <i class="display-4 text-muted bx bxs-cloud-upload"></i>
+                </div>
+                <h5>Drop files here or click to upload.</h5>
+              </ngx-dropzone-label>
+            </ngx-dropzone>
+            <div *ngIf="files.length">
+              <ul class="list-group mt-3">
+                <li *ngFor="let file of files; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ file.name }}
+                  <button type="button" class="btn btn-danger btn-sm" (click)="onRemove(i)">Remove</button>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-primary" (click)="uploadFiles()" [disabled]="isLoading || !files.length">
+              <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Send Files
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

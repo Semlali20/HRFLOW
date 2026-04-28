@@ -1,0 +1,43 @@
+<div class="container">
+  <app-loader></app-loader>
+
+  <div class="col-lg-12 right">
+    <div class="box shadow-sm rounded bg-white mb-3">
+      <div class="box-title border-bottom p-3">
+        <h6 class="m-0">Recent</h6>
+      </div>
+      <div class="box-body p-0">
+        <div class="notification-item p-3 d-flex align-items-center border-bottom"
+             *ngFor="let notification of (showAllNotifications ? notifications : notifications.slice(0, 5))">
+          <div class="notification-icon mr-3">
+            <i *ngIf="notification.type === 'birthday'" class="mdi mdi-cake rounded-circle"></i>
+            <i *ngIf="notification.type === 'meeting'" class="mdi mdi-calendar rounded-circle"></i>
+          </div>
+          <div class="notification-content flex-grow-1">
+            <div class="font-weight-bold text-truncate">{{ notification.title }}</div>
+            <div class="small text-muted text-center">{{ notification.message }}</div>
+          </div>
+          <div class="notification-date text-right text-muted ml-auto">
+            {{ notification.date }}
+          </div>
+          <span class="ml-auto mb-auto">
+            <div class="btn-group">
+              <button type="button" class="btn btn-light btn-sm rounded" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="mdi mdi-dots-vertical"></i>
+              </button>
+              <div class="dropdown-menu dropdown-menu-right">
+                <button class="dropdown-item" type="button"><i class="mdi mdi-delete"></i> Delete</button>
+                <button class="dropdown-item" type="button"><i class="mdi mdi-close"></i> Turn Off</button>
+              </div>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div class="text-center p-3" *ngIf="notifications.length > 5">
+        <button class="btn btn-primary" (click)="toggleNotifications()">
+          {{ showAllNotifications ? 'Voir moins' : 'Voir plus' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

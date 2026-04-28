@@ -1,0 +1,115 @@
+
+
+<div class="profile-container">
+  <app-loader></app-loader>
+
+  <div *ngIf="Stagiaires" class="header">
+      <div class="profile-pic-name">
+        <img [src]="Stagiaires.photo" alt="Profile Picture"
+        [ngStyle]="{'border-color': getStatusColor(Stagiaires.status)}">
+          <div class="name-info">
+              <div class="name">{{ Stagiaires.nom }} {{ Stagiaires.prenom }}</div> <!-- Full name is now combined -->
+          </div>
+      </div>
+      <div >
+        <div [ngStyle]="{
+                'background-color': getStatusColor(Stagiaires.status),
+                'border-radius': '50%',
+                'width': '20px',
+                'height': '20px',
+                'display': 'inline-block'
+            }"></div>
+
+    </div>
+  </div>
+
+  <div *ngIf="Stagiaires" class="profile-info">
+      <div class="info-item">Nom: <span class="highlight">{{ Stagiaires.nom }}</span></div>
+      <div class="info-item">Prenom: <span class="highlight">{{ Stagiaires.prenom }}</span></div>
+      <div class="info-item">Cin: <span>{{ Stagiaires.cin }}</span></div>
+      <div class="info-item">Department: <span>{{ Stagiaires ['département']}}</span></div>
+      <div class="info-item">sujet De Stage: <span>{{ Stagiaires.sujetDeStage }}</span></div>
+      <div class="info-item">Nom Encadrant: <span>{{ Stagiaires.nomEncadrant }}</span></div>
+      <div class="info-item">Université: <span> {{ Stagiaires['ecoleUniversité'] }}</span></div>
+      <div class="info-item">type De Stag: <span>{{ Stagiaires.typeDeStage }}</span></div>
+      <div class="info-item">date Début Stage: <span>{{ Stagiaires['dateDébutStage'] | date: 'yyyy-MM-dd' }}</span></div>
+      <div class="info-item">date Fin Stage: <span>{{Stagiaires['dateFinStage'] | date: 'yyyy-MM-dd'}}</span></div>
+      <div class="info-item">durée: <span>{{Stagiaires['durée']}} MOINS</span></div>
+  </div>
+
+  <div class="documents-card">
+    <div class="doc-count" >Dossier Stagiaire:</div>
+    <div *ngIf="Stagiaires" class="statistics">
+        <div  class="stat-item green" >
+            <p>Nombre de fichiers valides :</p>
+            <h4 class="mb-2">{{ Stagiaires.totalValidDocuments}}</h4>
+        </div>
+        <div class="stat-item red">
+            <p>Nombre de fichiers invalides :</p>
+            <h4 class="mb-2">{{ Stagiaires.totalNotValidDocuments}}</h4>
+        </div>
+
+          <div class="document-lists">
+            <div class="document-section valid-section">
+                <p>Nombre de fichiers valides:</p>
+                <ul class="valid-documents">
+                    <li *ngFor="let doc of validDocuments">{{ doc.name }}</li>
+                </ul>
+            </div>
+          </div>
+            <div class="document-lists">
+            <div class="document-section invalid-section">
+                <p>Nombre de fichiers non valides:</p>
+                <ul class="invalid-documents">
+                    <li *ngFor="let doc of notValidDocuments">{{ doc.name }}</li>
+                </ul>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+
+  <div class="alerts" *ngIf="Stagiaires">
+    <div class="meeting-list">
+      <h2>Liste des réunions :</h2>
+      <div class="meeting-item">
+        <div class="meeting-date">{{ Stagiaires.accueilRhDate | date:'dd/MM/yyyy' }}</div>
+        <div class="meeting-info">
+          <span class="status-indicator"></span>
+          <span class="meeting-title">Accueil RH</span>
+          <span class="icon-open"><i class="fas fa-external-link-alt"></i></span>
+        </div>
+      </div>
+      <div class="meeting-item">
+        <div class="meeting-date">{{ Stagiaires.pointStagiaires7DaysDate | date:'dd/MM/yyyy' }}</div>
+        <div class="meeting-info">
+          <span class="status-indicator"></span>
+          <span class="meeting-title">Point stagiaires (7 jours)</span>
+          <span class="icon-open"><i class="fas fa-external-link-alt"></i></span>
+        </div>
+      </div>
+      <div class="meeting-item">
+        <div class="meeting-date">{{ Stagiaires.pointStagiaires1MonthDate | date:'dd/MM/yyyy' }}</div>
+        <div class="meeting-info">
+          <span class="status-indicator"></span>
+          <span class="meeting-title">Point stagiaires (1 mois)</span>
+          <span class="icon-open"><i class="fas fa-external-link-alt"></i></span>
+        </div>
+      </div>
+      <div class="meeting-item">
+        <div class="meeting-date">{{ Stagiaires.pointStagiaires3MonthsDate | date:'dd/MM/yyyy' }}</div>
+        <div class="meeting-info">
+          <span class="status-indicator"></span>
+          <span class="meeting-title">Point stagiaires (3 mois)</span>
+          <span class="icon-open"><i class="fas fa-external-link-alt"></i></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+

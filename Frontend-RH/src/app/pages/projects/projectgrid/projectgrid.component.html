@@ -1,0 +1,78 @@
+  <div class="container">
+    <app-loader></app-loader>
+
+    <div class="top-section">
+      <div class="image-container">
+        <div class="profile-pic-name">
+          <img [src]="Stagiaires.photo" alt="Profile Image"/>
+          <i class="fas fa-edit image-edit-icon" (click)="editProfileImage()"></i>
+        </div>
+      </div>
+      <div class="status-container">
+        <div class="status-circle" [ngStyle]="{'background-color': getStatusColor(status)}" (click)="toggleStatusMenu()"></div>
+        <!-- <p> <span>{{ Stagiaires.status }}</span></p> -->
+        <ul *ngIf="showStatusMenu" class="status-menu">
+          <li *ngFor="let stat of statuses" (click)="changeStatus(stat)">
+            {{ stat }}
+          </li>
+        </ul>
+      </div>
+
+
+    <div *ngIf="Stagiaires" class="profile-info">
+      <form (ngSubmit)="updateStagiaire()">
+          <!-- Dynamically filled form inputs -->
+          <div class="info-item" *ngFor="let field of ['nom', 'prenom', 'cin', 'département', 'sujetDeStage', 'nomEncadrant', 'ecoleUniversité']">
+              <label>{{ field | titlecase }}:</label>
+              <input type="text" [(ngModel)]="Stagiaires[field]" name="{{ field }}">
+          </div>
+          <div class="info-item">
+            <label>Type de Stage:</label>
+            <select [formControl]="typeDeStageControl" name="typeDeStage">
+                <option *ngFor="let type of typesDeStage" [value]="type">
+                    {{ type }}
+                </option>
+            </select>
+        </div>
+
+
+
+
+
+
+
+
+          <div class="info-item">
+              <label>Date Début Stage:</label>
+              <input type="date" [(ngModel)]="Stagiaires['dateDébutStage']" name="dateDebutStage">
+          </div>
+          <div class="info-item">
+              <label>Date Fin Stage:</label>
+              <input type="date" [(ngModel)]="Stagiaires['dateFinStage'] " name="dateFinStage">
+          </div>
+
+          <div class="document-lists">
+            <div class="document-section ">
+              <label style="font-size: 0.9rem; color: #333;">Nombre de fichiers non valides:</label>
+              <ul class="invalid-documents">
+                <li *ngFor="let doc of notValidDocuments">
+                  {{ doc.name }}
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="{{doc.id}}" name="{{doc.key}}" [(ngModel)]="doc.isValid" (change)="toggleDocumentValidity(doc)">
+                    <label class="form-check-label" for="{{doc.id}}">{{doc.isValid ? 'Valid' : 'Not Valid'}}</label>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+
+
+
+
+          <button type="submit" class="update-btn" (click)="updateStagiaire()">Update Info</button>
+        </form>
+    </div>
+    <!-- Hidden file input for changing profile image -->
+    <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)">
+  </div>
