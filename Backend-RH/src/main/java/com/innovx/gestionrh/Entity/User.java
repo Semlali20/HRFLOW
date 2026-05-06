@@ -9,36 +9,48 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users",
+       uniqueConstraints = @UniqueConstraint(name = "uk_users_email", columnNames = "email"))
 @SQLRestriction("is_deleted = false")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
+@ToString(exclude = {"roles", "collaborateur"})
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "firstName")
+    @Version
+    private Long version;
+
+    @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
-    @Column(name = "lastName")
+    @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email", nullable = false, length = 150)
     private String email;
 
-    @Column(name = "title")
+    @Column(name = "title", length = 100)
     private String title;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "lastPasswordChange")
+    @Column(name = "last_password_change")
     private LocalDateTime lastPasswordChange;
 
+    @Column(name = "must_change_password")
+    @Builder.Default
+    private boolean mustChangePassword = true;
+
+    @Column(name = "is_deleted", nullable = false)
     @Builder.Default
     private boolean isDeleted = false;
 
@@ -50,4 +62,8 @@ public class User {
     )
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
+    /** Linked employee record — null if this user is an HR/admin with no employee profile. */
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private Collaborateurs collaborateur;
 }

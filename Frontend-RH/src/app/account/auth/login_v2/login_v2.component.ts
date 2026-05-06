@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { AuthenticationService } from '../../../../app/core/services/auth.service';
+import { AuthenticationService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login-v2',
@@ -8,60 +9,86 @@ import { AuthenticationService } from '../../../../app/core/services/auth.servic
   styleUrls: ['./login_v2.component.scss']
 })
 export class LoginComponent1 implements OnInit {
-  email: string;
-  password: string;
+  email: string = '';
+  password: string = '';
   rememberMe: boolean = false;
+  showPwd: boolean = false;
+  isLoading: boolean = false;
 
-  constructor(private authService: AuthenticationService) {}
+  constructor(
+    private authService: AuthenticationService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    // Redirect to dashboard if already logged in
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/']);
+      return;
+    }
 
     // Load saved credentials if "Remember Me" was checked
-    const savedEmail = localStorage.getItem('email');
-    const savedPassword = localStorage.getItem('password');
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const savedPassword = localStorage.getItem('rememberedPassword');
     if (savedEmail && savedPassword) {
       this.email = savedEmail;
       this.password = savedPassword;
       this.rememberMe = true;
     }
-
   }
 
-  async login(): Promise<void> {
-    try {
-      const user = await this.authService.loginUser(this.email, this.password);
-      console.log('Login successful', user);
-
-      // Save credentials if "Remember Me" is checked
-      if (this.rememberMe) {
-        localStorage.setItem('email', this.email);
-        localStorage.setItem('password', this.password);
-      } else {
-        localStorage.removeItem('email');
-        localStorage.removeItem('password');
-      }
-
+  login(): void {
+    if (!this.email || !this.password) {
       Swal.fire({
-        icon: 'success',
-        title: 'Login Successful',
-        text: 'You have successfully logged in!'
+        icon: 'warning',
+        title: 'Missing Fields',
+        text: 'Please enter your email and password.'
       });
-    } catch (error) {
-      console.error('Login failed', error);
-      if (error.response && error.response.status === 401) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: 'Unauthorized. Check your credentials.'
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: 'An error occurred. Please try again.'
-        });
-      }
+      return;
     }
-  }
 
+    this.isLoading = true;
+
+    this.authService.loginUser(this.email, this.password).subscribe({
+      next: (user) => {
+        this.isLoading = false;
+
+        // Save or clear remember-me credentials
+        if (this.rememberMe) {
+          localStorage.setItem('rememberedEmail', this.email);
+          localStorage.setItem('rememberedPassword', this.password);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+          localStorage.removeItem('rememberedPassword');
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Login Successful',
+          text: `Welcome back, ${user.firstname ?? ''} ${user.lastname ?? ''}!`,
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          this.router.navigate(['/']);
+        });
+      },
+      error: (error) => {
+        this.isLoading = false;
+        const status = error?.status;
+        if (status === 401 || status === 403) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: 'Invalid email or password. Please try again.'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: 'An error occurred. Please check your connection and try again.'
+          });
+        }
+      }
+    });
+  }
 }

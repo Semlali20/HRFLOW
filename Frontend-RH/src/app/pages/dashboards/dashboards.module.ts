@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { DashboardsRoutingModule } from './dashboards-routing.module';
 import { UIModule } from '../../shared/ui/ui.module';
@@ -38,8 +39,9 @@ import { SharedModule } from 'src/app/shared/shared.module';
     NgApexchartsModule,
     //SharedModule,
     SimplebarAngularModule,
-    ModalModule.forRoot()
+    ModalModule.forRoot(),
+    RouterModule,
   ],
-  providers: [BsDropdownConfig],
+  providers: [BsDropdownConfig, DatePipe],
 })
 export class DashboardsModule { }

@@ -11,6 +11,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -28,53 +29,66 @@ public class AuditAspect {
 
     private final AuditLogRepository auditLogRepository;
 
+    /**
+     * Intercepts any method annotated with @LogActivity and persists an audit entry.
+     * The log is written asynchronously so it never blocks the business transaction.
+     * Failures here are swallowed — audit logging must not break business flows.
+     */
     @AfterReturning("@annotation(com.innovx.gestionrh.annotation.LogActivity)")
     public void logActivity(JoinPoint joinPoint) {
         try {
             MethodSignature signature = (MethodSignature) joinPoint.getSignature();
             Method method = signature.getMethod();
-            LogActivity logActivity = method.getAnnotation(LogActivity.class);
+            LogActivity annotation = method.getAnnotation(LogActivity.class);
 
-            Long userId = null;
+            Long   userId    = null;
             String userEmail = "anonymous";
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl userDetails) {
-                userId = userDetails.getId();
-                userEmail = userDetails.getEmail();
+            if (auth != null && auth.isAuthenticated()
+                    && auth.getPrincipal() instanceof UserDetailsImpl ud) {
+                userId    = ud.getId();
+                userEmail = ud.getEmail();
             }
 
-            String ipAddress = extractClientIp();
-
-            String description = logActivity.description().isBlank()
+            String description = annotation.description().isBlank()
                     ? joinPoint.getSignature().getName()
-                    : logActivity.description();
+                    : annotation.description();
 
             AuditLog entry = AuditLog.builder()
                     .userId(userId)
                     .userEmail(userEmail)
-                    .action(logActivity.action())
-                    .module(logActivity.module())
+                    .action(annotation.action())
+                    .module(annotation.module())
                     .description(description)
-                    .ipAddress(ipAddress)
+                    .ipAddress(resolveClientIp())
                     .timestamp(LocalDateTime.now())
                     .build();
 
             auditLogRepository.save(entry);
+
         } catch (Exception e) {
-            log.error("Failed to record audit log", e);
+            // Audit failures must never propagate to the caller
+            log.error("Failed to record audit log for {}: {}", joinPoint.getSignature(), e.getMessage());
         }
     }
 
-    private String extractClientIp() {
+    private String resolveClientIp() {
         try {
-            ServletRequestAttributes attributes =
+            ServletRequestAttributes attrs =
                     (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            if (attributes == null) return "unknown";
-            HttpServletRequest request = attributes.getRequest();
-            String xForwardedFor = request.getHeader("X-Forwarded-For");
-            if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-                return xForwardedFor.split(",")[0].trim();
+            if (attrs == null) return "unknown";
+
+            HttpServletRequest request = attrs.getRequest();
+
+            // Respect proxy headers — take the first entry from X-Forwarded-For
+            String xff = request.getHeader("X-Forwarded-For");
+            if (xff != null && !xff.isBlank()) {
+                return xff.split(",")[0].trim();
+            }
+            String realIp = request.getHeader("X-Real-IP");
+            if (realIp != null && !realIp.isBlank()) {
+                return realIp.trim();
             }
             return request.getRemoteAddr();
         } catch (Exception e) {

@@ -1,22 +1,25 @@
 package com.innovx.gestionrh.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Getter;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@Getter
 public class BusinessException extends RuntimeException {
 
     private final String errorCode;
-
-    public BusinessException(String message) {
-        super(message);
-        this.errorCode = "BUSINESS_ERROR";
-    }
 
     public BusinessException(String errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
     }
 
-    public String getErrorCode() { return errorCode; }
+    public BusinessException(String errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    /** Convenience constructor using a generic code. */
+    public BusinessException(String message) {
+        super(message);
+        this.errorCode = "BUSINESS_ERROR";
+    }
 }

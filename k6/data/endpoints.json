@@ -1,0 +1,127 @@
+{
+  "comment": "Used by tests/endpoints-scan.js for a broad GET-only availability sweep.",
+  "groups": [
+    {
+      "name": "Auth",
+      "requiresAuth": false,
+      "endpoints": []
+    },
+    {
+      "name": "Departments",
+      "requiresAuth": true,
+      "permission": "DEPARTMENT_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/departments",           "tag": "departments-list"   },
+        { "method": "GET", "path": "/api/v1/departments/active",    "tag": "departments-active" }
+      ]
+    },
+    {
+      "name": "Positions",
+      "requiresAuth": true,
+      "permission": "POSITION_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/positions",             "tag": "positions-list"     }
+      ]
+    },
+    {
+      "name": "Employees",
+      "requiresAuth": true,
+      "permission": "EMPLOYEE_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/employees",             "tag": "employees-list"     }
+      ]
+    },
+    {
+      "name": "Interns",
+      "requiresAuth": true,
+      "permission": "INTERN_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/interns",               "tag": "interns-list"       }
+      ]
+    },
+    {
+      "name": "Leaves",
+      "requiresAuth": true,
+      "permission": "LEAVE_REQUEST",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/leaves/types",          "tag": "leave-types"        },
+        { "method": "GET", "path": "/api/v1/leaves/my",             "tag": "leave-my"           },
+        { "method": "GET", "path": "/api/v1/leaves/balance",        "tag": "leave-balance"      }
+      ]
+    },
+    {
+      "name": "Offers",
+      "requiresAuth": true,
+      "permission": "CV_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/offers",                "tag": "offers-list"        }
+      ]
+    },
+    {
+      "name": "CVs",
+      "requiresAuth": true,
+      "permission": "CV_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/cvs/applications",      "tag": "cv-applications"    }
+      ]
+    },
+    {
+      "name": "Planning",
+      "requiresAuth": true,
+      "permission": "PLANNING_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/planning",              "tag": "planning-list"      }
+      ]
+    },
+    {
+      "name": "Meetings",
+      "requiresAuth": true,
+      "permission": "MEETING_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/meetings",              "tag": "meetings-list"      }
+      ]
+    },
+    {
+      "name": "PublicHolidays",
+      "requiresAuth": true,
+      "permission": "LEAVE_REQUEST",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/public-holidays",       "tag": "holidays-list"      }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "requiresAuth": true,
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/notifications",         "tag": "notif-list"         },
+        { "method": "GET", "path": "/api/v1/notifications/unread-count", "tag": "notif-count"   }
+      ]
+    },
+    {
+      "name": "Admin",
+      "requiresAuth": true,
+      "permission": "USER_MANAGE",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/admin/users",           "tag": "admin-users"        },
+        { "method": "GET", "path": "/api/v1/admin/roles",           "tag": "admin-roles"        },
+        { "method": "GET", "path": "/api/v1/admin/roles/permissions", "tag": "admin-permissions"}
+      ]
+    },
+    {
+      "name": "Audit",
+      "requiresAuth": true,
+      "permission": "AUDIT_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/audit",                 "tag": "audit-list"         }
+      ]
+    },
+    {
+      "name": "Reports",
+      "requiresAuth": true,
+      "permission": "REPORT_READ",
+      "endpoints": [
+        { "method": "GET", "path": "/api/v1/reports/kpi",           "tag": "reports-kpi"        }
+      ]
+    }
+  ]
+}

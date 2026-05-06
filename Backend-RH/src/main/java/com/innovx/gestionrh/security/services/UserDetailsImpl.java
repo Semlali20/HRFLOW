@@ -24,12 +24,14 @@ public class UserDetailsImpl implements UserDetails {
     private final String email;
     private final String title;
     private final String roleName;
+    private final boolean mustChangePassword;
     @JsonIgnore
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(Long id, String lastname, String firstname, String email,
                            String password, String title, String roleName,
+                           boolean mustChangePassword,
                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.lastname = lastname;
@@ -38,6 +40,7 @@ public class UserDetailsImpl implements UserDetails {
         this.password = password;
         this.title = title;
         this.roleName = roleName;
+        this.mustChangePassword = mustChangePassword;
         this.authorities = authorities;
     }
 
@@ -60,6 +63,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getPassword(),
                 user.getTitle(),
                 primaryRole,
+                user.isMustChangePassword(),
                 authorities);
     }
 

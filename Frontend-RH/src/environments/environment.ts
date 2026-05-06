@@ -4,7 +4,9 @@
 
 export const environment = {
   production: false,
-  defaultauth: 'fackbackend',
+  apiUrl: 'http://localhost:8090/api/v1',
+  filesUrl: 'http://localhost:8090/api/files',
+  defaultauth: 'real',
   firebaseConfig: {
     apiKey: '',
     authDomain: '',

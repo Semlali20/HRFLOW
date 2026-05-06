@@ -15,31 +15,27 @@
     <artifactId>GestionRH</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>GestionRH</name>
-    <description>GestionRH – HRFLOW by INNOVX</description>
+    <description>HRFLOW – Enterprise HR Management by INNOVX</description>
 
     <properties>
-        <!-- Single source of truth for Java version — Spring Boot parent wires this into compiler plugin -->
         <java.version>21</java.version>
 
-        <!-- Third-party library versions not managed by Spring Boot BOM -->
+        <!-- Pinned third-party versions not managed by Spring Boot BOM -->
         <jjwt.version>0.11.5</jjwt.version>
         <springdoc.version>2.8.3</springdoc.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <lombok.version>1.18.32</lombok.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <poi.version>5.2.5</poi.version>
         <itext7.version>7.2.5</itext7.version>
         <pdfbox.version>2.0.32</pdfbox.version>
         <tika.version>2.9.2</tika.version>
-        <tess4j.version>5.11.0</tess4j.version>
-        <google-api-client.version>2.4.0</google-api-client.version>
-        <google-cloud-vision.version>3.43.0</google-cloud-vision.version>
-        <microsoft-graph.version>6.5.1</microsoft-graph.version>
-        <sib-sdk.version>7.0.0</sib-sdk.version>
-        <mailersend.version>1.0.0</mailersend.version>
     </properties>
 
     <dependencies>
 
         <!-- ================================================ -->
-        <!-- SPRING BOOT STARTERS (versions from BOM)         -->
+        <!-- SPRING BOOT STARTERS                             -->
         <!-- ================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -71,14 +67,14 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
+            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
-        <!-- Dev tools (hot reload, excluded from production build) -->
+        <!-- Dev tools (hot reload) – excluded from production build -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -108,32 +104,16 @@
         </dependency>
 
         <!-- ================================================ -->
-        <!-- DATABASE DRIVERS (versions from BOM)             -->
+        <!-- DATABASE — PostgreSQL only                        -->
         <!-- ================================================ -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
 
         <!-- ================================================ -->
-        <!-- ELASTICSEARCH — Legacy High-Level REST Client     -->
-        <!-- Keep for backward-compat with existing services  -->
-        <!-- ================================================ -->
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>7.17.25</version>
-        </dependency>
-
-        <!-- ================================================ -->
-        <!-- API DOCUMENTATION — springdoc (replaces springfox) -->
-        <!-- springfox 3.0.0 is incompatible with Spring Boot 3 -->
+        <!-- API DOCUMENTATION — springdoc-openapi            -->
         <!-- ================================================ -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -142,9 +122,18 @@
         </dependency>
 
         <!-- ================================================ -->
+        <!-- MAPPING — MapStruct                              -->
+        <!-- ================================================ -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!-- ================================================ -->
         <!-- DOCUMENT & FILE PROCESSING                       -->
         <!-- ================================================ -->
-        <!-- Apache POI — Excel reports -->
+        <!-- Apache POI — Excel reports & import -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
@@ -156,7 +145,7 @@
             <version>${poi.version}</version>
         </dependency>
 
-        <!-- iText 7 — PDF reports -->
+        <!-- iText 7 — PDF generation -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itext7-core</artifactId>
@@ -164,71 +153,32 @@
             <type>pom</type>
         </dependency>
 
-        <!-- Apache PDFBox — PDF processing -->
+        <!-- Apache PDFBox — PDF text extraction from CVs -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>${pdfbox.version}</version>
         </dependency>
 
-        <!-- Apache Tika — file-type detection -->
+        <!-- Apache Tika — file-type detection & text extraction -->
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
             <version>${tika.version}</version>
         </dependency>
-
-        <!-- Tess4J — OCR -->
         <dependency>
-            <groupId>net.sourceforge.tess4j</groupId>
-            <artifactId>tess4j</artifactId>
-            <version>${tess4j.version}</version>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers-standard-package</artifactId>
+            <version>${tika.version}</version>
         </dependency>
 
         <!-- ================================================ -->
-        <!-- GOOGLE & MICROSOFT INTEGRATIONS                  -->
-        <!-- ================================================ -->
-        <dependency>
-            <groupId>com.google.api-client</groupId>
-            <artifactId>google-api-client</artifactId>
-            <version>${google-api-client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-vision</artifactId>
-            <version>${google-cloud-vision.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.apis</groupId>
-            <artifactId>google-api-services-slides</artifactId>
-            <version>v1-rev20210322-1.31.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.graph</groupId>
-            <artifactId>microsoft-graph</artifactId>
-            <version>${microsoft-graph.version}</version>
-        </dependency>
-
-        <!-- ================================================ -->
-        <!-- EMAIL SERVICE SDKs                               -->
-        <!-- ================================================ -->
-        <dependency>
-            <groupId>com.sendinblue</groupId>
-            <artifactId>sib-api-v3-sdk</artifactId>
-            <version>${sib-sdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.mailersend</groupId>
-            <artifactId>java-sdk</artifactId>
-            <version>${mailersend.version}</version>
-        </dependency>
-
-        <!-- ================================================ -->
-        <!-- UTILITIES (versions managed by Spring Boot BOM)  -->
+        <!-- UTILITIES                                        -->
         <!-- ================================================ -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -238,6 +188,11 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.16.1</version>
         </dependency>
 
         <!-- ================================================ -->
@@ -270,12 +225,45 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+            <!-- Compiler: enable annotation processing for Lombok + MapStruct -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <!-- Order matters: lombok MUST precede mapstruct-processor -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>${lombok-mapstruct-binding.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <compilerArgs>
+                        <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+                <!-- Tests are enabled — set SKIP_TESTS=true in CI to override -->
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skipTests}</skipTests>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,0 +1,346 @@
+###############################################################################
+# k6 Load-Test Workflow — HRFLOW API
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers:
+#   • Smoke  → every push / PR to main or develop (fast gate, <1 min)
+#   • Load   → every merge to main (longer, ~10 min, on the real binary)
+#   • Stress → weekly on Saturday 01:00 UTC (find breaking points)
+#   • Scan   → on demand via workflow_dispatch or after deploy
+#
+# Secrets required (set in Settings → Secrets → Actions):
+#   BASE_URL           → https://api.yourapp.com  (or staging URL)
+#   ADMIN_EMAIL        → admin@innovx.com
+#   ADMIN_PASSWORD     → <prod/staging admin password>
+#   K6_CLOUD_TOKEN     → (optional) Grafana Cloud k6 token for result storage
+###############################################################################
+
+name: k6 Load Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'Backend-RH/**'
+      - 'k6/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'Backend-RH/**'
+      - 'k6/**'
+
+  # Full load test only on merge to main
+  workflow_run:
+    workflows: [ "CI — Build & Test" ]
+    branches:  [ main ]
+    types:     [ completed ]
+
+  # Manual trigger — lets you choose which profile to run
+  workflow_dispatch:
+    inputs:
+      test_profile:
+        description: 'Test profile to run'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
+          - soak
+          - spike
+          - scan
+      base_url:
+        description: 'API base URL (overrides secret)'
+        required: false
+        default: ''
+
+  # Scheduled runs
+  schedule:
+    - cron: '0 1 * * 6'   # Stress test — every Saturday at 01:00 UTC
+
+###############################################################################
+# Shared environment
+###############################################################################
+env:
+  K6_VERSION: '0.52.0'
+  WORKING_DIR: './k6'
+
+###############################################################################
+# Jobs
+###############################################################################
+jobs:
+
+  # ── 1. SMOKE ─────────────────────────────────────────────────────────────────
+  # Runs on every push/PR. If smoke fails, the pipeline stops here.
+  smoke:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_profile == 'smoke')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Determine base URL
+        id: url
+        run: |
+          URL="${{ github.event.inputs.base_url }}"
+          if [ -z "$URL" ]; then
+            URL="${{ secrets.BASE_URL }}"
+          fi
+          if [ -z "$URL" ]; then
+            URL="http://localhost:8090"
+          fi
+          echo "base_url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Run smoke test
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          BASE_URL:        ${{ steps.url.outputs.base_url }}
+          ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+          K6_CLOUD_TOKEN:  ${{ secrets.K6_CLOUD_TOKEN }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env ADMIN_EMAIL="$ADMIN_EMAIL" \
+            --env ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+            --out json=results/smoke-${{ github.run_id }}.json \
+            tests/smoke.js
+
+      - name: Upload smoke results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-results-${{ github.run_id }}
+          path: k6/results/smoke-*.json
+          retention-days: 14
+
+  # ── 2. ENDPOINT SCAN ─────────────────────────────────────────────────────────
+  # Verify all GET endpoints respond after a deploy
+  scan:
+    name: Endpoint Availability Scan
+    runs-on: ubuntu-latest
+    needs: smoke
+    if: |
+      github.event_name == 'workflow_run' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_profile == 'scan')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Run endpoint scan
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          BASE_URL:        ${{ secrets.BASE_URL }}
+          ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env ADMIN_EMAIL="$ADMIN_EMAIL" \
+            --env ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            --out json=results/scan-${{ github.run_id }}.json \
+            tests/endpoints-scan.js
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scan-results-${{ github.run_id }}
+          path: k6/results/scan-*.json
+          retention-days: 14
+
+  # ── 3. LOAD TEST ─────────────────────────────────────────────────────────────
+  # Runs after a successful CI build on main. ~10 min.
+  load:
+    name: Load Test
+    runs-on: ubuntu-latest
+    needs: smoke
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_profile == 'load')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Run load test
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          BASE_URL:        ${{ secrets.BASE_URL }}
+          ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env ADMIN_EMAIL="$ADMIN_EMAIL" \
+            --env ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+            --out json=results/load-${{ github.run_id }}.json \
+            tests/load.js
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-results-${{ github.run_id }}
+          path: k6/results/load-*.json
+          retention-days: 30
+
+      - name: Comment load results on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const files = fs.readdirSync('k6/results').filter(f => f.startsWith('load-'));
+            if (files.length === 0) return;
+            const body = `### k6 Load Test Results\n\n` +
+              `Run ID: \`${{ github.run_id }}\`\n` +
+              `Artifact: \`load-results-${{ github.run_id }}\`\n\n` +
+              `Download the artifact to inspect detailed per-endpoint metrics.`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ── 4. STRESS TEST ───────────────────────────────────────────────────────────
+  # Weekly scheduled run (Saturday 01:00 UTC) or manual dispatch
+  stress:
+    name: Stress Test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_profile == 'stress')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Run stress test
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          BASE_URL:        ${{ secrets.BASE_URL }}
+          ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env ADMIN_EMAIL="$ADMIN_EMAIL" \
+            --env ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+            --out json=results/stress-${{ github.run_id }}.json \
+            tests/stress.js
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-results-${{ github.run_id }}
+          path: k6/results/stress-*.json
+          retention-days: 90
+
+      - name: Notify on stress failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `⚠️ Weekly Stress Test FAILED — ${new Date().toISOString().split('T')[0]}`,
+              body: `The weekly k6 stress test failed on run [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).\n\nCheck the uploaded artifact for details.`,
+              labels: ['performance', 'bug']
+            });
+
+  # ── 5. SPIKE TEST ────────────────────────────────────────────────────────────
+  # Manual dispatch only — too disruptive to run automatically
+  spike:
+    name: Spike Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_profile == 'spike'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Run spike test
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          BASE_URL:        ${{ secrets.BASE_URL }}
+          ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env ADMIN_EMAIL="$ADMIN_EMAIL" \
+            --env ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+            --out json=results/spike-${{ github.run_id }}.json \
+            tests/spike.js
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spike-results-${{ github.run_id }}
+          path: k6/results/spike-*.json
+          retention-days: 30
+
+  # ── 6. SOAK TEST ─────────────────────────────────────────────────────────────
+  # Manual dispatch only — runs for ~2 hours, not suitable for regular CI
+  soak:
+    name: Soak Test (~2 h)
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_profile == 'soak'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Run soak test
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          BASE_URL:        ${{ secrets.BASE_URL }}
+          ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          k6 run \
+            --env BASE_URL="$BASE_URL" \
+            --env ADMIN_EMAIL="$ADMIN_EMAIL" \
+            --env ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+            --out json=results/soak-${{ github.run_id }}.json \
+            tests/soak.js
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soak-results-${{ github.run_id }}
+          path: k6/results/soak-*.json
+          retention-days: 90

@@ -1,0 +1,7 @@
+# Ignore all k6 output files — they can be hundreds of MB
+*.json
+*.csv
+*.gz
+
+# Keep the folder itself tracked
+!.gitignore

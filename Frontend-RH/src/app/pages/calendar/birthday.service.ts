@@ -2,17 +2,20 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import { Collaborateur } from 'src/app/core/models/hr.models';
 
 @Injectable({ providedIn: 'root' })
 export class BirthdayService {
 
-    private readonly API = 'http://localhost:8090/api/v1/Collaborateurs';
+    /** Backend endpoint: GET /Collaborateurs */
+    private readonly API = `${environment.apiUrl}/Collaborateurs`;
 
     constructor(private http: HttpClient) {}
 
-    getBirthdays(): Observable<any[]> {
-        return this.http.get<any[]>(this.API).pipe(
-            catchError(err => { console.error('Error fetching birthdays:', err); return of([]); })
+    getBirthdays(): Observable<Collaborateur[]> {
+        return this.http.get<Collaborateur[]>(this.API).pipe(
+            catchError(err => { console.error('[BirthdayService] Error fetching employees:', err); return of([]); })
         );
     }
 }

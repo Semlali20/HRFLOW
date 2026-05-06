@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 
 @Component({
   selector: 'app-projectlist',
@@ -22,14 +22,14 @@ export class ProjectlistComponent implements OnInit {
   currentSortColumn: string = '';
   currentSortOrder: 'asc' | 'desc' = 'asc';
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router, private stagiaireService: StagiaireService) {}
 
   ngOnInit(): void {
     this.fetchStagiaires();
   }
 
   fetchStagiaires(): void {
-    this.http.get<any[]>('http://localhost:8090/api/v1/stagiares').subscribe({
+    this.stagiaireService.getAll().subscribe({
       next: data => {
         this.Stagiaires = data;
         this.filteredStagiaires = this.Stagiaires;
@@ -96,7 +96,7 @@ export class ProjectlistComponent implements OnInit {
       showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, delete it!'
     }).then(result => {
       if (result.isConfirmed) {
-        this.http.delete(`http://localhost:8090/api/v1/stagiares/${stagiaire.matricule}`).subscribe({
+        this.stagiaireService.delete(stagiaire.matricule).subscribe({
           next: () => { Swal.fire('Deleted!', 'The stagiaire has been deleted.', 'success'); this.fetchStagiaires(); },
           error: () => Swal.fire('Error', 'Failed to delete stagiaire', 'error')
         });

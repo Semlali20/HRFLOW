@@ -1,53 +1,63 @@
 package com.innovx.gestionrh.Controller;
 
-import com.innovx.gestionrh.Entity.AuditLog;
-import com.innovx.gestionrh.Repository.AuditLogRepository;
+import com.innovx.gestionrh.Service.AuditService;
+import com.innovx.gestionrh.dto.response.AuditLogResponse;
+import com.innovx.gestionrh.dto.response.PagedResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/audit")
 @RequiredArgsConstructor
 public class AuditController {
 
-    private final AuditLogRepository auditLogRepository;
+    private final AuditService auditService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('AUDIT_READ')")
-    public ResponseEntity<Page<AuditLog>> getAuditLogs(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size) {
-        return ResponseEntity.ok(
-                auditLogRepository.findByOrderByTimestampDesc(
-                        PageRequest.of(page, size, Sort.by("timestamp").descending())));
+    public ResponseEntity<PagedResponse<AuditLogResponse>> findAll(
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(PagedResponse.of(auditService.findAll(pageable)));
     }
 
     @GetMapping("/user/{email}")
     @PreAuthorize("hasAuthority('AUDIT_READ')")
-    public ResponseEntity<List<AuditLog>> getByUser(@PathVariable String email) {
-        return ResponseEntity.ok(auditLogRepository.findByUserEmailOrderByTimestampDesc(email));
+    public ResponseEntity<PagedResponse<AuditLogResponse>> findByUser(
+            @PathVariable String email,
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(PagedResponse.of(auditService.findByUser(email, pageable)));
     }
 
     @GetMapping("/module/{module}")
     @PreAuthorize("hasAuthority('AUDIT_READ')")
-    public ResponseEntity<List<AuditLog>> getByModule(@PathVariable String module) {
-        return ResponseEntity.ok(auditLogRepository.findByModuleOrderByTimestampDesc(module));
+    public ResponseEntity<PagedResponse<AuditLogResponse>> findByModule(
+            @PathVariable String module,
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(PagedResponse.of(auditService.findByModule(module, pageable)));
+    }
+
+    @GetMapping("/action/{action}")
+    @PreAuthorize("hasAuthority('AUDIT_READ')")
+    public ResponseEntity<PagedResponse<AuditLogResponse>> findByAction(
+            @PathVariable String action,
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(PagedResponse.of(auditService.findByAction(action, pageable)));
     }
 
     @GetMapping("/range")
     @PreAuthorize("hasAuthority('AUDIT_READ')")
-    public ResponseEntity<List<AuditLog>> getByDateRange(
-            @RequestParam LocalDateTime from,
-            @RequestParam LocalDateTime to) {
-        return ResponseEntity.ok(
-                auditLogRepository.findByTimestampBetweenOrderByTimestampDesc(from, to));
+    public ResponseEntity<PagedResponse<AuditLogResponse>> findByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(PagedResponse.of(auditService.findByDateRange(from, to, pageable)));
     }
 }

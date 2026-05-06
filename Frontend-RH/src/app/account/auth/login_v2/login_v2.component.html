@@ -1,29 +1,100 @@
-<body>
-  <img src="../../../../assets/images/logoX.png" alt="Icon Image">
-  <section>
-    <form>
-      <h1>Login</h1>
-      <div class="inputbox">
-        <input type="email" [(ngModel)]="email"   name="emails" placeholder="Emails" required>
-        <label  >Email</label>
-      </div>
-      <div class="inputbox">
-        <input type="password" [(ngModel)]="password" name="passwords" placeholder="Passwords" required>
-        <label >Password</label>
+<div class="wiko-auth">
+  <!-- Left: Form Panel -->
+  <div class="auth-form-panel">
+    <div class="auth-form-inner">
+      <div class="auth-logo">
+        <span class="logo-icon"><i class="bx bxs-cube-alt"></i></span>
+        <span class="logo-text">WIKO<span>HR</span></span>
       </div>
 
-      <div class="forget">
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-sub">Sign in to your HR dashboard</p>
 
-        <label>
-          <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe"> Remember Me
-        </label>
-        <a href="#">Forgot Password</a>
+      <div class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-wrap">
+            <i class="bx bx-envelope input-icon"></i>
+            <input
+              type="email"
+              class="form-input"
+              [(ngModel)]="email"
+              name="email"
+              placeholder="you@company.com">
+          </div>
+        </div>
 
+        <div class="form-group">
+          <div class="label-row">
+            <label class="form-label">Password</label>
+          </div>
+          <div class="input-wrap">
+            <i class="bx bx-lock-alt input-icon"></i>
+            <input
+              [type]="showPwd ? 'text' : 'password'"
+              class="form-input"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="••••••••">
+            <button type="button" class="eye-btn" (click)="showPwd=!showPwd">
+              <i class="bx" [ngClass]="showPwd ? 'bx-hide' : 'bx-show'"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="remember-row">
+          <label class="remember-label">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
+            <span>Remember me</span>
+          </label>
+        </div>
+
+        <button type="button" class="btn-signin" (click)="login()">
+          Sign In <i class="bx bx-right-arrow-alt"></i>
+        </button>
       </div>
 
-      <button type="submit" (click)="login()">Log in</button>
+      <p class="auth-footer">
+        Don't have an account? <a href="/account/auth/signup" class="auth-link">Create one</a>
+      </p>
+    </div>
+  </div>
 
-    </form>
-  </section>
-
-</body>
+  <!-- Right: Hero Panel -->
+  <div class="auth-hero-panel">
+    <div class="hero-content">
+      <div class="hero-badge">HR Management Platform</div>
+      <h1 class="hero-title">Empower Your<br>HR Workflow</h1>
+      <p class="hero-desc">
+        Streamline attendance, payroll, recruitment and team performance — all in one unified dashboard.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="stat-num">125K</div>
+          <div class="stat-lbl">Employees Managed</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-num">79K</div>
+          <div class="stat-lbl">Payrolls Processed</div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-num">53K</div>
+          <div class="stat-lbl">Tasks Completed</div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-row">
+          <div class="hero-card-avatar">MR</div>
+          <div class="hero-card-info">
+            <div class="hero-card-name">Mickey Reya</div>
+            <div class="hero-card-role">Marketing &mdash; 99.5% attendance</div>
+          </div>
+          <span class="hero-card-badge">Top Performer</span>
+        </div>
+      </div>
+    </div>
+    <div class="deco deco-1"></div>
+    <div class="deco deco-2"></div>
+    <div class="deco deco-3"></div>
+  </div>
+</div>

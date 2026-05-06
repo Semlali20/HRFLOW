@@ -18,6 +18,10 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() userRole: string;
   menu: any;
   menuItems: MenuItem[] = [];
+  employeeManagerOpen = true;
+  showProfileMenu = false;
+  showSearchModal = false;
+  searchQuery = '';
   @ViewChild('sideMenu') sideMenu: ElementRef;
 
   constructor(private router: Router, public translate: TranslateService, private http: HttpClient, private authService: AuthenticationService) {
@@ -105,17 +109,33 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   filterMenuItemsByRole(menuItems: MenuItem[], role: string): MenuItem[] {
-    console.log('Filtrage des éléments du menu pour le rôle:', role); // Vérifiez le rôle utilisé pour le filtrage
     switch (role) {
-      case 'ADMIN':
-        return menuItems;
       case 'STAGIAIRE_RH':
-        return menuItems.filter(item => ['Home', 'Calendrier', 'Stagiaires', 'File Manager', 'List notification'].includes(item.label));
+        return menuItems.filter(item => ['MAIN', 'Dashboard', 'Notifications', 'GENERAL', 'File Manager'].includes(item.label));
       case 'COLLABORATEUR_RH':
-        return menuItems.filter(item => ['Home', 'collaborateurs', 'Calendrier', 'List notification'].includes(item.label));
+        return menuItems.filter(item => ['MAIN', 'Dashboard', 'Notifications', 'Day-off Request', 'Planning', 'EMPLOYEE MANAGER', 'Employees', 'Attendances'].includes(item.label));
+      case 'ADMIN':
       default:
-        return [];
+        return menuItems;
     }
+  }
+
+  toggleEmployeeManager() {
+    this.employeeManagerOpen = !this.employeeManagerOpen;
+  }
+
+  toggleProfileMenu() {
+    this.showProfileMenu = !this.showProfileMenu;
+  }
+
+  openSearch() {
+    this.showSearchModal = true;
+    this.showProfileMenu = false;
+  }
+
+  doLogout() {
+    this.showProfileMenu = false;
+    this.authService.logout();
   }
 
   hasItems(item: MenuItem) {

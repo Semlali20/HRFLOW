@@ -1,28 +1,35 @@
 package com.innovx.gestionrh.Controller;
 
 import com.innovx.gestionrh.Service.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.innovx.gestionrh.dto.response.ApiResponse;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
+/**
+ * Admin-only endpoint for sending ad-hoc system emails.
+ * Regular transactional emails (welcome, leave approval, etc.) are sent automatically
+ * by the corresponding services — this endpoint is only for administrative use.
+ */
 @RestController
-@RequestMapping("/api/v1/emails")
+@RequestMapping("/api/v1/admin/emails")
+@RequiredArgsConstructor
+@Validated
 public class EmailController {
 
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
     @PostMapping("/send")
-    public String sendEmail(@RequestParam String to,
-                            @RequestParam String subject,
-                            @RequestParam String message) {
-        try {
-            emailService.sendEmail(to, subject, message);
-            return "Email sent successfully to: " + to;
-        } catch (Exception e) {
-            return "Failed to send email to: " + to + ". Error: " + e.getMessage();
-        }
+    @PreAuthorize("hasAuthority('SYSTEM_CONFIG')")
+    public ResponseEntity<ApiResponse<Void>> sendEmail(
+            @RequestParam @Email String to,
+            @RequestParam @NotBlank String subject,
+            @RequestParam @NotBlank String message) {
+        emailService.sendEmail(to, subject, message);
+        return ResponseEntity.ok(ApiResponse.ok("Email sent successfully to: " + to));
     }
 }

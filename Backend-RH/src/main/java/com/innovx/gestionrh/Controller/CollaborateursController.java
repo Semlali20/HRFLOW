@@ -1,86 +1,96 @@
 package com.innovx.gestionrh.Controller;
 
-import com.innovx.gestionrh.Entity.Collaborateurs;
-import com.innovx.gestionrh.Repository.CollaborateursRepository;
+import com.innovx.gestionrh.Entity.EmployeeStatus;
 import com.innovx.gestionrh.Service.CollaborateursService;
-import com.innovx.gestionrh.Service.ExcelService;
-import com.innovx.gestionrh.annotation.LogActivity;
+import com.innovx.gestionrh.dto.request.CollaborateurRequest;
+import com.innovx.gestionrh.dto.response.ApiResponse;
+import com.innovx.gestionrh.dto.response.CollaborateurResponse;
+import com.innovx.gestionrh.dto.response.PagedResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-
-@RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/employees")
+@RequiredArgsConstructor
 public class CollaborateursController {
 
-    private final CollaborateursService collaborateurservice;
-    private final ExcelService excelService;
-    private final CollaborateursRepository collaborateursRepository;
+    private final CollaborateursService collaborateursService;
 
-    @GetMapping("/Collaborateurs")
-    @PreAuthorize("hasAuthority('EMPLOYEE_READ')")
-    public List<Collaborateurs> allCollaborateurs() {
-        return collaborateurservice.getAllCollaborateurs();
-    }
-
-    @GetMapping("/Collaborateurs/{id}")
-    @PreAuthorize("hasAuthority('EMPLOYEE_READ')")
-    public Optional<Collaborateurs> getCollaborateurById(@PathVariable Long id) {
-        return collaborateurservice.getCollaborateursById(id);
-    }
-
-    @PostMapping("/Collaborateurs")
+    @PostMapping
     @PreAuthorize("hasAuthority('EMPLOYEE_CREATE')")
-    @LogActivity(action = "CREATE", module = "EMPLOYEE", description = "Created employee")
-    public Collaborateurs createCollaborateur(@RequestBody Collaborateurs collaborateur) {
-        return collaborateurservice.createCollaborateurs(collaborateur);
+    public ResponseEntity<ApiResponse<CollaborateurResponse>> create(
+            @Valid @RequestBody CollaborateurRequest request) {
+        CollaborateurResponse created = collaborateursService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(created));
     }
 
-    @PutMapping("/Collaborateurs/{id}")
+    @GetMapping
+    @PreAuthorize("hasAuthority('EMPLOYEE_READ')")
+    public ResponseEntity<PagedResponse<CollaborateurResponse>> findAll(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
+        var page = (search != null && !search.isBlank())
+                ? collaborateursService.search(search, pageable)
+                : collaborateursService.findAll(pageable);
+        return ResponseEntity.ok(PagedResponse.of(page));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('EMPLOYEE_READ')")
+    public ResponseEntity<ApiResponse<CollaborateurResponse>> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(collaborateursService.findById(id)));
+    }
+
+    @GetMapping("/department/{departmentId}")
+    @PreAuthorize("hasAuthority('EMPLOYEE_READ')")
+    public ResponseEntity<PagedResponse<CollaborateurResponse>> findByDepartment(
+            @PathVariable Long departmentId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(PagedResponse.of(
+                collaborateursService.findByDepartment(departmentId, pageable)));
+    }
+
+    @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE')")
-    @LogActivity(action = "UPDATE", module = "EMPLOYEE", description = "Updated employee")
-    public Collaborateurs updateCollaborateur(@PathVariable Long id, @RequestBody Collaborateurs updated) {
-        return collaborateurservice.updateCollaborateurs(id, updated);
+    public ResponseEntity<ApiResponse<CollaborateurResponse>> update(
+            @PathVariable Long id,
+            @Valid @RequestBody CollaborateurRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(collaborateursService.update(id, request)));
     }
 
-    @DeleteMapping("/Collaborateurs/{id}")
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE')")
+    public ResponseEntity<ApiResponse<CollaborateurResponse>> updateStatus(
+            @PathVariable Long id,
+            @RequestParam EmployeeStatus status) {
+        return ResponseEntity.ok(ApiResponse.ok(collaborateursService.updateStatus(id, status)));
+    }
+
+    @PatchMapping("/{id}/link-user/{userId}")
+    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE')")
+    public ResponseEntity<ApiResponse<CollaborateurResponse>> linkUser(
+            @PathVariable Long id,
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.ok(collaborateursService.linkUser(id, userId)));
+    }
+
+    @PatchMapping("/{id}/unlink-user")
+    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE')")
+    public ResponseEntity<ApiResponse<CollaborateurResponse>> unlinkUser(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(collaborateursService.unlinkUser(id)));
+    }
+
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('EMPLOYEE_DELETE')")
-    @LogActivity(action = "DELETE", module = "EMPLOYEE", description = "Soft-deleted employee")
-    public ResponseEntity<Object> deleteCollaborateur(@PathVariable Long id) {
-        Optional<Collaborateurs> existing = collaborateurservice.getCollaborateursById(id);
-        if (existing.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Collaborateur not found");
-        }
-        Collaborateurs c = existing.get();
-        c.setDeleted(true);
-        collaborateursRepository.save(c);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/Collaborateurs/all-birthdays")
-    @PreAuthorize("hasAuthority('EMPLOYEE_READ')")
-    public List<String> getAllCollaborateursDateNaissance() {
-        return collaborateurservice.getAllCollaborateursDateNaissance();
-    }
-
-    @PostMapping("/Collaborateurs/import")
-    @PreAuthorize("hasAuthority('EMPLOYEE_CREATE')")
-    @LogActivity(action = "IMPORT", module = "EMPLOYEE", description = "Imported employees from Excel")
-    public ResponseEntity<String> importExcel(@RequestParam("file") MultipartFile file) {
-        try {
-            excelService.importDataFromExcel(file.getInputStream());
-            return ResponseEntity.ok("Data imported successfully.");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to import data.");
-        }
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        collaborateursService.softDelete(id);
+        return ResponseEntity.ok(ApiResponse.ok("Employee deactivated successfully."));
     }
 }

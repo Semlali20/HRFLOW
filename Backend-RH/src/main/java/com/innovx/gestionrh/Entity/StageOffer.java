@@ -1,13 +1,9 @@
 package com.innovx.gestionrh.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "stage_offers")
@@ -15,29 +11,50 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StageOffer {
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
+@ToString(exclude = "department")
+public class StageOffer extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false)
+    @Version
+    private Long version;
+
+    @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    @Column(length = 2000)
+    @Column(name = "description", length = 2000)
     private String description;
 
-    private String department;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    @Column(name = "required_skills", length = 1000)
     private String requiredSkills;
-    private int durationMonths;
-    private LocalDate startDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "internship_type", length = 20)
+    private InternshipType internshipType;
+
+    @Column(name = "duration_months")
+    private Integer durationMonths;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "deadline")
+    private LocalDate deadline;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
     private OfferStatus status = OfferStatus.OPEN;
 
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    public enum OfferStatus { OPEN, CLOSED, FILLED }
+    public enum OfferStatus {
+        OPEN, CLOSED, FILLED, CANCELLED
+    }
 }

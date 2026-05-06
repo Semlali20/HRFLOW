@@ -44,10 +44,33 @@ import { FilemanagerComponent } from './filemanager/filemanager.component';
 import { SharedModule } from '../shared/shared.module';
 import { CollaborateurComponent } from './Collaborateur/collaborateur.component';
 import { UploadsComponent } from './uploads/uploads.component';
+import { DayoffComponent } from './dayoff/dayoff.component';
+import { AttendanceComponent } from './attendance/attendance.component';
+import { SalaryComponent } from './salary/salary.component';
+import { RecruitmentComponent } from './recruitment/recruitment.component';
+import { ProjectsHrComponent } from './projects-hr/projects-hr.component';
+import { SettingComponent } from './setting/setting.component';
+import { PlanningComponent } from './planning/planning.component';
+import { AuditLogComponent } from './audit/audit-log.component';
+import { ReportsComponent } from './reports/reports.component';
+import { UserManagementComponent } from './admin/user-management/user-management.component';
+import { RoleManagementComponent } from './admin/role-management/role-management.component';
 
 @NgModule({
-  declarations: [ChatComponent, FilemanagerComponent,CollaborateurComponent,UploadsComponent], // declare the component CalendarComponent here
+  declarations: [ChatComponent, FilemanagerComponent, UploadsComponent],
   imports: [
+    CollaborateurComponent,
+    DayoffComponent,
+    AttendanceComponent,
+    SalaryComponent,
+    RecruitmentComponent,
+    ProjectsHrComponent,
+    SettingComponent,
+    PlanningComponent,
+    AuditLogComponent,
+    ReportsComponent,
+    UserManagementComponent,
+    RoleManagementComponent,
 
     SharedModule  , // import the SharedModule to use the CalendarComponent
     CommonModule,

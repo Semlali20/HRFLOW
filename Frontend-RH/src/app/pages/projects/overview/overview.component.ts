@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
+import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 
 interface UserDetails { label: string; value: string; }
 interface SocialLink { icon: string; handle: string; }
@@ -55,7 +55,11 @@ export class OverviewComponent implements OnInit {
 
   filteredStagiaires: any[];
 
-  constructor(private sanitizer: DomSanitizer, private route: ActivatedRoute, private http: HttpClient) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private route: ActivatedRoute,
+    private stagiaireService: StagiaireService
+  ) {}
 
   ngOnInit() {
     this.breadCrumbItems = [{ label: 'Projects' }, { label: 'Projects Overview', active: true }];
@@ -70,7 +74,7 @@ export class OverviewComponent implements OnInit {
   }
 
   fetchStagiaire(): void {
-    this.http.get<any>(`http://localhost:8090/api/v1/stagiares/${this.stagiaireId}`).subscribe({
+    this.stagiaireService.getById(Number(this.stagiaireId)).subscribe({
       next: data => { this.Stagiaires = data; this.processDocuments(); },
       error: err => console.error('Error fetching data:', err)
     });

@@ -2,67 +2,54 @@ package com.innovx.gestionrh.Controller;
 
 import com.innovx.gestionrh.Entity.Permission;
 import com.innovx.gestionrh.Entity.Role;
-import com.innovx.gestionrh.Repository.PermissionRepository;
-import com.innovx.gestionrh.Repository.RoleRepository;
-import com.innovx.gestionrh.annotation.LogActivity;
+import com.innovx.gestionrh.Service.RoleService;
+import com.innovx.gestionrh.dto.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin/roles")
 @RequiredArgsConstructor
 public class RoleController {
 
-    private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
+    private final RoleService roleService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_MANAGE')")
-    public ResponseEntity<List<Role>> getAllRoles() {
-        return ResponseEntity.ok(roleRepository.findAll());
+    public ResponseEntity<ApiResponse<List<Role>>> getAllRoles() {
+        return ResponseEntity.ok(ApiResponse.ok(roleService.getAllRoles()));
     }
 
     @GetMapping("/permissions")
     @PreAuthorize("hasAuthority('ROLE_MANAGE')")
-    public ResponseEntity<List<Permission>> getAllPermissions() {
-        return ResponseEntity.ok(permissionRepository.findAll());
+    public ResponseEntity<ApiResponse<List<Permission>>> getAllPermissions() {
+        return ResponseEntity.ok(ApiResponse.ok(roleService.getAllPermissions()));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_MANAGE')")
-    @LogActivity(action = "CREATE", module = "ADMIN", description = "Created role")
-    public ResponseEntity<Role> createRole(@RequestBody Role role) {
-        return ResponseEntity.ok(roleRepository.save(role));
+    public ResponseEntity<ApiResponse<Role>> createRole(@RequestBody Role role) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(roleService.createRole(role)));
     }
 
     @PutMapping("/{id}/permissions")
     @PreAuthorize("hasAuthority('ROLE_MANAGE')")
-    @LogActivity(action = "UPDATE_PERMISSIONS", module = "ADMIN", description = "Updated role permissions")
-    public ResponseEntity<?> updateRolePermissions(
+    public ResponseEntity<ApiResponse<Role>> updateRolePermissions(
             @PathVariable Long id,
-            @RequestBody Map<String, List<String>> body) {
-        return roleRepository.findById(id).map(role -> {
-            List<String> permNames = body.get("permissions");
-            Set<Permission> perms = permNames.stream()
-                    .map(name -> permissionRepository.findByName(name)
-                            .orElseThrow(() -> new RuntimeException("Permission not found: " + name)))
-                    .collect(Collectors.toSet());
-            role.setPermissions(perms);
-            return ResponseEntity.ok(roleRepository.save(role));
-        }).orElse(ResponseEntity.notFound().build());
+            @RequestBody List<String> permissionNames) {
+        return ResponseEntity.ok(ApiResponse.ok(roleService.updateRolePermissions(id, permissionNames)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_MANAGE')")
-    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
-        roleRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Long id) {
+        roleService.deleteRole(id);
+        return ResponseEntity.ok(ApiResponse.ok("Role deleted successfully."));
     }
 }

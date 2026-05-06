@@ -1,72 +1,109 @@
 package com.innovx.gestionrh.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.util.Date;
+import java.time.LocalDate;
 
+/**
+ * Represents an employee (collaborateur) within the organisation.
+ *
+ * Design notes:
+ *  - Linked to a User account via an optional OneToOne relationship:
+ *    not every employee necessarily has a system login.
+ *  - Seniority / age are NEVER stored — always computed at query time.
+ *  - Department and Position are proper entities, not free-text strings.
+ *  - @Version enables optimistic locking to prevent lost-update anomalies.
+ */
+@Entity
+@Table(name = "collaborateurs",
+       uniqueConstraints = {
+               @UniqueConstraint(name = "uk_collab_email",  columnNames = "email"),
+               @UniqueConstraint(name = "uk_collab_cin",    columnNames = "cin"),
+               @UniqueConstraint(name = "uk_collab_emp_no", columnNames = "employee_number")
+       })
+@SQLRestriction("is_deleted = false")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity
-@SQLRestriction("is_deleted = false")
-public class Collaborateurs {
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
+@ToString(exclude = {"user", "department", "position"})
+public class Collaborateurs extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Matricule")
-    private  Long  matricule;
+    @EqualsAndHashCode.Include
+    private Long id;
 
-    @Column(name = "nom")
-    private String nom;
+    @Version
+    private Long version;
 
-    @Column(name = "prenom")
-    private String prenom;
+    /** Human-readable identifier, e.g. EMP-0042. */
+    @Column(name = "employee_number", nullable = false, length = 20)
+    private String employeeNumber;
 
-    @Column(name = "Sexe")
-    private String Sexe;
+    @Column(name = "first_name", nullable = false, length = 100)
+    private String firstName;
 
-    @Column(name = "CIN")
-    private String CIN;
+    @Column(name = "last_name", nullable = false, length = 100)
+    private String lastName;
 
-    @Column(name = "Nationalité")
-    private String Nationalité;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", length = 10)
+    private Gender gender;
 
-    @Column(name = "CATEGORIE")
-    private String CATEGORIE;
+    @Column(name = "cin", length = 20)
+    private String cin;
 
-    @Column(name = "age")
-    private int age;
+    @Column(name = "nationality", length = 60)
+    private String nationality;
 
-    @Column(name = "date de naissance")
-    private String date_naissance;
-    @Column(name = "email")
+    @Column(name = "category", length = 60)
+    private String category;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "email", nullable = false, length = 150)
     private String email;
 
-    @Column(name = "FILIALE")
-    private String FILIALE;
+    @Column(name = "phone", length = 30)
+    private String phone;
 
-    @Column(name = "Type de contrat")
-    private String Type;
+    @Column(name = "address", length = 300)
+    private String address;
 
-    @Column(name = "Département")
-    private String Département;
+    @Column(name = "branch", length = 100)
+    private String branch;
 
-    @Column(name = "Fonction")
-    private String Fonction;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
 
-    @Column(name = "date d'entree")
-    private String date_entree;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id")
+    private Position position;
 
-    @Column(name = "Ancienneté")
-    private double Ancienneté;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "contract_type", length = 20)
+    private ContractType contractType;
 
+    @Column(name = "hire_date")
+    private LocalDate hireDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
-    private boolean isDeleted= false;
+    private EmployeeStatus status = EmployeeStatus.ACTIVE;
 
+    /** Optional link to a system User account — null for employees without login access. */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
+    private User user;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
 }

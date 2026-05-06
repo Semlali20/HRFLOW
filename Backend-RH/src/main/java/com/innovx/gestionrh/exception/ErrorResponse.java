@@ -1,9 +1,16 @@
 package com.innovx.gestionrh.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 
     private int status;
@@ -14,6 +21,7 @@ public class ErrorResponse {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 
+    /** Present only on validation errors — contains individual field error messages. */
     private List<String> details;
 
     public ErrorResponse() {
@@ -32,22 +40,4 @@ public class ErrorResponse {
         this(status, error, message, path);
         this.details = details;
     }
-
-    public int getStatus() { return status; }
-    public void setStatus(int status) { this.status = status; }
-
-    public String getError() { return error; }
-    public void setError(String error) { this.error = error; }
-
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
-
-    public String getPath() { return path; }
-    public void setPath(String path) { this.path = path; }
-
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
-
-    public List<String> getDetails() { return details; }
-    public void setDetails(List<String> details) { this.details = details; }
 }

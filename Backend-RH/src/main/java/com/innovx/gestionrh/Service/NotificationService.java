@@ -1,18 +1,22 @@
 package com.innovx.gestionrh.Service;
 
-import com.innovx.gestionrh.Entity.Notification;
 import com.innovx.gestionrh.Entity.NotificationType;
-import com.innovx.gestionrh.Entity.User;
-
-import java.util.List;
+import com.innovx.gestionrh.dto.response.NotificationResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface NotificationService {
 
-    void sendDailyNotifications();
+    /** Persists and SSE-pushes a notification to a user. */
+    void send(Long recipientId, String title, String message, NotificationType type, String actionUrl);
 
-    Notification push(User user, String title, String message, NotificationType type);
+    Page<NotificationResponse> getForUser(Long userId, Pageable pageable);
 
-    List<Notification> getUnread(String email);
+    long countUnread(Long userId);
 
-    void markAllRead(String email);
+    void markAsRead(Long notificationId, Long userId);
+
+    void markAllAsRead(Long userId);
+
+    void delete(Long notificationId, Long userId);
 }

@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { UntypedFormBuilder } from '@angular/forms';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { CalendarOptions, EventApi, EventClickArg } from '@fullcalendar/core';
@@ -11,6 +10,8 @@ import listPlugin from '@fullcalendar/list';
 import { Subject, firstValueFrom } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
+import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 
 @Component({
   selector: 'app-calendar',
@@ -39,8 +40,8 @@ export class CalendarComponent implements OnInit, AfterViewInit {
       center: 'title',
       right: 'prevYear,prev,next,nextYear'
     },
-    initialView: "dayGridMonth",
-    themeSystem: "bootstrap",
+    initialView: 'dayGridMonth',
+    themeSystem: 'bootstrap',
     initialEvents: [],
     weekends: true,
     editable: true,
@@ -56,7 +57,8 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     private modalService: BsModalService,
     private formBuilder: UntypedFormBuilder,
     private authService: AuthenticationService,
-    private http: HttpClient
+    private collaborateurService: CollaborateurService,
+    private stagiaireService: StagiaireService
   ) {}
 
   ngOnInit(): void {
@@ -91,14 +93,22 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   async fetchCollaborateurs(): Promise<any[]> {
     try {
-      const collaborateurs = await firstValueFrom(
-        this.http.get<any[]>('http://localhost:8090/api/v1/Collaborateurs')
-      );
+      const collaborateurs = await firstValueFrom(this.collaborateurService.getAll());
       const currentYear = new Date().getFullYear();
-      return collaborateurs.map(collaborateur => {
+      return collaborateurs.filter(c => c.date_naissance).map(collaborateur => {
         const { date_naissance, nom, prenom } = collaborateur;
-        const [day, month] = date_naissance.split('-');
-        const birthday = new Date(currentYear, parseInt(month) - 1, parseInt(day));
+        const parts = date_naissance!.split('-');
+        let month: number, day: number;
+        if (parts.length === 3 && parts[0].length === 4) {
+          // ISO format: YYYY-MM-DD
+          month = parseInt(parts[1]);
+          day   = parseInt(parts[2]);
+        } else {
+          // Legacy format: DD-MM-YYYY
+          day   = parseInt(parts[0]);
+          month = parseInt(parts[1]);
+        }
+        const birthday = new Date(currentYear, month - 1, day);
         return {
           id: `${nom}-${prenom}-birthday`,
           title: `Anniversaire de ${nom} ${prenom}`,
@@ -116,9 +126,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   async fetchAllStagiaireMeetings(): Promise<any[]> {
     try {
-      const stagiaires = await firstValueFrom(
-        this.http.get<any[]>('http://localhost:8090/api/v1/stagiares')
-      );
+      const stagiaires = await firstValueFrom(this.stagiaireService.getAll());
       return stagiaires.flatMap(stagiaire => [
         {
           title: `${stagiaire.nom} ${stagiaire.prenom} - Accueil RH`,

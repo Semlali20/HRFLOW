@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthenticationService } from './auth.service';
+import { environment } from 'src/environments/environment';
 
 export interface HrNotification {
     id: number;
@@ -16,7 +17,7 @@ export interface HrNotification {
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
 
-    private readonly BASE_URL = 'http://localhost:8090/api/v1/notifications';
+    private readonly BASE_URL = `${environment.apiUrl}/notifications`;
     private eventSource: EventSource | null = null;
 
     private _notifications = new BehaviorSubject<HrNotification[]>([]);
@@ -33,20 +34,26 @@ export class NotificationService implements OnDestroy {
         const token = this.authService.getToken();
         if (!token) return;
 
+        // Load initial unread notifications
         this.loadUnread();
 
-        this.eventSource = new EventSource(
-            `${this.BASE_URL}/stream?access_token=${token}`
-        );
+        // Open SSE connection to backend — use apiUrl directly (absolute URL)
+        const sseUrl = `${this.BASE_URL}/stream?access_token=${encodeURIComponent(token)}`;
+        this.eventSource = new EventSource(sseUrl);
 
         this.eventSource.addEventListener('notification', (event: MessageEvent) => {
-            const notification: HrNotification = JSON.parse(event.data);
-            const current = this._notifications.getValue();
-            this._notifications.next([notification, ...current]);
-            this._unreadCount.next(this._unreadCount.getValue() + 1);
+            try {
+                const notification: HrNotification = JSON.parse(event.data);
+                const current = this._notifications.getValue();
+                this._notifications.next([notification, ...current]);
+                this._unreadCount.next(this._unreadCount.getValue() + 1);
+            } catch (e) {
+                console.warn('[NotificationService] Failed to parse SSE event:', e);
+            }
         });
 
         this.eventSource.onerror = () => {
+            console.warn('[NotificationService] SSE connection error, closing.');
             this.disconnect();
         };
     }
@@ -58,6 +65,7 @@ export class NotificationService implements OnDestroy {
         }
     }
 
+    /** GET /notifications/unread */
     loadUnread(): void {
         this.http.get<HrNotification[]>(`${this.BASE_URL}/unread`).subscribe({
             next: notifications => {
@@ -68,6 +76,22 @@ export class NotificationService implements OnDestroy {
         });
     }
 
+    /** GET /notifications */
+    getAll(): Observable<HrNotification[]> {
+        return this.http.get<HrNotification[]>(this.BASE_URL);
+    }
+
+    /** GET /notifications/unread-count */
+    getUnreadCount(): Observable<{ count: number }> {
+        return this.http.get<{ count: number }>(`${this.BASE_URL}/unread-count`);
+    }
+
+    /** PATCH /notifications/{id}/read */
+    markAsRead(id: number): Observable<void> {
+        return this.http.patch<void>(`${this.BASE_URL}/${id}/read`, {});
+    }
+
+    /** PUT /notifications/read-all */
     markAllRead(): Observable<void> {
         return new Observable(observer => {
             this.http.put<void>(`${this.BASE_URL}/read-all`, {}).subscribe({

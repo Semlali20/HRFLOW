@@ -1,14 +1,11 @@
 package com.innovx.gestionrh.payload.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-
-@Getter
-@Setter
+@Data
 public class TokenRefreshRequest {
 
-    @NotBlank
+    @NotBlank(message = "Refresh token is required")
     private String refreshToken;
 }

@@ -1,20 +1,15 @@
 package com.innovx.gestionrh.Config;
 
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
+/**
+ * Elasticsearch has been removed from this project.
+ *
+ * Full-text CV search is now performed via PostgreSQL ILIKE queries on the
+ * extracted_text column of cv_applications. Apache Tika extracts plain text
+ * from uploaded CV files (PDF, DOCX) at upload time and stores it in the DB.
+ *
+ * This class is intentionally empty and kept only as a marker to document
+ * the removal decision. It may be deleted once the team is aligned.
+ */
 public class ElasticsearchConfig {
-
-
-    @Bean
-    public RestHighLevelClient client() {
-        RestClientBuilder builder = RestClient.builder(
-                new HttpHost("localhost", 9200, "http"));
-        return new RestHighLevelClient(builder);
-    }
+    // Elasticsearch removed — use CvService.searchByText() backed by PostgreSQL ILIKE.
 }

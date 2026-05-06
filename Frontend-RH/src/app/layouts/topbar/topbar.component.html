@@ -7,22 +7,19 @@
     align-items: center;">
       <!-- LOGO -->
       <div class="navbar-brand-box">
-        <a routerLink="/" class="logo logo-dark">
-          <span class="logo-sm">
-            <img src="assets/images/logo/Logo-INNOVX-Corpo.ico" alt="" height="22">
-          </span>
-          <span class="logo-lg">
-            <img src="assets/images/logo/Logo-INNOVX-Corpo.ico" alt="" height="80">
-          </span>
+        <a routerLink="/" class="logo logo-dark" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+          <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L17.09 9.26L25 10.27L19.5 15.64L20.9 23.5L14 19.77L7.1 23.5L8.5 15.64L3 10.27L10.91 9.26L14 2Z"
+              fill="#2FA8A0" stroke="#2FA8A0" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span style="font-size:18px;font-weight:700;color:#1A2B3C;letter-spacing:0.3px;">Wiko</span>
         </a>
-
-        <a routerLink="/" class="logo logo-light">
-          <span class="logo-sm">
-            <img src="assets/images/logo/Logo-INNOVX-Corpo.ico" alt="" height="120">
-          </span>
-          <span class="logo-lg">
-            <img src="assets/images/logo/Logo-INNOVX-Corpo.ico" alt="" height="120">
-          </span>
+        <a routerLink="/" class="logo logo-light" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+          <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L17.09 9.26L25 10.27L19.5 15.64L20.9 23.5L14 19.77L7.1 23.5L8.5 15.64L3 10.27L10.91 9.26L14 2Z"
+              fill="#2FA8A0" stroke="#2FA8A0" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.3px;">Wiko</span>
         </a>
       </div>
 
@@ -41,7 +38,24 @@
 
     </div>
 
-    <div class="d-flex">
+    <div class="d-flex" style="align-items:center;">
+
+      <!-- ── Theme Switcher ── -->
+      <div class="theme-switcher">
+        <button class="ts-btn" [class.active]="currentTheme==='light'" (click)="setTheme('light')" title="Light">
+          <i class="bx bx-sun"></i>
+          <span class="ts-tooltip">Light</span>
+        </button>
+        <button class="ts-btn" [class.active]="currentTheme==='dark'" (click)="setTheme('dark')" title="Dark">
+          <i class="bx bx-moon"></i>
+          <span class="ts-tooltip">Dark</span>
+        </button>
+        <button class="ts-btn" [class.active]="currentTheme==='teal'" (click)="setTheme('teal')" title="Teal">
+          <i class="bx bxs-color-fill"></i>
+          <span class="ts-tooltip">Teal</span>
+        </button>
+      </div>
+
       <div class="dropdown d-inline-block d-lg-none ms-2" dropdown>
         <button type="button" class="btn header-item noti-icon" id="page-header-search-dropdown" data-toggle="dropdown"
           aria-haspopup="true" dropdownToggle aria-expanded="false">
@@ -63,7 +77,7 @@
       </div>
 <!-- topbar.component.html -->
 <div class="dropdown d-inline-block" dropdown>
-  <button type="button" class="btn header-item noti-icon position-relative" id="page-header-notifications-dropdown" dropdownToggle (click)="resetUnreadCount()">
+  <button type="button" class="btn header-item noti-icon position-relative" id="page-header-notifications-dropdown" dropdownToggle (click)="markAllRead()">
     <i class="bx bx-bell bx-tada"></i>
     <span *ngIf="unreadCount > 0" class="badge notification-badge">{{ unreadCount }}</span>
   </button>

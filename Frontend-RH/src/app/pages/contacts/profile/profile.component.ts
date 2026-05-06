@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
+import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -9,7 +10,7 @@ import Swal from 'sweetalert2';
   styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
-  constructor(private authService: AuthenticationService, private http: HttpClient) {}
+
   firstName: string;
   lastName: string;
   email: string;
@@ -17,6 +18,12 @@ export class ProfileComponent implements OnInit {
   userRole: string;
   typeDeStageOptions: any;
   ageDesCollaborateursOptions: any;
+
+  constructor(
+    private authService: AuthenticationService,
+    private collaborateurService: CollaborateurService,
+    private stagiaireService: StagiaireService
+  ) {}
 
   ngOnInit() {
     const user = this.authService.getAuthenticatedUser();
@@ -32,22 +39,21 @@ export class ProfileComponent implements OnInit {
   }
 
   isAdmin(): boolean {
-    this.userRole = this.authService.getUserRole();
-    return String(this.userRole).toUpperCase() === 'ADMIN';
+    return String(this.authService.getUserRole()).toUpperCase() === 'ADMIN';
   }
 
   shouldShowStageChart(): boolean {
-    this.userRole = this.authService.getUserRole();
-    return this.userRole === 'ADMIN' || this.userRole === 'STAGIAIRE_RH';
+    const role = this.authService.getUserRole();
+    return role === 'ADMIN' || role === 'STAGIAIRE_RH';
   }
 
   shouldShowCollaboratorsChart(): boolean {
-    this.userRole = this.authService.getUserRole();
-    return this.userRole === 'ADMIN' || this.userRole === 'COLLABORATEUR_RH';
+    const role = this.authService.getUserRole();
+    return role === 'ADMIN' || role === 'COLLABORATEUR_RH';
   }
 
   loadStagiaresData() {
-    this.http.get<any[]>('http://localhost:8090/api/v1/stagiares').subscribe({
+    this.stagiaireService.getAll().subscribe({
       next: stagiares => {
         const typeDeStageCounts = {
           "Stage d'observation": 0,
@@ -75,7 +81,7 @@ export class ProfileComponent implements OnInit {
   }
 
   loadCollaborateursData() {
-    this.http.get<any[]>('http://localhost:8090/api/v1/Collaborateurs').subscribe({
+    this.collaborateurService.getAll().subscribe({
       next: collaborateurs => {
         const ageGroups = { "20-30": 0, "30-40": 0, "40-50": 0, "50-60": 0 };
         collaborateurs.forEach(c => {
@@ -134,7 +140,7 @@ export class ProfileComponent implements OnInit {
     }).then(result => {
       if (result.isConfirmed) {
         const { firstName, lastName, email, title, userRole } = result.value;
-        this.http.post('http://localhost:8090/api/v1/auth/register', { firstName, lastName, email, title, userRole }).subscribe({
+        this.authService.registerUser(firstName, lastName, email, title, userRole).subscribe({
           next: () => Swal.fire('Succès', 'Utilisateur créé avec succès', 'success'),
           error: () => Swal.fire('Erreur', 'User with this email already exists', 'error')
         });

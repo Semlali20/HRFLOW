@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import Swal from 'sweetalert2';
+import { FileManagerService } from './filemanager.service';
+import { ManagedFile } from 'src/app/core/models/hr.models';
 
 @Component({
     selector: 'app-filemanager',
@@ -9,14 +10,13 @@ import Swal from 'sweetalert2';
 })
 export class FilemanagerComponent implements OnInit {
 
+    today = new Date();
     breadCrumbItems: Array<{}>;
-    files: Array<{ name: string; dateModified: string; size: string }> = [];
+    files: ManagedFile[] = [];
     isLoading = true;
     searchKeyword = '';
 
-    private readonly API = 'http://localhost:8090/api/files';
-
-    constructor(private http: HttpClient) {}
+    constructor(private fileManagerService: FileManagerService) {}
 
     ngOnInit(): void {
         this.breadCrumbItems = [{ label: 'Apps' }, { label: 'File Manager', active: true }];
@@ -25,11 +25,8 @@ export class FilemanagerComponent implements OnInit {
 
     loadFiles(): void {
         this.isLoading = true;
-        this.http.get<string[]>(`${this.API}/all`).subscribe({
-            next: data => {
-                this.files = data.map(f => ({ name: f, dateModified: new Date().toLocaleDateString(), size: 'Unknown' }));
-                this.isLoading = false;
-            },
+        this.fileManagerService.getAll().subscribe({
+            next: data => { this.files = data; this.isLoading = false; },
             error: () => { this.isLoading = false; }
         });
     }
@@ -37,12 +34,8 @@ export class FilemanagerComponent implements OnInit {
     searchFiles(): void {
         if (!this.searchKeyword.trim()) { this.loadFiles(); return; }
         this.isLoading = true;
-        const params = new HttpParams().set('keywords', this.searchKeyword);
-        this.http.get<string[]>(`${this.API}/search`, { params }).subscribe({
-            next: data => {
-                this.files = data.map(f => ({ name: f, dateModified: new Date().toLocaleDateString(), size: 'Unknown' }));
-                this.isLoading = false;
-            },
+        this.fileManagerService.search(this.searchKeyword).subscribe({
+            next: data => { this.files = data; this.isLoading = false; },
             error: () => { this.isLoading = false; }
         });
     }
@@ -52,7 +45,7 @@ export class FilemanagerComponent implements OnInit {
             showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Oui, supprimer' })
             .then(result => {
                 if (!result.isConfirmed) return;
-                this.http.delete(`${this.API}/deleteAll`).subscribe({
+                this.fileManagerService.deleteAll().subscribe({
                     next: () => { this.files = []; Swal.fire('Supprimé', 'Tous les fichiers supprimés.', 'success'); },
                     error: () => Swal.fire('Erreur', 'Échec de la suppression.', 'error')
                 });
@@ -64,8 +57,7 @@ export class FilemanagerComponent implements OnInit {
             showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Oui' })
             .then(result => {
                 if (!result.isConfirmed) return;
-                const params = new HttpParams().set('filename', fileName);
-                this.http.delete(`${this.API}/delete`, { params }).subscribe({
+                this.fileManagerService.delete(fileName).subscribe({
                     next: () => { this.files = this.files.filter(f => f.name !== fileName); Swal.fire('Supprimé', '', 'success'); },
                     error: () => Swal.fire('Erreur', 'Échec de la suppression.', 'error')
                 });
@@ -73,7 +65,7 @@ export class FilemanagerComponent implements OnInit {
     }
 
     openFile(fileName: string): void {
-        window.open(`${this.API}/view?filename=${fileName}`, '_blank');
+        window.open(this.fileManagerService.getViewUrl(fileName), '_blank');
     }
 
     getFileIcon(fileName: string): string {

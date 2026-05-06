@@ -1,103 +1,95 @@
-<div class="container-fluid position-relative">
-  <app-page-title title="File Manager" [breadcrumbItems]="breadCrumbItems"></app-page-title>
-  <app-loader></app-loader>
+<div class="fm-page">
 
-  <div class="d-xl-flex">
-    <div class="w-100">
-      <div class="d-md-flex">
-        <div class="card filemanager-sidebar me-md-2">
-          <div class="card-body">
-            <div class="d-flex flex-column h-100">
-              <div class="mb-4">
-                <div class="mb-3">
-                  <div class="dropdown" dropdown>
-                    <a href="/UploadsCv" class="btn btn-light dropdown-toggle w-100" role="button" aria-haspopup="true" aria-expanded="false">
-                      <i class="mdi mdi-folder-upload"></i> Upload File
-                    </a>
-                  </div>
-                  <button (click)="deleteAllFiles()" class="btn btn-danger mt-2 w-100">
-                    <i class="mdi mdi-delete me-1"></i> Delete All
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- filemanager-leftsidebar -->
-
-        <div class="w-100 position-relative">
-          <div *ngIf="isLoading" class="loading-overlay">
-            <div class="loading-spinner"></div>
-          </div>
-          <div class="card">
-            <div class="card-body">
-              <div>
-                <div class="row mb-3">
-                  <div class="col-xl-3 col-sm-6">
-                    <div class="mt-2">
-                      <h5>My CV's</h5>
-                    </div>
-                  </div>
-                  <div class="col-xl-9 col-sm-6">
-                    <form (ngSubmit)="searchFiles()" class="mt-4 mt-sm-0 float-sm-end d-flex align-items-center">
-                      <div class="search-box mb-2 me-2">
-                        <div class="position-relative">
-                          <input type="text" class="form-control bg-light border-light rounded" placeholder="Search..."
-                            [(ngModel)]="searchKeyword" name="searchKeyword" (keyup)="searchFiles()" (keyup.enter)="searchFiles()">
-                          <i class="bx bx-search-alt search-icon" (click)="searchFiles()"></i>
-                        </div>
-                      </div>
-
-                      <div class="dropdown mb-0" dropdown>
-                        <a class="btn btn-link text-muted dropdown-toggle mt-n2" dropdownToggle role="button" data-toggle="dropdown" aria-haspopup="true">
-                          <i class="mdi mdi-dots-vertical font-size-20"></i>
-                        </a>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <!-- end row -->
-              </div>
-
-              <div class="mt-4">
-                <hr class="mt-2">
-                <div class="table-responsive">
-                  <table class="table align-middle table-nowrap table-hover mb-0">
-                    <thead>
-                      <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Date modified</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let file of files" (dblclick)="openFile(file.name)">
-                        <td>
-                          <a href="javascript: void(0);" class="text-dark fw-medium">
-                            <i [class]="getFileIcon(file.name)"></i> {{ file.name }}
-                          </a>
-                        </td>
-                        <td>{{ file.dateModified }}</td>
-                        <td>
-                          <div class="delete">
-                            <a class="delete" title="Delete" data-toggle="tooltip" (click)="deleteFile(file.name)">
-                              <i class="material-icons">&#xE872;</i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- end card -->
-        </div>
-        <!-- end w-100 -->
-      </div>
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="ph-left">
+      <h4 class="page-title">File Manager</h4>
+    </div>
+    <div class="ph-right">
+      <span class="ph-meta"><i class="bx bx-calendar"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
+      <span class="ph-divider"></span>
+      <span class="ph-meta"><i class="bx bx-globe"></i> English <i class="bx bx-chevron-down"></i></span>
     </div>
   </div>
-  <!-- end row -->
+
+  <!-- Layout -->
+  <div class="fm-layout">
+
+    <!-- Sidebar -->
+    <div class="fm-sidebar">
+      <a href="/UploadsCv" class="btn-upload"><i class="bx bx-upload"></i> Upload File</a>
+      <button class="btn-delete-all" (click)="deleteAllFiles()"><i class="bx bx-trash"></i> Delete All</button>
+
+
+<div class="fm-nav">
+        <div class="fm-nav-item active"><i class="bx bx-folder"></i> My CV's</div>
+        <div class="fm-nav-item"><i class="bx bx-file"></i> Documents</div>
+        <div class="fm-nav-item"><i class="bx bx-trash-alt"></i> Trash</div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="fm-main">
+
+      <!-- Loading overlay -->
+      <div *ngIf="isLoading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="fm-toolbar">
+        <h5 class="fm-title">My CV's</h5>
+        <div class="fm-toolbar-right">
+          <div class="search-wrap">
+            <i class="bx bx-search"></i>
+            <input type="text" placeholder="Search files..." [(ngModel)]="searchKeyword"
+              (keyup)="searchFiles()" name="searchKeyword">
+          </div>
+          <button class="btn-icon" title="More options"><i class="bx bx-dots-vertical-rounded"></i></button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="fm-table-wrap">
+        <table class="fm-table">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>DATE MODIFIED</th>
+              <th>SIZE</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let file of files" (dblclick)="openFile(file.name)">
+              <td>
+                <div class="file-name">
+                  <div class="file-icon">
+                    <i [class]="getFileIcon(file.name)"></i>
+                  </div>
+                  <span>{{ file.name }}</span>
+                </div>
+              </td>
+              <td class="td-muted">{{ file.dateModified }}</td>
+              <td class="td-muted">{{ file.size }}</td>
+              <td>
+                <div class="row-actions">
+                  <button class="act-btn" (click)="openFile(file.name)" title="Open"><i class="bx bx-show"></i></button>
+                  <button class="act-btn act-btn--del" (click)="deleteFile(file.name)" title="Delete"><i class="bx bx-trash"></i></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty state -->
+        <div *ngIf="!isLoading && files.length === 0" class="empty-state">
+          <i class="bx bx-folder-open"></i>
+          <p>No files found</p>
+          <span>Upload a file to get started</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>

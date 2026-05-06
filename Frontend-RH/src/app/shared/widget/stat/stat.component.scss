@@ -1,0 +1,32 @@
+/* stat widget inherits WIKO theme from global styles */
+.mini-stats-wid {
+  border-left: 4px solid #10B981;
+  border-radius: 14px !important;
+  transition: transform .2s ease, box-shadow .2s ease;
+  &:hover { transform: translateY(-3px); }
+}
+
+.mini-stat-icon.bg-primary {
+  background: #10B981 !important;
+  border-radius: 12px !important;
+}
+
+.card-body p.text-muted {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.card-body h4 {
+  font-family: 'Sora', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+a.text-primary {
+  color: #10B981 !important;
+  font-weight: 600;
+  font-size: 13px;
+}

@@ -1,10 +1,7 @@
 package com.innovx.gestionrh.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,32 +12,41 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LeaveRequest {
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
+@ToString(exclude = {"requester", "approver", "leaveType"})
+public class LeaveRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Version
+    private Long version;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User requester;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "leave_type_id", nullable = false)
     private LeaveType leaveType;
 
-    @Column(nullable = false)
+    @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(nullable = false)
+    @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
+    /** Number of working days (excluding weekends and public holidays). */
+    @Column(name = "duration_days", nullable = false)
     private int durationDays;
 
-    @Column(length = 500)
+    @Column(name = "reason", length = 500)
     private String reason;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
     private LeaveStatus status = LeaveStatus.PENDING;
 
@@ -48,15 +54,9 @@ public class LeaveRequest {
     @JoinColumn(name = "approver_id")
     private User approver;
 
-    @Column(length = 500)
+    @Column(name = "approver_comment", length = 500)
     private String approverComment;
 
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
+    @Column(name = "decided_at")
     private LocalDateTime decidedAt;
-
-    public enum LeaveStatus {
-        PENDING, APPROVED, REJECTED, CANCELLED
-    }
 }

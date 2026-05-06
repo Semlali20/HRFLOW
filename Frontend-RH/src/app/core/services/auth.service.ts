@@ -4,11 +4,12 @@ import { Router } from '@angular/router';
 import { Observable, tap, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthUser } from '../models/auth.models';
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticationService {
 
-    private readonly BASE_URL = 'http://localhost:8090/api/v1/auth';
+    private readonly BASE_URL = `${environment.apiUrl}/auth`;
     private readonly STORAGE_KEY = 'authUser';
 
     constructor(private http: HttpClient, private router: Router) {}
@@ -25,28 +26,37 @@ export class AuthenticationService {
         );
     }
 
-    refreshToken(): Observable<{ message: string }> {
+    refreshToken(): Observable<{ accessToken: string; refreshToken: string }> {
         const user = this.getAuthenticatedUser();
         if (!user?.refreshToken) {
             this.logout();
             return throwError(() => new Error('No refresh token'));
         }
-        return this.http.post<{ message: string }>(`${this.BASE_URL}/refresh`, {
-            refreshToken: user.refreshToken
-        }).pipe(
+        return this.http.post<{ accessToken: string; refreshToken: string }>(
+            `${this.BASE_URL}/refresh`,
+            { refreshToken: user.refreshToken }
+        ).pipe(
             tap(response => {
                 const current = this.getAuthenticatedUser();
                 if (current) {
-                    current.accessToken = response.message;
-                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(current));
+                    const updated: AuthUser = {
+                        ...current,
+                        accessToken: response.accessToken,
+                        refreshToken: response.refreshToken
+                    };
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
                 }
+            }),
+            catchError(err => {
+                this.clearAuthData();
+                return throwError(() => err);
             })
         );
     }
 
     logout(): void {
         this.http.post(`${this.BASE_URL}/logout`, {}).subscribe({ error: () => {} });
-        localStorage.removeItem(this.STORAGE_KEY);
+        this.clearAuthData();
         this.router.navigate(['/account/auth/login']);
     }
 
@@ -64,8 +74,12 @@ export class AuthenticationService {
     }
 
     getAuthenticatedUser(): AuthUser | null {
-        const stored = localStorage.getItem(this.STORAGE_KEY);
-        return stored ? JSON.parse(stored) : null;
+        try {
+            const stored = localStorage.getItem(this.STORAGE_KEY);
+            return stored ? JSON.parse(stored) : null;
+        } catch {
+            return null;
+        }
     }
 
     getToken(): string | null {
@@ -85,6 +99,24 @@ export class AuthenticationService {
     }
 
     isLoggedIn(): boolean {
-        return this.getAuthenticatedUser() !== null;
+        const user = this.getAuthenticatedUser();
+        return user !== null && !!user.accessToken;
+    }
+
+    storeAuthData(user: AuthUser): void {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+    }
+
+    clearAuthData(): void {
+        localStorage.removeItem(this.STORAGE_KEY);
+    }
+
+    registerUser(firstName: string, lastName: string, email: string, title: string, userRole: string): Observable<void> {
+        if (!firstName || !lastName || !email || !userRole) {
+            return throwError(() => new Error('firstName, lastName, email and userRole are required'));
+        }
+        return this.http.post<void>(`${this.BASE_URL}/register`, { firstName, lastName, email, title, userRole }).pipe(
+            catchError(err => throwError(() => err))
+        );
     }
 }

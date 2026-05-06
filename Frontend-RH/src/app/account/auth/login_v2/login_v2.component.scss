@@ -1,143 +1,334 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'poppins',sans-serif;
+/* ── WIKO Auth Layout ─────────────────────────── */
+.wiko-auth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  font-family: 'Archivo', sans-serif;
 }
 
-body {
+/* ── Form Panel (Left) ─────────────────────────── */
+.auth-form-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background-image: url(/assets/images/back.jpg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-}
-img {
-  position: absolute; /* Set the image position to absolute */
-  top: 0; /* Align to the top */
-  left: 10; /* Align to the left */
-  width: 30%; /* Adjust the width as needed */
-  height: auto; /* Maintain aspect ratio */
-  margin-bottom: 10px; /* Add some space below the image */
+  background: #fff;
+  padding: 48px 40px;
 }
 
+.auth-form-inner {
+  width: 100%;
+  max-width: 400px;
+}
 
-section {
-    position: relative;
-    max-width: 600px;
-    background-color: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    border-radius: 20px;
-    backdrop-filter: blur(55px);
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: #162233;
+    border-radius: 9px;
     display: flex;
+    align-items: center;
     justify-content: center;
-    align-items: center;
-    padding: 3rem 6rem;
+    color: #2FA8A0;
+    font-size: 20px;
+  }
+
+  .logo-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1A2B3C;
+    letter-spacing: -0.5px;
+
+    span { color: #2FA8A0; }
+  }
 }
 
-h1 {
-    font-size: 4rem;
-    color: #fff;
-    text-align: center;
+.auth-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1A2B3C;
+  margin: 0 0 6px;
 }
 
-.inputbox {
-    position: relative;
-    margin: 30px 0;
-    max-width: 310px;
-    border-bottom: 2px solid #fff;
+.auth-sub {
+  font-size: 14px;
+  color: #8FA3B8;
+  margin: 0 0 32px;
 }
 
-.inputbox label {
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4A6080;
+}
+
+.forgot-link {
+  font-size: 12px;
+  color: #2FA8A0;
+  text-decoration: none;
+  font-weight: 600;
+
+  &:hover { text-decoration: underline; }
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
     position: absolute;
-    top: 50%;
-    left: 5px;
-    transform: translateY(-50%);
-    color: #fff;
-    font-size: 1.1rem;
+    left: 14px;
+    color: #8FA3B8;
+    font-size: 16px;
     pointer-events: none;
-    transition: all 0.5s ease-in-out;
-}
+  }
 
-input:focus ~ label,
-input:valid ~ label {
-    top: -5px;
-}
-
-.inputbox input {
-    width: 100%;
-    height: 60px;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-size: 1rem;
-    padding: 0 35px 0 5px;
-    color: #fff;
-
-}
-
-.inputbox ion-icon {
+  .eye-btn {
     position: absolute;
-    right: 8px;
-    color: #fff;
-    font-size: 1.2rem;
-    top: 20px;
-
-}
-
-.forget {
-    margin: 45px 0;
-    font-size: 0.85rem;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-
-
-}
-
-.forget label {
-  margin-right: 80px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #8FA3B8;
+    cursor: pointer;
+    font-size: 16px;
     display: flex;
     align-items: center;
-
+    padding: 0;
+    width: auto;
+    height: auto;
+  }
 }
 
-.forget label input {
-    margin-right: 5px;
+.form-input {
+  width: 100%;
+  border: 1.5px solid #E8EDF2;
+  border-radius: 10px;
+  padding: 12px 40px 12px 42px;
+  font-size: 14px;
+  color: #1A2B3C;
+  font-family: 'Archivo', sans-serif;
+  outline: none;
+  transition: border-color .15s;
+
+  &:focus { border-color: #2FA8A0; }
+  &::placeholder { color: #C4D0DC; }
 }
 
-.forget a {
-
-    color: #ffffffe8;
-    text-decoration: none;
-    font-weight: 600;
+.remember-row {
+  margin: -4px 0;
 }
 
-.forget a:hover {
-    text-decoration: underline;
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4A6080;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #2FA8A0;
+  }
 }
 
-button {
-    width: 100%;
-    height: 40px;
-    border-radius: 40px;
-    background-color: rgb(255, 255,255, 1);
-    border: none;
-    outline: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-    font-weight: 600;
-    transition: all 0.4s ease;
-    left: 30px;
+.btn-signin {
+  width: 100%;
+  background: #2FA8A0;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  transition: background .15s;
+
+  &:hover { background: #228880; }
+
+  i { font-size: 18px; }
 }
 
-button:hover {
-  background-color: rgb(255, 255,255, 0.5);
+.auth-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #8FA3B8;
+  margin-top: 28px;
 }
 
+.auth-link {
+  color: #2FA8A0;
+  font-weight: 600;
+  text-decoration: none;
 
+  &:hover { text-decoration: underline; }
+}
+
+/* ── Hero Panel (Right) ─────────────────────────── */
+.auth-hero-panel {
+  background: linear-gradient(145deg, #162233 0%, #1E3249 60%, #0F1C2A 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 52px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 420px;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: rgba(47, 168, 160, 0.2);
+  color: #2FA8A0;
+  border: 1px solid rgba(47, 168, 160, 0.4);
+  border-radius: 999px;
+  padding: 5px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  margin-bottom: 24px;
+}
+
+.hero-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.15;
+  margin: 0 0 20px;
+  letter-spacing: -1px;
+}
+
+.hero-desc {
+  font-size: 14px;
+  color: #8FA3B8;
+  line-height: 1.7;
+  margin: 0 0 36px;
+  max-width: 360px;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 36px;
+  margin-bottom: 36px;
+}
+
+.hero-stat {
+  .stat-num {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 11.5px;
+    color: #8FA3B8;
+    margin-top: 4px;
+  }
+}
+
+.hero-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px 20px;
+  backdrop-filter: blur(10px);
+}
+
+.hero-card-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero-card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(47, 168, 160, 0.25);
+  color: #2FA8A0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hero-card-info { flex: 1; }
+
+.hero-card-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.hero-card-role {
+  font-size: 11.5px;
+  color: #8FA3B8;
+  margin-top: 3px;
+}
+
+.hero-card-badge {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ADE80;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Decorative blobs */
+.deco {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.07;
+  background: #2FA8A0;
+  pointer-events: none;
+}
+.deco-1 { width: 320px; height: 320px; top: -80px; right: -80px; }
+.deco-2 { width: 220px; height: 220px; bottom: -60px; left: -60px; }
+.deco-3 { width: 120px; height: 120px; top: 50%; right: 60px; opacity: 0.05; }
+
+@media (max-width: 768px) {
+  .wiko-auth { grid-template-columns: 1fr; }
+  .auth-hero-panel { display: none; }
+}

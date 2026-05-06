@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
 
 @Component({
   selector: 'app-uploads',
@@ -12,7 +12,7 @@ export class UploadsComponent implements OnInit {
   breadCrumbItems: Array<{}>;
   files: File[] = [];
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router, private collaborateurService: CollaborateurService) {}
 
   ngOnInit() {
     this.breadCrumbItems = [{ label: 'Forms' }, { label: 'Form File Upload', active: true }];
@@ -41,9 +41,7 @@ export class UploadsComponent implements OnInit {
       Swal.fire('No files selected', 'Please select a file to upload.', 'error');
       return;
     }
-    const formData = new FormData();
-    formData.append('file', this.files[0]);
-    this.http.post('http://localhost:8090/api/v1/Collaborateurs/import', formData).subscribe({
+    this.collaborateurService.importFromExcel(this.files[0]).subscribe({
       next: () => Swal.fire('Success', 'File uploaded successfully', 'success').then(() => this.router.navigate(['/collaborateur'])),
       error: () => Swal.fire('Error', 'There was an error uploading the file', 'error')
     });

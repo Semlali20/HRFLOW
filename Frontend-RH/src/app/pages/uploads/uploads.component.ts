@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { FileManagerService } from 'src/app/pages/filemanager/filemanager.service';
 
 @Component({
     selector: 'app-uploads',
@@ -14,7 +14,7 @@ export class UploadsComponent implements OnInit {
     files: File[] = [];
     isLoading = false;
 
-    constructor(private router: Router, private http: HttpClient) {}
+    constructor(private router: Router, private fileManagerService: FileManagerService) {}
 
     ngOnInit(): void {
         this.breadCrumbItems = [{ label: 'Forms' }, { label: 'Form File Upload', active: true }];
@@ -31,18 +31,23 @@ export class UploadsComponent implements OnInit {
     uploadFiles(): void {
         if (this.files.length === 0) { Swal.fire('Erreur', 'Aucun fichier sélectionné', 'error'); return; }
         this.isLoading = true;
-        const formData = new FormData();
-        this.files.forEach(file => formData.append('files', file, file.name));
-        this.http.post('http://localhost:8090/api/files/upload', formData).subscribe({
-            next: () => {
-                this.isLoading = false;
-                Swal.fire('Succès', 'Fichiers téléchargés avec succès !', 'success')
-                    .then(() => this.router.navigate(['/filemanager']));
-            },
-            error: () => {
-                this.isLoading = false;
-                Swal.fire('Erreur', 'Erreur lors du téléchargement', 'error');
-            }
+        const uploadAll = this.files.map(file => this.fileManagerService.upload(file));
+        let completed = 0;
+        uploadAll.forEach(obs => {
+            obs.subscribe({
+                next: () => {
+                    completed++;
+                    if (completed === uploadAll.length) {
+                        this.isLoading = false;
+                        Swal.fire('Succès', 'Fichiers téléchargés avec succès !', 'success')
+                            .then(() => this.router.navigate(['/filemanager']));
+                    }
+                },
+                error: () => {
+                    this.isLoading = false;
+                    Swal.fire('Erreur', 'Erreur lors du téléchargement', 'error');
+                }
+            });
         });
     }
 }

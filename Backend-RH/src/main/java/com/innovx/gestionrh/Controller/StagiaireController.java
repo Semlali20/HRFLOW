@@ -1,64 +1,97 @@
 package com.innovx.gestionrh.Controller;
 
-import com.innovx.gestionrh.Entity.Stagiaires;
-import com.innovx.gestionrh.Repository.StagiairesRepository;
-import com.innovx.gestionrh.Service.StagiareService;
-import com.innovx.gestionrh.annotation.LogActivity;
+import com.innovx.gestionrh.Entity.InternStatus;
+import com.innovx.gestionrh.Service.InternService;
+import com.innovx.gestionrh.dto.request.InternDocumentRequest;
+import com.innovx.gestionrh.dto.request.InternRequest;
+import com.innovx.gestionrh.dto.response.ApiResponse;
+import com.innovx.gestionrh.dto.response.InternDocumentResponse;
+import com.innovx.gestionrh.dto.response.InternResponse;
+import com.innovx.gestionrh.dto.response.PagedResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
-@RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/interns")
+@RequiredArgsConstructor
 public class StagiaireController {
 
-    private final StagiareService stagiaireService;
-    private final StagiairesRepository stagiairesRepository;
+    private final InternService internService;
 
-    @GetMapping("/stagiares")
-    @PreAuthorize("hasAuthority('STAGIAIRE_READ')")
-    public List<Stagiaires> allStagiaires() {
-        return stagiaireService.getAllStagiaires();
+    @PostMapping
+    @PreAuthorize("hasAuthority('INTERN_CREATE')")
+    public ResponseEntity<ApiResponse<InternResponse>> create(
+            @Valid @RequestBody InternRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(internService.create(request)));
     }
 
-    @GetMapping("/stagiares/{id}")
-    @PreAuthorize("hasAuthority('STAGIAIRE_READ')")
-    public Optional<Stagiaires> getStagiaireById(@PathVariable Long id) {
-        return stagiaireService.getStagiairesById(id);
+    @GetMapping
+    @PreAuthorize("hasAuthority('INTERN_READ')")
+    public ResponseEntity<PagedResponse<InternResponse>> findAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) InternStatus status,
+            @PageableDefault(size = 20, sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
+        var page = (search != null && !search.isBlank())
+                ? internService.search(search, pageable)
+                : (status != null)
+                        ? internService.findByStatus(status, pageable)
+                        : internService.findAll(pageable);
+        return ResponseEntity.ok(PagedResponse.of(page));
     }
 
-    @PostMapping("/stagiares")
-    @PreAuthorize("hasAuthority('STAGIAIRE_CREATE')")
-    @LogActivity(action = "CREATE", module = "STAGIAIRE", description = "Created intern")
-    public Stagiaires createStagiaire(@RequestBody Stagiaires stagiaire) {
-        return stagiaireService.createStagiaires(stagiaire);
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('INTERN_READ')")
+    public ResponseEntity<ApiResponse<InternResponse>> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(internService.findById(id)));
     }
 
-    @PutMapping("/stagiares/{id}")
-    @PreAuthorize("hasAuthority('STAGIAIRE_UPDATE')")
-    @LogActivity(action = "UPDATE", module = "STAGIAIRE", description = "Updated intern")
-    public Stagiaires updateStagiaire(@PathVariable Long id, @RequestBody Stagiaires updated) {
-        return stagiaireService.updateStagiaires(id, updated);
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('INTERN_UPDATE')")
+    public ResponseEntity<ApiResponse<InternResponse>> update(
+            @PathVariable Long id,
+            @Valid @RequestBody InternRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(internService.update(id, request)));
     }
 
-    @DeleteMapping("/stagiares/{id}")
-    @PreAuthorize("hasAuthority('STAGIAIRE_DELETE')")
-    @LogActivity(action = "DELETE", module = "STAGIAIRE", description = "Soft-deleted intern")
-    public ResponseEntity<Object> deleteStagiaire(@PathVariable Long id) {
-        Optional<Stagiaires> existing = stagiaireService.getStagiairesById(id);
-        if (existing.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stagiaire not found");
-        }
-        Stagiaires s = existing.get();
-        s.setDeleted(true);
-        stagiairesRepository.save(s);
-        return ResponseEntity.ok().build();
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('INTERN_UPDATE')")
+    public ResponseEntity<ApiResponse<InternResponse>> updateStatus(
+            @PathVariable Long id,
+            @RequestParam InternStatus status) {
+        return ResponseEntity.ok(ApiResponse.ok(internService.updateStatus(id, status)));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('INTERN_DELETE')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        internService.delete(id);
+        return ResponseEntity.ok(ApiResponse.ok("Intern record deactivated successfully."));
+    }
+
+    // ── Documents ─────────────────────────────────────────────────────────────
+
+    @GetMapping("/{id}/documents")
+    @PreAuthorize("hasAuthority('INTERN_READ')")
+    public ResponseEntity<ApiResponse<List<InternDocumentResponse>>> getDocuments(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(internService.getDocuments(id)));
+    }
+
+    @PutMapping("/{id}/documents")
+    @PreAuthorize("hasAuthority('INTERN_UPDATE')")
+    public ResponseEntity<ApiResponse<InternDocumentResponse>> updateDocument(
+            @PathVariable Long id,
+            @Valid @RequestBody InternDocumentRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(internService.updateDocument(id, request)));
     }
 }

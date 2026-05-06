@@ -1,48 +1,58 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import { KpiData } from 'src/app/core/models/hr.models';
 
-export interface KpiData {
-    totalEmployees: number;
-    totalInterns: number;
-    totalUsers: number;
-}
+export { KpiData };
 
 @Injectable({ providedIn: 'root' })
 export class ReportService {
 
-    private readonly BASE = 'http://localhost:8090/api/v1/reports';
+    private readonly BASE = `${environment.apiUrl}/reports`;
 
     constructor(private http: HttpClient) {}
 
     getKpis(): Observable<KpiData> {
-        return this.http.get<KpiData>(`${this.BASE}/kpi`);
+        return this.http.get<KpiData>(`${this.BASE}/kpi`).pipe(catchError(this.handleError));
+    }
+
+    getEmployeesExcel(): Observable<ArrayBuffer> {
+        return this.http.get(`${this.BASE}/employees/excel`, { responseType: 'arraybuffer' }).pipe(catchError(this.handleError));
+    }
+
+    getInternsExcel(): Observable<ArrayBuffer> {
+        return this.http.get(`${this.BASE}/interns/excel`, { responseType: 'arraybuffer' }).pipe(catchError(this.handleError));
+    }
+
+    getEmployeesPdf(): Observable<ArrayBuffer> {
+        return this.http.get(`${this.BASE}/employees/pdf`, { responseType: 'arraybuffer' }).pipe(catchError(this.handleError));
     }
 
     downloadEmployeesExcel(): void {
-        this.http.get(`${this.BASE}/employees/excel`, { responseType: 'blob' }).subscribe(blob => {
-            this.triggerDownload(blob, 'employees.xlsx');
-        });
+        this.getEmployeesExcel().subscribe(buf => this.triggerDownload(buf, 'employees.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
     }
 
     downloadInternsExcel(): void {
-        this.http.get(`${this.BASE}/interns/excel`, { responseType: 'blob' }).subscribe(blob => {
-            this.triggerDownload(blob, 'interns.xlsx');
-        });
+        this.getInternsExcel().subscribe(buf => this.triggerDownload(buf, 'interns.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
     }
 
     downloadEmployeesPdf(): void {
-        this.http.get(`${this.BASE}/employees/pdf`, { responseType: 'blob' }).subscribe(blob => {
-            this.triggerDownload(blob, 'employees.pdf');
-        });
+        this.getEmployeesPdf().subscribe(buf => this.triggerDownload(buf, 'employees.pdf', 'application/pdf'));
     }
 
-    private triggerDownload(blob: Blob, filename: string): void {
+    private triggerDownload(buffer: ArrayBuffer, filename: string, mimeType: string): void {
+        const blob = new Blob([buffer], { type: mimeType });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
         a.click();
         window.URL.revokeObjectURL(url);
+    }
+
+    private handleError(err: any): Observable<never> {
+        return throwError(() => err);
     }
 }

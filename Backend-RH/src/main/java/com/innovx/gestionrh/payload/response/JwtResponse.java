@@ -1,36 +1,24 @@
 package com.innovx.gestionrh.payload.response;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
 @Getter
-@Setter
+@Builder
 public class JwtResponse {
 
-    private String accessToken;
-    private String refreshToken;
-    private String tokenType = "Bearer";
-    private Long id;
-    private String lastname;
-    private String firstname;
-    private String email;
-    private String title;
-    private String userRole;
-    private List<String> permissions;
-
-    public JwtResponse(String accessToken, String refreshToken, Long id, String lastname,
-                       String firstname, String email, String title, String userRole,
-                       List<String> permissions) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        this.id = id;
-        this.lastname = lastname;
-        this.firstname = firstname;
-        this.email = email;
-        this.title = title;
-        this.userRole = userRole;
-        this.permissions = permissions;
-    }
+    private final String accessToken;
+    private final String refreshToken;
+    @Builder.Default
+    private final String tokenType = "Bearer";
+    private final Long id;
+    private final String firstName;
+    private final String lastName;
+    private final String email;
+    private final String title;
+    private final List<String> roles;
+    private final List<String> permissions;
+    private final boolean mustChangePassword;
 }

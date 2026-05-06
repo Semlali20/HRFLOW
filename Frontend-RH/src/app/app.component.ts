@@ -11,14 +11,8 @@ export class AppComponent implements OnInit  {
   constructor(private notificationService: NotificationService) {}
 
   ngOnInit() {
- // Call sendNotifications once when the layout component initializes
- this.notificationService.sendNotifications()
- .then(() => {
-   console.log('Notifications checked/sent on layout load');
- })
- .catch((error) => {
-   console.error('Error checking/sending notifications:', error);
- });
+    // Subscribe to notification stream on init
+    this.notificationService.notifications$.subscribe(() => {});
   }
 
 }

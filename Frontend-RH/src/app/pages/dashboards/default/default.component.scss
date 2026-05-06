@@ -1,0 +1,280 @@
+/* ================================================================
+   WIKO HR — Dashboard
+   ================================================================ */
+
+.dash-container {
+  padding: 0 24px 40px;
+  animation: fadeInUp .4s ease both;
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── Header ── */
+.dash-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 0 18px;
+
+  &__title { font-family:'Inter',sans-serif; font-size:22px; font-weight:700; color:#1A2B3C; margin:0; }
+  &__right  { display:flex; align-items:center; gap:16px; }
+  &__date   { display:flex; align-items:center; gap:6px; font-size:13px; color:#8FA3B8; i { font-size:15px; } }
+  &__lang   { display:flex; align-items:center; gap:6px; font-size:13px; color:#4A6080; border-left:1px solid #E2E8F0; padding-left:16px; cursor:pointer; }
+}
+
+/* ── 3-Column Main Grid ── */
+.dash-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+  align-items: start;
+}
+
+/* Left column: 2 stacked cards */
+.dash-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Generic Card ── */
+.wiko-card {
+  padding: 20px 22px;
+  border-radius: 12px !important;
+  border: none !important;
+  box-shadow: 0 4px 20px rgba(22,34,51,.08) !important;
+
+  &__head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  &__title { font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:#1A2B3C; }
+  &__more  { font-size:18px; color:#8FA3B8; cursor:pointer; }
+}
+
+/* Attendance card — teal border highlight */
+.wiko-att-card {
+  border: 2px solid #2FA8A0 !important;
+  box-shadow: 0 4px 24px rgba(47,168,160,.15) !important;
+}
+
+/* ── KPI Card ── */
+.kpi-score-row {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;
+}
+.kpi-score-num {
+  font-family:'Inter',sans-serif; font-size:38px; font-weight:800; color:#1A2B3C; line-height:1;
+}
+.kpi-score-den { font-size:12px; color:#8FA3B8; line-height:1.3; max-width:140px; }
+.kpi-improve-text { font-size:12px; color:#2FA8A0; font-weight:500; margin:0 0 4px; }
+.kpi-based-text   { font-size:11.5px; color:#8FA3B8; margin:4px 0 0; text-align:center; }
+
+/* ── Employee + Projects Card ── */
+.emp-total-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.emp-total-label { font-size:12px; color:#8FA3B8; margin:0 0 2px; }
+.emp-total-num   { font-family:'Inter',sans-serif; font-size:34px; font-weight:800; color:#1A2B3C; line-height:1; }
+.emp-add-btn {
+  width:36px; height:36px; border-radius:10px; background:#1B7872; color:#fff;
+  border:none; display:flex; align-items:center; justify-content:center;
+  font-size:20px; cursor:pointer; transition:background .15s;
+  &:hover { background:#156963; }
+}
+.emp-gender-row { display:flex; gap:32px; margin-bottom:16px; }
+.emp-gender-item { display:flex; flex-direction:column; gap:3px; }
+.emp-gender-top  { display:flex; align-items:center; gap:7px; }
+.emp-gender-count { font-family:'Inter',sans-serif; font-size:20px; font-weight:700; color:#1A2B3C; }
+.emp-gender-pct {
+  font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px;
+  &--blue { background:#DBEAFE; color:#1D4ED8; }
+  &--rose { background:#FFE4E6; color:#BE123C; }
+}
+.emp-gender-label { font-size:11.5px; color:#8FA3B8; }
+
+.emp-projects-section { border-top:1px solid #F0F3F6; padding-top:16px; }
+.emp-proj-stats {
+  display:flex; gap:32px; margin-bottom:6px;
+  div { display:flex; flex-direction:column; gap:2px; }
+}
+.emp-proj-num   { font-family:'Inter',sans-serif; font-size:22px; font-weight:700; color:#1A2B3C; }
+.emp-proj-label { font-size:11.5px; color:#8FA3B8; }
+.emp-proj-note  { font-size:11.5px; color:#8FA3B8; margin:4px 0 0; }
+
+/* ── Attendance Card ── */
+.att-period-badge {
+  display:flex; align-items:center; gap:4px;
+  font-size:12.5px; font-weight:600; color:#2FA8A0;
+  background:none; border:none; cursor:pointer;
+  i { font-size:13px; }
+}
+.att-pct-row { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+.att-pct-num {
+  font-family:'Inter',sans-serif; font-size:36px; font-weight:800; color:#1A2B3C;
+}
+.att-pct-trend {
+  display:flex; align-items:center; gap:3px;
+  font-size:12.5px; font-weight:700; color:#22C55E;
+  background:#DCFCE7; padding:3px 9px; border-radius:999px;
+}
+.att-desc { font-size:12.5px; color:#8FA3B8; margin:0 0 16px; }
+
+/* Heatmap */
+.att-heatmap { overflow:hidden; }
+.att-heatmap__body { display:flex; gap:8px; align-items:flex-start; }
+.att-heatmap__hour-labels {
+  display:flex; flex-direction:column; gap:4px; padding-top:2px; flex-shrink:0; width:36px;
+  span { font-size:10px; color:#8FA3B8; line-height:22px; text-align:right; display:block; }
+}
+.att-heatmap__grid { flex:1; display:flex; flex-direction:column; gap:4px; }
+.att-heatmap__row  { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.att-heatmap__cell {
+  height: 22px; border-radius: 4px;
+  background: #C8F0ED;
+}
+.att-heatmap__day-labels {
+  display:grid; grid-template-columns:repeat(7,1fr);
+  gap:4px; margin-top:8px; margin-left:44px;
+  span { font-size:10.5px; color:#8FA3B8; text-align:center; display:block; }
+}
+
+/* ── Today Used Devices Card ── */
+.wiko-devices-card {
+  &:hover { box-shadow:0 8px 28px rgba(22,34,51,.12) !important; }
+}
+.wdv-count-row { display:flex; align-items:baseline; gap:6px; margin-bottom:2px; }
+.wdv-count-num  { font-family:'Inter',sans-serif; font-size:36px; font-weight:700; color:#1A2B3C; line-height:1; }
+.wdv-count-label { font-size:13px; color:#8FA3B8; }
+.wdv-sub { font-size:12.5px; color:#8FA3B8; margin-bottom:16px; }
+
+/* 2-column device layout */
+.wdv-two-col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;
+}
+.wdv-device-col { display:flex; flex-direction:column; gap:3px; }
+.wdv-device-top { display:flex; align-items:center; gap:7px; }
+.wdv-dot {
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+  &--mobile  { background:#3B82F6; }
+  &--desktop { background:#F59E0B; }
+  &--nfc     { background:#8B5CF6; }
+}
+.wdv-device-name { font-size:12.5px; color:#4A6080; font-weight:500; }
+.wdv-device-pct  { font-family:'Inter',sans-serif; font-size:20px; font-weight:700; color:#1A2B3C; }
+.wdv-device-emp  { font-size:11.5px; color:#8FA3B8; }
+
+.wdv-progress-bar { display:flex; border-radius:6px; overflow:hidden; height:8px; background:#F0F3F6; }
+.wdv-progress-fill {
+  height:100%; transition:width .4s ease;
+  &--mobile  { background:#3B82F6; }
+  &--desktop { background:#F59E0B; }
+  &--nfc     { background:#8B5CF6; }
+}
+
+/* ── Bottom Table Card ── */
+.dash-table-card { border-radius:12px !important; overflow:hidden; }
+.dash-tabs-bar {
+  display:flex; align-items:center; gap:4px;
+  padding:16px 20px 0; border-bottom:1px solid #F0F3F6;
+}
+.dash-tab {
+  padding:10px 16px; font-size:13px; font-weight:500; color:#8FA3B8;
+  background:none; border:none; border-bottom:2px solid transparent;
+  cursor:pointer; transition:all .15s; white-space:nowrap; margin-bottom:-1px;
+  &--active { color:#1B7872; border-bottom-color:#1B7872; font-weight:600; }
+  &:hover:not(.dash-tab--active) { color:#4A6080; }
+}
+.dash-tabs__updated {
+  margin-left:auto; font-size:12px; color:#8FA3B8;
+  display:flex; align-items:center; gap:4px; padding-bottom:10px;
+  i { font-size:14px; }
+}
+
+/* Table */
+.wiko-table {
+  width:100%; border-collapse:collapse;
+  thead tr { background:#FAFBFC; }
+  thead th {
+    padding:12px 18px; font-size:11px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:#8FA3B8;
+    border-bottom:1px solid #F0F3F6; white-space:nowrap;
+  }
+  tbody tr { transition:background .15s; }
+  tbody tr:hover { background:#FAFBFC; }
+  tbody td {
+    padding:13px 18px; font-size:13.5px; color:#4A6080;
+    border-bottom:1px solid #F5F7FA; vertical-align:middle;
+  }
+  tbody tr:last-child td { border-bottom:none; }
+  &__id   { font-weight:600; color:#1A2B3C; font-size:13px; }
+  &__name { font-weight:500; color:#1A2B3C; }
+  &__time { font-size:13px; }
+  &__empty { text-align:center; padding:48px; color:#8FA3B8; font-size:14px; }
+}
+
+.dept-chip {
+  display:inline-block; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:600;
+  &--marketing  { background:#FEF3C7; color:#92400E; }
+  &--technology { background:#DBEAFE; color:#1E40AF; }
+  &--hr         { background:#FCE7F3; color:#9D174D; }
+  &--finance    { background:#EDE9FE; color:#5B21B6; }
+  &--default    { background:#F1F5F9; color:#475569; }
+}
+.status-chip {
+  display:inline-flex; align-items:center; gap:5px; padding:4px 11px;
+  border-radius:999px; font-size:11.5px; font-weight:700;
+  &--attend { background:#DCFCE7; color:#15803D; }
+  &--dayoff { background:#FEF3C7; color:#B45309; }
+  &--sick   { background:#FFE4E6; color:#BE123C; }
+  &--remote { background:#DBEAFE; color:#1D4ED8; }
+}
+
+.wiko-row-actions { display:flex; gap:6px; align-items:center; }
+.wiko-action-btn {
+  width:30px; height:30px; border-radius:7px; border:none;
+  background:#F1F5F9; color:#4A6080; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .15s;
+  &:hover { background:#E2E8F0; color:#1A2B3C; }
+  &--del:hover { background:#FFE4E6; color:#BE123C; }
+}
+
+/* ══ TODAY DEVICES MODAL ══ */
+.wiko-modal-backdrop { position:fixed; inset:0; background:rgba(10,20,35,.45); backdrop-filter:blur(2px); z-index:1800; }
+.wiko-modal {
+  position:fixed; top:50%; right:60px; transform:translateY(-50%);
+  width:520px; max-height:90vh; background:#fff; border-radius:16px;
+  box-shadow:0 24px 60px rgba(10,20,35,.18); z-index:1801;
+  display:flex; flex-direction:column; overflow:hidden;
+  animation:wm-in .2s ease both;
+  @keyframes wm-in {
+    from { opacity:0; transform:translateY(calc(-50% - 12px)); }
+    to   { opacity:1; transform:translateY(-50%); }
+  }
+}
+.wiko-modal__header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 16px; border-bottom:1px solid #F0F3F6; flex-shrink:0; }
+.wiko-modal__title  { font-size:17px; font-weight:700; color:#1A2B3C; margin:0; }
+.wiko-modal__close  { background:#F0F3F6; border:none; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#4A6080; &:hover { background:#E2E8F0; } i { font-size:18px; } }
+.wdm-total-row { display:flex; flex-direction:column; align-items:center; padding:24px 24px 16px; border-bottom:1px solid #F0F3F6; flex-shrink:0; }
+.wdm-total-icon { width:44px; height:44px; border-radius:50%; background:#F0F3F6; display:flex; align-items:center; justify-content:center; margin-bottom:8px; i { font-size:20px; color:#8FA3B8; } }
+.wdm-total-label { font-size:12px; color:#8FA3B8; margin-bottom:4px; }
+.wdm-total-num   { font-size:22px; font-weight:700; color:#1A2B3C; }
+.wdm-breakdown-row { display:flex; justify-content:space-around; padding:20px 24px; border-bottom:1px solid #F0F3F6; flex-shrink:0; }
+.wdm-breakdown-item { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.wdm-breakdown-icon { width:40px; height:40px; border-radius:50%; background:#F0F3F6; display:flex; align-items:center; justify-content:center; i { font-size:18px; color:#8FA3B8; } }
+.wdm-breakdown-label { font-size:12px; color:#8FA3B8; }
+.wdm-breakdown-num   { font-size:16px; font-weight:700; color:#1A2B3C; }
+.wdm-tabs { display:flex; padding:0 24px; border-bottom:1px solid #F0F3F6; flex-shrink:0; }
+.wdm-tab  { padding:12px 20px; font-size:13px; font-weight:500; color:#8FA3B8; background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; margin-bottom:-1px; transition:all .15s; &--active { color:#1B7872; border-bottom-color:#1B7872; font-weight:600; } }
+.wdm-table-wrap { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#E2E8F0 transparent; }
+.wdm-table {
+  width:100%; border-collapse:collapse;
+  thead th { padding:10px 20px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#8FA3B8; background:#FAFBFC; border-bottom:1px solid #F0F3F6; white-space:nowrap; }
+  tbody tr:hover { background:#FAFBFC; }
+  tbody td { padding:11px 20px; font-size:13px; color:#4A6080; border-bottom:1px solid #F5F7FA; vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+}
+.wdm-id   { font-weight:600; color:#1A2B3C; }
+.wdm-name { font-weight:500; color:#1A2B3C; }
+.wdm-device-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:600; &--mobile { background:#DBEAFE; color:#1E40AF; } &--desktop { background:#FEF3C7; color:#92400E; } &--nfc { background:#EDE9FE; color:#5B21B6; } }

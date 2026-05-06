@@ -1,12 +1,7 @@
 package com.innovx.gestionrh.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Table(name = "cv_applications")
@@ -14,35 +9,51 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CvApplication {
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
+@ToString(exclude = "offer")
+public class CvApplication extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
+
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "offer_id")
     private StageOffer offer;
 
+    @Column(name = "candidate_name", nullable = false, length = 150)
     private String candidateName;
+
+    @Column(name = "candidate_email", length = 150)
     private String candidateEmail;
+
+    @Column(name = "candidate_phone", length = 30)
+    private String candidatePhone;
+
+    @Column(name = "cv_file_name", length = 255)
     private String cvFileName;
+
+    @Column(name = "cv_file_path", length = 500)
     private String cvFilePath;
 
-    @Column(length = 2000)
+    /** Raw text extracted from the CV for full-text search via PostgreSQL. */
+    @Column(name = "extracted_text", columnDefinition = "TEXT")
     private String extractedText;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "stage", nullable = false, length = 30)
     @Builder.Default
     private KanbanStage stage = KanbanStage.NEW;
 
-    @Column(length = 500)
+    @Column(name = "score")
+    private Integer score;
+
+    @Column(name = "notes", length = 1000)
     private String notes;
-
-    @Builder.Default
-    private LocalDateTime submittedAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt;
 
     public enum KanbanStage {
         NEW, REVIEWING, SHORTLISTED, INTERVIEW_SCHEDULED, OFFERED, REJECTED

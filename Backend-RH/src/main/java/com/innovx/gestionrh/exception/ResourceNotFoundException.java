@@ -1,9 +1,8 @@
 package com.innovx.gestionrh.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Getter;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
+@Getter
 public class ResourceNotFoundException extends RuntimeException {
 
     private final String resourceName;
@@ -23,8 +22,4 @@ public class ResourceNotFoundException extends RuntimeException {
         this.fieldName = null;
         this.fieldValue = null;
     }
-
-    public String getResourceName() { return resourceName; }
-    public String getFieldName() { return fieldName; }
-    public Object getFieldValue() { return fieldValue; }
 }

@@ -1,0 +1,203 @@
+/* ══════════════════════════════════════════
+   SEARCH MODAL
+   ══════════════════════════════════════════ */
+.wiko-search-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(10,20,35,0.45);
+  backdrop-filter: blur(2px);
+  z-index: 2000;
+}
+
+.wiko-search-modal {
+  position: fixed; top: 80px; left: 50%;
+  transform: translateX(-50%);
+  width: 640px; max-width: calc(100vw - 48px);
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(10,20,35,0.16);
+  z-index: 2001; overflow: hidden;
+  animation: wsm-in .18s ease both;
+  @keyframes wsm-in {
+    from { opacity:0; transform:translateX(-50%) translateY(-10px); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0); }
+  }
+}
+.wsm-header { display:flex; align-items:center; gap:10px; padding:16px 20px; }
+.wsm-search-row { display:flex; align-items:center; gap:10px; flex:1; }
+.wsm-search-icon { font-size:18px; color:#8FA3B8; flex-shrink:0; }
+.wsm-input { flex:1; border:none; outline:none; font-size:15px; color:#1A2B3C; font-family:'Inter',sans-serif; &::placeholder { color:#8FA3B8; } }
+.wsm-close-btn { background:#F0F3F6; border:none; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#4A6080; flex-shrink:0; &:hover { background:#E2E8F0; } i { font-size:16px; } }
+.wsm-divider { height:1px; background:#F0F3F6; }
+.wsm-chips-row { display:flex; flex-wrap:wrap; gap:8px; padding:14px 20px 0; &--2 { padding-top:6px; padding-bottom:6px; } }
+.wsm-chip { display:flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid #E2E8F0; border-radius:8px; background:#fff; font-size:12px; font-weight:500; color:#4A6080; cursor:pointer; transition:all .13s; i { font-size:13px; color:#8FA3B8; } &:hover { background:#F0F3F6; border-color:#CBD5E0; color:#1A2B3C; } }
+.wsm-section-title { font-size:11px; font-weight:700; color:#8FA3B8; letter-spacing:0.8px; text-transform:uppercase; padding:14px 20px 8px; }
+.wsm-action-list { list-style:none; padding:0; margin:0; }
+.wsm-action-item { display:flex; align-items:center; gap:10px; padding:9px 20px; font-size:13.5px; color:#1A2B3C; cursor:pointer; text-decoration:none !important; transition:background .12s; i { font-size:16px; color:#8FA3B8; } &:hover { background:#F0FEF8; color:#1B7872; i { color:#1B7872; } } }
+.wsm-recent-list { list-style:none; padding:0 0 8px; margin:0; }
+.wsm-recent-item { display:flex; align-items:center; gap:10px; padding:8px 20px; font-size:13px; color:#4A6080; cursor:pointer; transition:background .12s; i { font-size:15px; color:#CBD5E0; } &:hover { background:#F0F3F6; } }
+
+/* ══════════════════════════════════════════
+   PROFILE MENU POPUP
+   ══════════════════════════════════════════ */
+.wiko-profile-menu {
+  position: fixed; bottom: 72px; left: 8px; width: 224px;
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(10,20,35,0.15);
+  z-index: 1500; overflow: hidden;
+  animation: wpm-in .15s ease both;
+  @keyframes wpm-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+}
+.wpm-profile-row { display:flex; align-items:center; gap:10px; padding:16px 16px 12px; }
+.wpm-avatar { width:36px; height:36px; border-radius:50%; background:#1B7872; color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.wpm-info { flex:1; }
+.wpm-name { font-size:13px; font-weight:600; color:#1A2B3C; }
+.wpm-role { font-size:11.5px; color:#8FA3B8; }
+.wpm-divider { height:1px; background:#F0F3F6; margin:2px 0; }
+.wpm-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:13.5px; color:#1A2B3C; cursor:pointer; text-decoration:none !important; transition:background .12s; i { font-size:17px; color:#8FA3B8; } &:hover { background:#F0F3F6; text-decoration:none !important; } &--logout { color:#E53E3E; i { color:#E53E3E; } &:hover { background:#FFF5F5; } } }
+
+/* ══════════════════════════════════════════
+   SIDEBAR VARS — LIGHT THEME
+   ══════════════════════════════════════════ */
+$sb-bg:          #FFFFFF;
+$sb-border:      #F0F3F6;
+$sb-active-bg:   rgba(27, 120, 114, 0.08);
+$sb-active:      #1B7872;
+$sb-text:        #6B8299;
+$sb-text-bright: #1A2B3C;
+$sb-label:       #A0B4C8;
+$sb-hover-bg:    #F5F8FA;
+
+.wiko-sidebar-host {
+  background: $sb-bg !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  font-family: 'Inter', sans-serif !important;
+  padding-top: 0 !important;
+  border-right: 1px solid $sb-border !important;
+  box-shadow: 2px 0 12px rgba(22,34,51,0.05) !important;
+}
+
+/* ── Logo Row ── */
+.wiko-sb-logo-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid $sb-border;
+  flex-shrink: 0;
+}
+.wiko-sb-logo-wrap { display:flex; align-items:center; gap:9px; }
+.wiko-sb-star { display:flex; align-items:center; justify-content:center; }
+.wiko-sb-brand { font-size:18px; font-weight:800; color:#1A2B3C; letter-spacing:0.2px; }
+.wiko-sb-collapse-btn {
+  background: $sb-hover-bg; border:1px solid $sb-border; border-radius:6px;
+  width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+  color:$sb-text; cursor:pointer; transition:background 0.15s; padding:0;
+  &:hover { background:#EDF2F7; }
+  i { font-size:15px; }
+}
+
+/* ── Search ── */
+.wiko-sb-search-wrap { padding:12px 12px 8px; flex-shrink:0; }
+.wiko-sb-search-box {
+  display: flex; align-items: center;
+  background: $sb-hover-bg; border: 1.5px solid $sb-border;
+  border-radius: 8px; padding: 8px 10px; gap: 8px; cursor: pointer;
+  transition: border-color .15s;
+  &:hover { border-color: #CBD5E0; }
+}
+.wiko-sb-search-icon { color:$sb-text; font-size:14px; flex-shrink:0; }
+.wiko-sb-search-placeholder { flex:1; font-size:12.5px; color:$sb-text; user-select:none; }
+.wiko-sb-kbd {
+  font-size:10px; color:$sb-text;
+  background: $sb-border; border-radius:4px;
+  padding:2px 6px; white-space:nowrap; flex-shrink:0;
+}
+
+/* ── Scroll Area ── */
+.wiko-sb-scroll { flex:1 !important; overflow:hidden !important; min-height:0; }
+
+/* ── Section Labels ── */
+.wiko-sb-section-label {
+  font-size: 10.5px; font-weight: 700; color: $sb-label;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  padding: 16px 16px 5px; user-select: none;
+
+  &.wiko-sb-collapsible {
+    cursor: pointer; display:flex; align-items:center; justify-content:space-between;
+    &:hover { color: $sb-text; }
+    i { font-size:14px; }
+  }
+}
+
+/* ── Nav List ── */
+.wiko-sb-nav-list { list-style:none; padding:0 8px; margin:0 0 2px; }
+
+.wiko-sb-nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  color: $sb-text; text-decoration: none !important;
+  font-size: 13px; font-weight: 500;
+  transition: background 0.12s, color 0.12s;
+  cursor: pointer;
+
+  i { font-size: 16px; flex-shrink: 0; width: 18px; text-align: center; }
+
+  > span:not(.wiko-sb-kbd-badge):not(.wiko-sb-count-badge) { flex:1; min-width:0; }
+
+  &:hover {
+    background: $sb-hover-bg; color: $sb-text-bright;
+    text-decoration: none !important;
+  }
+
+  &.wiko-active {
+    background: $sb-active-bg; color: $sb-active; font-weight: 600;
+    i { color: $sb-active; }
+  }
+}
+
+/* ── Divider between sections ── */
+.wiko-sb-nav-list + .wiko-sb-section-label {
+  margin-top: 4px;
+}
+
+/* ── Badges ── */
+.wiko-sb-kbd-badge {
+  font-size:10px; color:$sb-text;
+  background:$sb-border; border-radius:4px;
+  padding:2px 6px; white-space:nowrap; flex-shrink:0; line-height:1.4;
+}
+
+.wiko-sb-count-badge {
+  font-size:10px; font-weight:700; color:#fff;
+  background: $sb-active; border-radius:20px;
+  padding:2px 7px; white-space:nowrap; flex-shrink:0; line-height:1.4;
+}
+
+/* ── User Footer ── */
+.wiko-sb-user-footer {
+  display: flex; align-items: center; gap: 9px;
+  padding: 12px 14px;
+  border-top: 1px solid $sb-border;
+  background: $sb-hover-bg;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background .15s;
+  &:hover { background: #EDF2F7; }
+}
+
+.wiko-sb-user-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: $sb-active; color: #fff;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.wiko-sb-user-info { flex:1; min-width:0; }
+.wiko-sb-user-name { font-size:12.5px; font-weight:600; color:$sb-text-bright; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wiko-sb-user-email { font-size:11px; color:$sb-text; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.wiko-sb-user-chevron {
+  background: none; border: none; color: $sb-text; cursor: pointer;
+  padding: 3px; display:flex; align-items:center; flex-shrink:0;
+  &:hover { color: $sb-text-bright; }
+  i { font-size:15px; }
+}

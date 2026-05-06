@@ -1,0 +1,27 @@
+[
+  {
+    "email": "admin@innovx.com",
+    "password": "Admin@12345",
+    "role": "ADMIN"
+  },
+  {
+    "email": "rh1@innovx.com",
+    "password": "Rh@12345",
+    "role": "COLLABORATEUR_RH"
+  },
+  {
+    "email": "rh2@innovx.com",
+    "password": "Rh@12345",
+    "role": "COLLABORATEUR_RH"
+  },
+  {
+    "email": "manager@innovx.com",
+    "password": "Manager@1234",
+    "role": "MANAGER"
+  },
+  {
+    "email": "employee@innovx.com",
+    "password": "Employee@1234",
+    "role": "EMPLOYEE"
+  }
+]

@@ -29,89 +29,139 @@ public class DataInitializer {
         log.info("RBAC initialization complete.");
     }
 
+    // ── Permission Definitions ─────────────────────────────────────────────────
+
     private void initPermissions() {
         List<String[]> permDefs = Arrays.asList(
-                new String[]{"STAGIAIRE_READ",    "STAGIAIRE", "Read intern records"},
-                new String[]{"STAGIAIRE_CREATE",  "STAGIAIRE", "Create interns"},
-                new String[]{"STAGIAIRE_UPDATE",  "STAGIAIRE", "Update intern records"},
-                new String[]{"STAGIAIRE_DELETE",  "STAGIAIRE", "Delete interns"},
-                new String[]{"STAGIAIRE_EXPORT",  "STAGIAIRE", "Export intern data"},
+                // ── Interns ───────────────────────────────────────────────────
+                new String[]{"INTERN_READ",           "INTERN",    "Read intern records"},
+                new String[]{"INTERN_CREATE",         "INTERN",    "Create intern records"},
+                new String[]{"INTERN_UPDATE",         "INTERN",    "Update intern records"},
+                new String[]{"INTERN_DELETE",         "INTERN",    "Delete (deactivate) interns"},
 
-                new String[]{"EMPLOYEE_READ",     "EMPLOYEE",  "Read employee records"},
-                new String[]{"EMPLOYEE_CREATE",   "EMPLOYEE",  "Create employees"},
-                new String[]{"EMPLOYEE_UPDATE",   "EMPLOYEE",  "Update employee records"},
-                new String[]{"EMPLOYEE_DELETE",   "EMPLOYEE",  "Delete employees"},
-                new String[]{"EMPLOYEE_EXPORT",   "EMPLOYEE",  "Export employee data"},
+                // ── Employees ─────────────────────────────────────────────────
+                new String[]{"EMPLOYEE_READ",         "EMPLOYEE",  "Read employee records"},
+                new String[]{"EMPLOYEE_CREATE",       "EMPLOYEE",  "Create employee records"},
+                new String[]{"EMPLOYEE_UPDATE",       "EMPLOYEE",  "Update employee records"},
+                new String[]{"EMPLOYEE_DELETE",       "EMPLOYEE",  "Delete (deactivate) employees"},
 
-                new String[]{"LEAVE_REQUEST",     "LEAVE",     "Submit leave requests"},
-                new String[]{"LEAVE_APPROVE",     "LEAVE",     "Approve leave requests"},
-                new String[]{"LEAVE_REJECT",      "LEAVE",     "Reject leave requests"},
-                new String[]{"LEAVE_READ_ALL",    "LEAVE",     "View all leave requests"},
-                new String[]{"LEAVE_MANAGE_TYPES","LEAVE",     "Manage leave types"},
+                // ── Departments ───────────────────────────────────────────────
+                new String[]{"DEPARTMENT_READ",       "ORG",       "Read departments"},
+                new String[]{"DEPARTMENT_CREATE",     "ORG",       "Create departments"},
+                new String[]{"DEPARTMENT_UPDATE",     "ORG",       "Update departments"},
+                new String[]{"DEPARTMENT_DELETE",     "ORG",       "Delete departments"},
 
-                new String[]{"CV_UPLOAD",         "CV",        "Upload CVs"},
-                new String[]{"CV_READ",           "CV",        "View CVs"},
-                new String[]{"CV_SHORTLIST",      "CV",        "Shortlist CV applications"},
-                new String[]{"OFFER_CREATE",      "CV",        "Create stage offers"},
-                new String[]{"OFFER_MANAGE",      "CV",        "Manage stage offers"},
+                // ── Positions ─────────────────────────────────────────────────
+                new String[]{"POSITION_READ",         "ORG",       "Read positions"},
+                new String[]{"POSITION_CREATE",       "ORG",       "Create positions"},
+                new String[]{"POSITION_UPDATE",       "ORG",       "Update positions"},
+                new String[]{"POSITION_DELETE",       "ORG",       "Delete positions"},
 
-                new String[]{"PLANNING_READ",     "PLANNING",  "View planning events"},
-                new String[]{"PLANNING_CREATE",   "PLANNING",  "Create planning events"},
-                new String[]{"PLANNING_UPDATE",   "PLANNING",  "Update planning events"},
-                new String[]{"PLANNING_DELETE",   "PLANNING",  "Delete planning events"},
+                // ── Meetings ──────────────────────────────────────────────────
+                new String[]{"MEETING_READ",          "INTERN",    "Read meetings"},
+                new String[]{"MEETING_CREATE",        "INTERN",    "Create meetings"},
+                new String[]{"MEETING_UPDATE",        "INTERN",    "Update meetings"},
+                new String[]{"MEETING_DELETE",        "INTERN",    "Delete meetings"},
 
-                new String[]{"REPORT_READ",       "REPORT",    "View reports"},
-                new String[]{"REPORT_GENERATE",   "REPORT",    "Generate reports"},
-                new String[]{"REPORT_EXPORT",     "REPORT",    "Export reports"},
-                new String[]{"REPORT_SCHEDULE",   "REPORT",    "Schedule reports"},
+                // ── Documents ─────────────────────────────────────────────────
+                new String[]{"DOCUMENT_READ",         "DOCUMENT",  "Read employee documents"},
+                new String[]{"DOCUMENT_UPLOAD",       "DOCUMENT",  "Upload employee documents"},
+                new String[]{"DOCUMENT_DELETE",       "DOCUMENT",  "Delete employee documents"},
 
-                new String[]{"USER_MANAGE",       "ADMIN",     "Manage users"},
-                new String[]{"ROLE_MANAGE",       "ADMIN",     "Manage roles"},
-                new String[]{"AUDIT_READ",        "ADMIN",     "View audit logs"},
-                new String[]{"SYSTEM_CONFIG",     "ADMIN",     "System configuration"},
+                // ── Leave ─────────────────────────────────────────────────────
+                new String[]{"LEAVE_REQUEST",         "LEAVE",     "Submit leave requests"},
+                new String[]{"LEAVE_APPROVE",         "LEAVE",     "Approve leave requests"},
+                new String[]{"LEAVE_REJECT",          "LEAVE",     "Reject leave requests"},
+                new String[]{"LEAVE_READ_ALL",        "LEAVE",     "View all leave requests"},
+                new String[]{"LEAVE_MANAGE_TYPES",    "LEAVE",     "Manage leave types and public holidays"},
 
-                new String[]{"APPROVAL_READ",     "APPROVAL",  "View approvals"},
-                new String[]{"APPROVAL_PROCESS",  "APPROVAL",  "Process approvals"},
-                new String[]{"FILE_UPLOAD",       "FILE",      "Upload files"},
-                new String[]{"FILE_DELETE",       "FILE",      "Delete files"},
-                new String[]{"FILE_READ_ALL",     "FILE",      "View all files"}
+                // ── CV & Offers ───────────────────────────────────────────────
+                new String[]{"CV_UPLOAD",             "CV",        "Upload CVs"},
+                new String[]{"CV_READ",               "CV",        "View CVs and applications"},
+                new String[]{"CV_SHORTLIST",          "CV",        "Shortlist / score CV applications"},
+                new String[]{"OFFER_CREATE",          "CV",        "Create stage offers"},
+                new String[]{"OFFER_MANAGE",          "CV",        "Manage stage offers"},
+
+                // ── Planning ──────────────────────────────────────────────────
+                new String[]{"PLANNING_READ",         "PLANNING",  "View planning events"},
+                new String[]{"PLANNING_CREATE",       "PLANNING",  "Create planning events"},
+                new String[]{"PLANNING_UPDATE",       "PLANNING",  "Update planning events"},
+                new String[]{"PLANNING_DELETE",       "PLANNING",  "Delete planning events"},
+
+                // ── Reports ───────────────────────────────────────────────────
+                new String[]{"REPORT_READ",           "REPORT",    "View reports"},
+                new String[]{"REPORT_GENERATE",       "REPORT",    "Generate reports"},
+                new String[]{"REPORT_EXPORT",         "REPORT",    "Export reports"},
+
+                // ── Admin ─────────────────────────────────────────────────────
+                new String[]{"USER_MANAGE",           "ADMIN",     "Manage users (view, update, deactivate)"},
+                new String[]{"ROLE_MANAGE",           "ADMIN",     "Manage roles and permissions"},
+                new String[]{"AUDIT_READ",            "ADMIN",     "View audit logs"},
+                new String[]{"SYSTEM_CONFIG",         "ADMIN",     "System-level configuration"},
+
+                // ── Approvals ─────────────────────────────────────────────────
+                new String[]{"APPROVAL_READ",         "APPROVAL",  "View pending approvals"},
+                new String[]{"APPROVAL_PROCESS",      "APPROVAL",  "Approve or reject items"}
         );
 
         for (String[] def : permDefs) {
             if (!permissionRepository.existsByName(def[0])) {
                 permissionRepository.save(new Permission(null, def[0], def[1], def[2]));
+                log.debug("Created permission: {}", def[0]);
             }
         }
     }
+
+    // ── Role Definitions ───────────────────────────────────────────────────────
 
     private void initRoles() {
         List<Permission> allPerms = permissionRepository.findAll();
         Set<Permission> allPermsSet = new HashSet<>(allPerms);
 
-        createRoleIfAbsent("ADMIN", "Full system access", allPermsSet);
+        // ── ADMIN: full access ─────────────────────────────────────────────────
+        createRoleIfAbsent("ADMIN", "Full system access — all permissions", allPermsSet);
 
+        // ── STAGIAIRE_RH: intern & CV management ──────────────────────────────
         Set<Permission> stagiaireRhPerms = filterPerms(allPerms,
-                "STAGIAIRE_READ", "STAGIAIRE_CREATE", "STAGIAIRE_UPDATE", "STAGIAIRE_DELETE", "STAGIAIRE_EXPORT",
+                "INTERN_READ", "INTERN_CREATE", "INTERN_UPDATE", "INTERN_DELETE",
+                "MEETING_READ", "MEETING_CREATE", "MEETING_UPDATE", "MEETING_DELETE",
                 "CV_UPLOAD", "CV_READ", "CV_SHORTLIST", "OFFER_CREATE", "OFFER_MANAGE",
                 "PLANNING_READ", "PLANNING_CREATE",
                 "LEAVE_REQUEST", "LEAVE_READ_ALL",
-                "FILE_UPLOAD", "FILE_READ_ALL", "REPORT_READ");
+                "DOCUMENT_READ", "DOCUMENT_UPLOAD",
+                "REPORT_READ");
         createRoleIfAbsent("STAGIAIRE_RH", "Intern HR manager", stagiaireRhPerms);
 
+        // ── COLLABORATEUR_RH: employee management ──────────────────────────────
         Set<Permission> collaborateurRhPerms = filterPerms(allPerms,
-                "EMPLOYEE_READ", "EMPLOYEE_CREATE", "EMPLOYEE_UPDATE", "EMPLOYEE_DELETE", "EMPLOYEE_EXPORT",
+                "EMPLOYEE_READ", "EMPLOYEE_CREATE", "EMPLOYEE_UPDATE", "EMPLOYEE_DELETE",
+                "DEPARTMENT_READ", "POSITION_READ",
                 "PLANNING_READ", "PLANNING_CREATE",
-                "LEAVE_REQUEST", "LEAVE_APPROVE", "LEAVE_REJECT", "LEAVE_READ_ALL",
-                "FILE_UPLOAD", "FILE_READ_ALL", "REPORT_READ");
+                "LEAVE_REQUEST", "LEAVE_APPROVE", "LEAVE_REJECT", "LEAVE_READ_ALL", "LEAVE_MANAGE_TYPES",
+                "DOCUMENT_READ", "DOCUMENT_UPLOAD", "DOCUMENT_DELETE",
+                "REPORT_READ", "REPORT_GENERATE", "REPORT_EXPORT");
         createRoleIfAbsent("COLLABORATEUR_RH", "Employee HR manager", collaborateurRhPerms);
 
+        // ── MANAGER: team oversight ────────────────────────────────────────────
         Set<Permission> managerPerms = filterPerms(allPerms,
-                "EMPLOYEE_READ", "STAGIAIRE_READ",
+                "EMPLOYEE_READ", "INTERN_READ",
+                "DEPARTMENT_READ", "POSITION_READ",
                 "PLANNING_READ", "PLANNING_CREATE",
                 "LEAVE_APPROVE", "LEAVE_REJECT", "LEAVE_READ_ALL",
-                "REPORT_READ", "APPROVAL_READ", "APPROVAL_PROCESS");
-        createRoleIfAbsent("MANAGER", "Team manager", managerPerms);
+                "DOCUMENT_READ",
+                "REPORT_READ",
+                "APPROVAL_READ", "APPROVAL_PROCESS");
+        createRoleIfAbsent("MANAGER", "Team manager with approval rights", managerPerms);
+
+        // ── EMPLOYEE: self-service ─────────────────────────────────────────────
+        Set<Permission> employeePerms = filterPerms(allPerms,
+                "LEAVE_REQUEST",
+                "PLANNING_READ",
+                "DOCUMENT_READ");
+        createRoleIfAbsent("EMPLOYEE", "Regular employee — self-service access", employeePerms);
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void createRoleIfAbsent(String name, String description, Set<Permission> permissions) {
         if (!roleRepository.existsByName(name)) {
@@ -120,7 +170,7 @@ public class DataInitializer {
             role.setDescription(description);
             role.setPermissions(permissions);
             roleRepository.save(role);
-            log.info("Created role: {}", name);
+            log.info("Created role: {} ({} permissions)", name, permissions.size());
         }
     }
 

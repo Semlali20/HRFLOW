@@ -7,6 +7,7 @@ import { NotificationService, HrNotification } from '../../core/services/notific
 import { CookieService } from 'ngx-cookie-service';
 import { LanguageService } from '../../core/services/language.service';
 import { TranslateService } from '@ngx-translate/core';
+import { ThemeService, AppTheme } from '../../core/services/theme.service';
 
 @Component({
     selector: 'app-topbar',
@@ -48,8 +49,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
         private notificationService: NotificationService,
         public languageService: LanguageService,
         public translate: TranslateService,
-        public _cookiesService: CookieService
+        public _cookiesService: CookieService,
+        public themeService: ThemeService
     ) {}
+
+    get currentTheme(): AppTheme { return this.themeService.current; }
+    setTheme(t: AppTheme): void  { this.themeService.apply(t); }
 
     ngOnInit(): void {
         this.openMobileMenu = false;

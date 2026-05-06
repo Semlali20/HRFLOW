@@ -1,68 +1,55 @@
 package com.innovx.gestionrh.Controller;
 
-import com.innovx.gestionrh.Entity.Role;
-import com.innovx.gestionrh.Entity.User;
-import com.innovx.gestionrh.Repository.RoleRepository;
-import com.innovx.gestionrh.Repository.UserRepository;
-import com.innovx.gestionrh.annotation.LogActivity;
+import com.innovx.gestionrh.Service.UserManagementService;
+import com.innovx.gestionrh.dto.request.UserUpdateRequest;
+import com.innovx.gestionrh.dto.response.ApiResponse;
+import com.innovx.gestionrh.dto.response.PagedResponse;
+import com.innovx.gestionrh.dto.response.UserResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final UserManagementService userManagementService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('USER_MANAGE')")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
+    public ResponseEntity<PagedResponse<UserResponse>> findAll(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
+        var page = (search != null && !search.isBlank())
+                ? userManagementService.search(search, pageable)
+                : userManagementService.findAll(pageable);
+        return ResponseEntity.ok(PagedResponse.of(page));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_MANAGE')")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<UserResponse>> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(userManagementService.findById(id)));
     }
 
-    @PutMapping("/{id}/roles")
+    @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_MANAGE')")
-    @LogActivity(action = "UPDATE_ROLES", module = "ADMIN", description = "Updated user roles")
-    public ResponseEntity<?> updateUserRoles(
+    public ResponseEntity<ApiResponse<UserResponse>> update(
             @PathVariable Long id,
-            @RequestBody Map<String, List<String>> body) {
-        return userRepository.findById(id).map(user -> {
-            List<String> roleNames = body.get("roles");
-            Set<Role> roles = roleNames.stream()
-                    .map(name -> roleRepository.findByName(name)
-                            .orElseThrow(() -> new RuntimeException("Role not found: " + name)))
-                    .collect(Collectors.toSet());
-            user.setRoles(roles);
-            return ResponseEntity.ok(userRepository.save(user));
-        }).orElse(ResponseEntity.notFound().build());
+            @Valid @RequestBody UserUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(userManagementService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_MANAGE')")
-    @LogActivity(action = "DELETE", module = "ADMIN", description = "Soft-deleted user")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        return userRepository.findById(id).map(user -> {
-            user.setDeleted(true);
-            userRepository.save(user);
-            return ResponseEntity.ok().<Void>build();
-        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        userManagementService.softDelete(id);
+        return ResponseEntity.ok(ApiResponse.ok("User deactivated successfully."));
     }
 }

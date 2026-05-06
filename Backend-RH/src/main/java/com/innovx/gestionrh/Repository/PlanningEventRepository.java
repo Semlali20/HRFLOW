@@ -1,6 +1,9 @@
 package com.innovx.gestionrh.Repository;
 
 import com.innovx.gestionrh.Entity.PlanningEvent;
+import com.innovx.gestionrh.Entity.PlanningEvent.EventType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,5 +20,10 @@ public interface PlanningEventRepository extends JpaRepository<PlanningEvent, Lo
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
 
-    List<PlanningEvent> findByCreatedByIdOrderByStartDateTimeAsc(Long userId);
+    Page<PlanningEvent> findByCreatedByIdOrderByStartDateTimeAsc(Long userId, Pageable pageable);
+
+    Page<PlanningEvent> findByTypeOrderByStartDateTimeAsc(EventType type, Pageable pageable);
+
+    @Query("SELECT e FROM PlanningEvent e JOIN e.attendees a WHERE a.id = :userId ORDER BY e.startDateTime")
+    List<PlanningEvent> findByAttendeeId(@Param("userId") Long userId);
 }

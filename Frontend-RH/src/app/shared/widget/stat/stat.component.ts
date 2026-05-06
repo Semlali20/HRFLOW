@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 
 @Component({
     selector: 'app-stat',
@@ -16,14 +17,18 @@ export class StatComponent implements OnInit {
     totalCollaborateurs = 0;
     totalStagiares = 0;
 
-    constructor(private router: Router, private http: HttpClient) {}
+    constructor(
+        private router: Router,
+        private collaborateurService: CollaborateurService,
+        private stagiaireService: StagiaireService
+    ) {}
 
     ngOnInit(): void {
-        this.http.get<any[]>('http://localhost:8090/api/v1/Collaborateurs').subscribe({
+        this.collaborateurService.getAll().subscribe({
             next: data => this.totalCollaborateurs = data.length,
             error: err => console.error('Error fetching collaborateurs count:', err)
         });
-        this.http.get<any[]>('http://localhost:8090/api/v1/stagiares').subscribe({
+        this.stagiaireService.getAll().subscribe({
             next: data => this.totalStagiares = data.length,
             error: err => console.error('Error fetching interns count:', err)
         });

@@ -1,8 +1,8 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import Swal from 'sweetalert2';
+import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 
 @Component({
   selector: 'app-projectgrid',
@@ -24,7 +24,11 @@ export class ProjectgridComponent implements OnInit {
   status: string = 'En attente';
   statuses: string[] = ['Complete', 'En progression'];
 
-  constructor(private router: Router, private route: ActivatedRoute, private http: HttpClient) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private stagiaireService: StagiaireService
+  ) {}
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -34,7 +38,7 @@ export class ProjectgridComponent implements OnInit {
   }
 
   fetchStagiaireDetails() {
-    this.http.get<any>(`http://localhost:8090/api/v1/stagiares/${this.stagiaireId}`).subscribe({
+    this.stagiaireService.getById(Number(this.stagiaireId)).subscribe({
       next: data => {
         this.Stagiaires = data;
         this.Stagiaires.dateDébutStage = this.convertDateToISO(this.Stagiaires.dateDébutStage);
@@ -63,7 +67,7 @@ export class ProjectgridComponent implements OnInit {
     }
     this.validDocuments.forEach(doc => { this.Stagiaires[doc.key] = true; });
     this.notValidDocuments.forEach(doc => { this.Stagiaires[doc.key] = false; });
-    this.http.put(`http://localhost:8090/api/v1/stagiares/${this.stagiaireId}`, this.Stagiaires).subscribe({
+    this.stagiaireService.update(Number(this.stagiaireId), this.Stagiaires).subscribe({
       next: () => {
         Swal.fire({ icon: 'success', title: 'Succès', text: 'Les informations du stagiaire ont été mises à jour avec succès', confirmButtonText: 'OK' });
         this.router.navigate(['/stagiaires/list']);
