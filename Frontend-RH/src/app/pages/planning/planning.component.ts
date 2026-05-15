@@ -20,7 +20,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
     @keyframes spin    { to{transform:rotate(360deg)} }
     @keyframes rpIn    { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:none} }
 
-    .page { padding:0 24px 48px; animation:fadeIn .35s ease both; }
+    .page { padding:0 24px 32px; animation:fadeIn .35s ease both; }
 
     /* ── Header ── */
     .ph { display:flex; align-items:center; justify-content:space-between; background:#fff;
@@ -48,7 +48,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
 
     /* ── View tabs ── */
     .view-tabs { display:flex; gap:4px; background:#fff; border-radius:12px;
-                 box-shadow:0 4px 20px rgba(22,34,51,.08); padding:6px; margin-bottom:20px; }
+                 box-shadow:0 4px 20px rgba(22,34,51,.08); padding:6px; margin-bottom:12px; }
     .vt { flex:1; padding:10px 14px; border:none; border-radius:9px; background:none;
           font-size:13px; font-weight:600; color:#8FA3B8; cursor:pointer;
           display:flex; align-items:center; justify-content:center; gap:7px; transition:all .15s; }
@@ -59,7 +59,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
     .vt--active .vt-icon { background:rgba(255,255,255,.2); }
 
     /* ── KPI strip ── */
-    .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:12px; }
     .kpi  { background:#fff; border-radius:12px; padding:16px 18px;
             box-shadow:0 4px 20px rgba(22,34,51,.08);
             display:flex; align-items:center; gap:14px; }
@@ -79,7 +79,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
 
     /* Calendar toolbar */
     .cal-toolbar { display:flex; align-items:center; justify-content:space-between;
-                   padding:18px 22px 14px; border-bottom:1px solid #F0F3F6; }
+                   padding:12px 22px 12px; border-bottom:1px solid #F0F3F6; }
     .cal-nav     { display:flex; align-items:center; gap:10px; }
     .cal-nav-btn { width:34px; height:34px; border:1.5px solid #E2E8F0; background:#fff;
                    border-radius:9px; display:flex; align-items:center; justify-content:center;
@@ -150,19 +150,20 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
     /* ══════════════════════════════════
        MODULE VIEWS (Workforce / Training / Career / Recruitment)
        ══════════════════════════════════ */
-    .section { margin-bottom:20px; }
-    .card    { background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(22,34,51,.08); overflow:hidden; }
-    .card-pad { padding:20px 22px; }
-    .card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-    .card-title { font-size:14px; font-weight:700; color:#1A2B3C; }
-    .card-badge { background:#E8F7F6; color:#1B7872; border-radius:999px; padding:3px 12px;
-                  font-size:12px; font-weight:700; }
+    .pl-sec      { margin:0 0 12px 0 !important; padding:0 !important; }
+    .pl-card     { background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(22,34,51,.08);
+                   overflow:hidden; border:none !important; }
+    .pl-card-pad { padding:14px 22px; }
+    .pl-card-hd  { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .pl-card-ttl { font-size:14px; font-weight:700; color:#1A2B3C; }
+    .pl-card-bdg { background:#E8F7F6; color:#1B7872; border-radius:999px; padding:3px 12px;
+                   font-size:12px; font-weight:700; }
 
-    .two-col   { display:grid; grid-template-columns:1fr 320px; gap:18px; align-items:start; }
-    .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .pl-two-col   { display:grid; grid-template-columns:1fr 320px; gap:18px; align-items:start; }
+    .pl-three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 
     /* Inner tabs */
-    .itabs { display:flex; gap:2px; padding:14px 20px 0; border-bottom:1px solid #F0F3F6; }
+    .itabs { display:flex; gap:2px; padding:12px 20px 0; border-bottom:1px solid #F0F3F6; }
     .itab  { padding:8px 16px; border:none; background:none; font-size:13px; font-weight:500;
              color:#8FA3B8; border-bottom:2px solid transparent; cursor:pointer;
              margin-bottom:-1px; transition:all .15s; }
@@ -524,7 +525,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
   <div class="page">
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
       <div class="ph" style="flex:1;margin-bottom:0;">
         <div class="ph-left">
           <div class="ph-icon"><i class="bx bxs-calendar-check"></i></div>
@@ -534,7 +535,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
           </div>
         </div>
         <div class="ph-right">
-          <button class="btn-ghost" style="border:1.5px solid #E2E8F0"><i class="bx bx-export"></i> Export</button>
+          <button class="btn-ghost" style="border:1.5px solid #E2E8F0" (click)="exportData()"><i class="bx bx-export"></i> Export</button>
           <button class="btn-prim" (click)="openCreate()"><i class="bx bx-plus"></i> New Event</button>
         </div>
       </div>
@@ -789,8 +790,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
 
     <!-- ═══════════ WORKFORCE ═══════════ -->
     <ng-container *ngIf="!loading && activeView==='workforce'">
-      <div class="section two-col">
-        <div class="card">
+      <div class="pl-sec pl-two-col">
+        <div class="pl-card">
           <div class="itabs">
             <button class="itab" [class.act]="wfTab==='hc'" (click)="wfTab='hc'">{{ 'PLANNING.ITAB_HC_PLAN' | translate }}</button>
             <button class="itab" [class.act]="wfTab==='budget'" (click)="wfTab='budget'">{{ 'PLANNING.ITAB_DEPT_BUDGET' | translate }}</button>
@@ -810,7 +811,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               </tbody>
             </table>
           </div>
-          <div class="card-pad" *ngIf="wfTab==='budget'">
+          <div class="pl-card-pad" *ngIf="wfTab==='budget'">
             <div class="bgt-row" *ngFor="let b of departmentBudgets">
               <span class="bgt-dept">{{ b.dept }}</span>
               <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="b.pct"></div></div></div>
@@ -819,8 +820,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <div *ngIf="departmentBudgets.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_DEPT_BUDGET' | translate }}</div>
           </div>
         </div>
-        <div class="card card-pad">
-          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_DEPT_DISTRIBUTION' | translate }}</span></div>
+        <div class="pl-card pl-card-pad">
+          <div class="pl-card-hd"><span class="pl-card-ttl">{{ 'PLANNING.CARD_DEPT_DISTRIBUTION' | translate }}</span></div>
           <div class="bgt-row" *ngFor="let b of departmentBudgets">
             <span class="bgt-dept" style="width:110px">{{ b.dept }}</span>
             <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="b.pct"></div></div></div>
@@ -832,26 +833,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
 
     <!-- ═══════════ TRAINING ═══════════ -->
     <ng-container *ngIf="!loading && activeView==='training'">
-      <div class="section three-col" style="margin-bottom:18px;">
-        <div class="card card-pad">
-          <div class="kpi-ico ico-purple" style="margin-bottom:8px;"><i class="bx bx-book-bookmark"></i></div>
-          <div class="kpi-v">{{ trainingNeeds.length }}</div>
-          <div class="kpi-l">{{ 'PLANNING.KPI_TRAINING_NEEDS_LABEL' | translate }}</div>
-        </div>
-        <div class="card card-pad">
-          <div class="kpi-ico ico-teal" style="margin-bottom:8px;"><i class="bx bx-chalkboard"></i></div>
-          <div class="kpi-v">{{ trainingSessions.length }}</div>
-          <div class="kpi-l">{{ 'PLANNING.KPI_SESSIONS_LABEL' | translate }}</div>
-        </div>
-        <div class="card card-pad">
-          <div class="kpi-ico ico-blue" style="margin-bottom:8px;"><i class="bx bx-user-check"></i></div>
-          <div class="kpi-v">{{ pdiProgress.length }}</div>
-          <div class="kpi-l">PDIs in Progress</div>
-        </div>
-      </div>
-
-      <div class="section two-col">
-        <div class="card">
+      <div class="pl-sec pl-two-col">
+        <div class="pl-card">
           <div class="itabs">
             <button class="itab" [class.act]="trTab==='needs'" (click)="trTab='needs'">{{ 'PLANNING.ITAB_TRAINING_NEEDS' | translate }}</button>
             <button class="itab" [class.act]="trTab==='sessions'" (click)="trTab='sessions'">{{ 'PLANNING.ITAB_SESSIONS' | translate }}</button>
@@ -889,7 +872,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               </tbody>
             </table>
           </div>
-          <div class="card-pad" *ngIf="trTab==='pdi'">
+          <div class="pl-card-pad" *ngIf="trTab==='pdi'">
             <div class="list-item" *ngFor="let p of pdiProgress">
               <div class="li-avatar">{{ p.name[0] }}</div>
               <div class="li-main">
@@ -902,8 +885,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <div *ngIf="pdiProgress.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_PDI' | translate }}</div>
           </div>
         </div>
-        <div class="card card-pad">
-          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_UPCOMING_SESSIONS' | translate }}</span></div>
+        <div class="pl-card pl-card-pad">
+          <div class="pl-card-hd"><span class="pl-card-ttl">{{ 'PLANNING.CARD_UPCOMING_SESSIONS' | translate }}</span></div>
           <div class="list-item" *ngFor="let s of trainingSessions.slice(0,6)">
             <div class="date-box"><span class="db-day">{{ s.day }}</span><span class="db-mon">{{ s.month }}</span></div>
             <div class="li-main">
@@ -918,8 +901,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
 
     <!-- ═══════════ CAREER ═══════════ -->
     <ng-container *ngIf="!loading && activeView==='career'">
-      <div class="section two-col">
-        <div class="card">
+      <div class="pl-sec pl-two-col">
+        <div class="pl-card">
           <div class="itabs">
             <button class="itab" [class.act]="carTab==='idp'" (click)="carTab='idp'">{{ 'PLANNING.ITAB_IDP' | translate }}</button>
             <button class="itab" [class.act]="carTab==='milestones'" (click)="carTab='milestones'">{{ 'PLANNING.ITAB_MILESTONES' | translate }}</button>
@@ -958,7 +941,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               </tbody>
             </table>
           </div>
-          <div class="card-pad" *ngIf="carTab==='mentorship'">
+          <div class="pl-card-pad" *ngIf="carTab==='mentorship'">
             <div class="mentor-row" *ngFor="let m of mentorships">
               <div class="li-avatar">{{ m.mentorInitials }}</div>
               <div class="li-main"><div class="li-title">{{ m.mentor }}</div><div class="li-sub">{{ m.mentorRole }}</div></div>
@@ -971,8 +954,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <div *ngIf="mentorships.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_MENTORSHIP' | translate }}</div>
           </div>
         </div>
-        <div class="card card-pad">
-          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_MENTORSHIP_PAIRS' | translate }}</span><span class="card-badge">{{ mentorships.length }} {{ 'PLANNING.ACTIVE_COUNT' | translate }}</span></div>
+        <div class="pl-card pl-card-pad">
+          <div class="pl-card-hd"><span class="pl-card-ttl">{{ 'PLANNING.CARD_MENTORSHIP_PAIRS' | translate }}</span><span class="pl-card-bdg">{{ mentorships.length }} {{ 'PLANNING.ACTIVE_COUNT' | translate }}</span></div>
           <div class="mentor-row" *ngFor="let m of mentorships">
             <div class="li-avatar">{{ m.mentorInitials }}</div>
             <div class="li-main"><div class="li-title">{{ m.mentor }}</div><div class="li-sub">→ {{ m.mentee }}</div></div>
@@ -984,15 +967,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
 
     <!-- ═══════════ RECRUITMENT ═══════════ -->
     <ng-container *ngIf="!loading && activeView==='recruitment'">
-      <div class="section" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;">
-        <div *ngFor="let s of pipelineStages" class="card card-pad" style="text-align:center;">
-          <div style="font-size:26px;font-weight:800;color:#1A2B3C;line-height:1;margin-bottom:4px;">{{ s.count }}</div>
-          <div style="font-size:11.5px;color:#8FA3B8;margin-bottom:8px;">{{ s.label }}</div>
-          <div style="height:4px;border-radius:999px;" [style.background]="s.color"></div>
-        </div>
-      </div>
-      <div class="section two-col">
-        <div class="card">
+      <div class="pl-sec pl-two-col">
+        <div class="pl-card">
           <div class="itabs">
             <button class="itab" [class.act]="recTab==='hiring'" (click)="recTab='hiring'">{{ 'PLANNING.ITAB_HIRING' | translate }}</button>
             <button class="itab" [class.act]="recTab==='pipeline'" (click)="recTab='pipeline'">{{ 'PLANNING.ITAB_PIPELINE' | translate }}</button>
@@ -1015,7 +991,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               </tbody>
             </table>
           </div>
-          <div class="card-pad" *ngIf="recTab==='pipeline'">
+          <div class="pl-card-pad" *ngIf="recTab==='pipeline'">
             <div class="bgt-row" *ngFor="let s of pipelineStages">
               <span class="bgt-dept">{{ s.label }}</span>
               <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="(s.count / (pipelineStages[0]?.count || 1)) * 100" [style.background]="s.color"></div></div></div>
@@ -1023,8 +999,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </div>
           </div>
         </div>
-        <div class="card card-pad">
-          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_RECENT_EVENTS' | translate }}</span></div>
+        <div class="pl-card pl-card-pad">
+          <div class="pl-card-hd"><span class="pl-card-ttl">{{ 'PLANNING.CARD_RECENT_EVENTS' | translate }}</span></div>
           <div class="list-item" *ngFor="let e of allEvents.slice(0,8)">
             <div class="dep-type-badge" [style.background]="typeColor(e.type)+'20'" [style.color]="typeColorDark(e.type)">
               <i class="bx" [ngClass]="typeIcon(e.type)"></i>
@@ -1582,5 +1558,126 @@ export class PlanningComponent implements OnInit {
     this.pipelineStages = Array.from(typeCounts.entries()).map(([type, count]) => ({
       label: type.charAt(0)+type.slice(1).toLowerCase(), count, color: this.typeColor(type),
     }));
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+
+  exportData(): void {
+    switch (this.activeView) {
+      case 'calendar':    return this._exportCalendar();
+      case 'workforce':   return this._exportWorkforce();
+      case 'training':    return this._exportTraining();
+      case 'career':      return this._exportCareer();
+      case 'recruitment': return this._exportRecruitment();
+    }
+  }
+
+  /** Calendar → .ics  (works with Google Calendar, Outlook, Apple Calendar) */
+  private _exportCalendar(): void {
+    const esc  = (s: string) => (s ?? '').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+    const fmt  = (d: Date)   => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+    const lines: string[] = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//InnovX GestionRH//Planning//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+    ];
+
+    for (const ev of this.allEvents) {
+      if (!ev.startDateTime) continue;
+      const start = new Date(ev.startDateTime);
+      const end   = ev.endDateTime ? new Date(ev.endDateTime) : new Date(start.getTime() + 3600000);
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:planning-event-${ev.id ?? Math.random().toString(36).slice(2)}@innovx`,
+        `DTSTAMP:${fmt(new Date())}`,
+        `DTSTART:${fmt(start)}`,
+        `DTEND:${fmt(end)}`,
+        `SUMMARY:${esc(ev.title)}`,
+        ...(ev.description ? [`DESCRIPTION:${esc(ev.description)}`] : []),
+        ...(ev.location    ? [`LOCATION:${esc(ev.location)}`]       : []),
+        `CATEGORIES:${esc(ev.type ?? 'OTHER')}`,
+        'END:VEVENT',
+      );
+    }
+
+    lines.push('END:VCALENDAR');
+    this._download(lines.join('\r\n'), 'planning-events.ics', 'text/calendar;charset=utf-8');
+    this._toast(`Exported ${this.allEvents.length} event(s) to ICS`);
+  }
+
+  /** Workforce → headcount-plan.csv */
+  private _exportWorkforce(): void {
+    const headers = ['Department', 'Current HC', 'Planned HC', 'Gap', 'Status'];
+    const rows    = this.headcountPlans.map(r => [
+      r.dept, r.current, r.planned,
+      r.gap >= 0 ? `+${r.gap}` : String(r.gap),
+      'Active',
+    ]);
+    this._download(this._buildCsv(headers, rows), 'workforce-headcount.csv', 'text/csv;charset=utf-8');
+    this._toast(`Exported ${rows.length} headcount plan(s) to CSV`);
+  }
+
+  /** Training → training-needs.csv or training-sessions.csv depending on active tab */
+  private _exportTraining(): void {
+    if (this.trTab === 'sessions') {
+      const headers = ['Date', 'Session', 'Trainer', 'Duration'];
+      const rows    = this.trainingSessions.map(s => [
+        `${s.day} ${s.month}`, s.name, s.trainer, s.duration,
+      ]);
+      this._download(this._buildCsv(headers, rows), 'training-sessions.csv', 'text/csv;charset=utf-8');
+      this._toast(`Exported ${rows.length} training session(s) to CSV`);
+    } else {
+      const headers = ['Employee', 'Skill Gap', 'Priority', 'Deadline', 'Status'];
+      const rows    = this.trainingNeeds.map(r => [
+        r.employee, r.skill, r.priority, r.deadline, r.status,
+      ]);
+      this._download(this._buildCsv(headers, rows), 'training-needs.csv', 'text/csv;charset=utf-8');
+      this._toast(`Exported ${rows.length} training need(s) to CSV`);
+    }
+  }
+
+  /** Career → career-idp.csv */
+  private _exportCareer(): void {
+    const headers = ['Employee', 'Current Role', 'Target Role', 'Progress (%)', 'Status'];
+    const rows    = this.idpPlans.map(r => [
+      r.employee, r.currentRole, r.targetRole, r.progress, r.status,
+    ]);
+    this._download(this._buildCsv(headers, rows), 'career-idp.csv', 'text/csv;charset=utf-8');
+    this._toast(`Exported ${rows.length} IDP plan(s) to CSV`);
+  }
+
+  /** Recruitment → hiring-requests.csv */
+  private _exportRecruitment(): void {
+    const headers = ['Req ID', 'Position', 'Department', 'Target Date', 'Stage'];
+    const rows    = this.hiringRequests.map(r => [
+      r.reqId, r.position, r.dept, r.targetDate, r.stage,
+    ]);
+    this._download(this._buildCsv(headers, rows), 'hiring-requests.csv', 'text/csv;charset=utf-8');
+    this._toast(`Exported ${rows.length} hiring request(s) to CSV`);
+  }
+
+  /** Build a properly-escaped CSV string from headers + rows */
+  private _buildCsv(headers: string[], rows: (string | number)[][]): string {
+    const esc = (v: string | number) => {
+      const s = String(v ?? '');
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    return [headers, ...rows].map(row => row.map(esc).join(',')).join('\r\n');
+  }
+
+  /** Trigger a browser file download */
+  private _download(content: string, filename: string, mimeType: string): void {
+    const blob = new Blob([content], { type: mimeType });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 }

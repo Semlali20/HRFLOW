@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -533,7 +533,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
   </div>
   `
 })
-export class SettingComponent {
+export class SettingComponent implements OnInit {
   saving = false;
   saveMsg: string | null = null;
   saveMsgError = false;
@@ -551,10 +551,17 @@ export class SettingComponent {
     private adminService: AdminService,
     private http: HttpClient,
     private translate: TranslateService,
-  ) {
+  ) {}
+
+  ngOnInit(): void {
+    // ── Theme ──────────────────────────────────────────────────────────────
     this.selectedTheme = this.themeService.current;
 
-    // Load real authenticated user data
+    // ── Org name (persisted in localStorage) ───────────────────────────────
+    const savedOrgName = localStorage.getItem('hr_org_name');
+    if (savedOrgName) this.org.name = savedOrgName;
+
+    // ── Authenticated user ─────────────────────────────────────────────────
     const authUser = this.authService.getAuthenticatedUser();
     if (authUser) {
       this.user = {
@@ -565,6 +572,20 @@ export class SettingComponent {
         title:    authUser.title ?? '—',
       };
     }
+
+    // ── Notification prefs (persisted in localStorage) ─────────────────────
+    try {
+      const saved = localStorage.getItem('hr_notif_prefs');
+      if (saved) {
+        const prefs = JSON.parse(saved);
+        if (Array.isArray(prefs.email)) {
+          prefs.email.forEach((p: any, i: number) => { if (this.emailNotifs[i]) this.emailNotifs[i].on = p.on; });
+        }
+        if (Array.isArray(prefs.push)) {
+          prefs.push.forEach((p: any, i: number) => { if (this.pushNotifs[i])  this.pushNotifs[i].on  = p.on; });
+        }
+      }
+    } catch {}
   }
 
   applyTheme(key: string): void {
@@ -603,20 +624,38 @@ export class SettingComponent {
       });
       return;
     }
-    // General tab — update user title via backend if user has permission
+    // General tab — persist org name locally + update user profile via backend
     if (this.activeTab === 'general') {
+      // Always save org name to localStorage
+      localStorage.setItem('hr_org_name', this.org.name);
+
       const authUser = this.authService.getAuthenticatedUser();
-      if (authUser && this.authService.hasPermission('USER_MANAGE')) {
+      if (authUser) {
         this.saving = true;
-        const [lastName, ...rest] = (this.user.fullName || '').split(' ');
-        const firstName = rest.join(' ');
+        const parts     = (this.user.fullName || '').trim().split(/\s+/);
+        const firstName = parts[0] || '';
+        const lastName  = parts.slice(1).join(' ') || '';
         this.adminService.updateUser(authUser.id, {
-          firstName: firstName || lastName,
-          lastName:  firstName ? lastName : '',
-          email:     authUser.email,
-          title:     this.user.title,
+          firstName,
+          lastName,
+          email: authUser.email,
+          title: this.user.title,
         }).subscribe({
-          next: () => { this.saving = false; this.showSaveMsg(this.translate.instant('SETTING.TOAST_PROFILE_UPDATED')); },
+          next: (updated) => {
+            this.saving = false;
+            // Persist updated name & title back into the stored auth user
+            // so refresh shows the new values instead of the old ones
+            const current = this.authService.getAuthenticatedUser();
+            if (current) {
+              this.authService.storeAuthData({
+                ...current,
+                firstname: updated.firstName ?? firstName,
+                lastname:  updated.lastName  ?? lastName,
+                title:     updated.title     ?? this.user.title,
+              });
+            }
+            this.showSaveMsg(this.translate.instant('SETTING.TOAST_PROFILE_UPDATED'));
+          },
           error: () => { this.saving = false; this.showSaveMsg(this.translate.instant('SETTING.TOAST_REQUIRED_FIELDS'), true); }
         });
         return;

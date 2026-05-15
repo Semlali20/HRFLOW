@@ -52,15 +52,14 @@ interface EmpRow {
 
     /* ── Layout ── */
     .emp-top-row {
-      display: grid; grid-template-columns: 1fr 420px 290px;
+      display: grid; grid-template-columns: 1fr 1fr;
       gap: 20px; align-items: start; margin-bottom: 18px;
     }
-    .right-col { display:flex; flex-direction:column; gap:14px; }
     .add-btn {
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      width:100%; padding:14px; background:#1B7872; color:#fff;
-      border:none; border-radius:12px; font-size:14px; font-weight:600;
-      cursor:pointer; transition:background .15s;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 20px; background:#1B7872; color:#fff;
+      border:none; border-radius:10px; font-size:13px; font-weight:600;
+      cursor:pointer; transition:background .15s; white-space:nowrap;
     }
     .add-btn:hover { background:#155f5a; }
 
@@ -483,7 +482,12 @@ interface EmpRow {
       <div class="emp-header" style="flex:1;margin-bottom:0;">
         <h4 class="emp-header__title">{{ 'EMPLOYEES.TITLE' | translate }}</h4>
       </div>
-      <app-wall-clock></app-wall-clock>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <app-wall-clock></app-wall-clock>
+        <button class="add-btn" (click)="openCreate()">
+          <i class="bx bx-plus"></i> {{ 'EMPLOYEES.ADD_EMPLOYEE' | translate }}
+        </button>
+      </div>
     </div>
 
     <!-- Top row: Stats + Chart -->
@@ -493,10 +497,6 @@ interface EmpRow {
       <div class="emp-stats-card">
         <div class="emp-stats-header-row">
           <span class="emp-stats-label">{{ 'EMPLOYEES.TOTAL_EMPLOYEES' | translate }}</span>
-          <div class="emp-emptype-filter">
-            <span>{{ 'EMPLOYEES.CONTRACT_TYPE' | translate }}</span>
-            <i class="bx bx-chevron-down"></i>
-          </div>
         </div>
         <div class="emp-stats-num-row">
           <span class="emp-stats-total">{{ total | number }}</span>
@@ -554,13 +554,6 @@ interface EmpRow {
             <span class="emp-legend-dot" [style.background]="l.color"></span>{{ l.label }}
           </span>
         </div>
-      </div>
-
-      <!-- Action column -->
-      <div class="right-col">
-        <button class="add-btn" (click)="openCreate()">
-          <i class="bx bx-plus"></i> {{ 'EMPLOYEES.ADD_EMPLOYEE' | translate }}
-        </button>
       </div>
 
     </div>

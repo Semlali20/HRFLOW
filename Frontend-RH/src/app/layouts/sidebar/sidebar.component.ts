@@ -1,18 +1,20 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, Input, OnChanges } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ElementRef, ViewChild, Input, OnChanges } from '@angular/core';
 import MetisMenu from 'metismenujs';
 import { Router, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { MENU } from './menu';
 import { MenuItem } from './menu.model';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
+import { PermissionService } from 'src/app/core/services/permission.service';
 
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss']
 })
-export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
+export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   @ViewChild('componentRef') scrollRef;
   @Input() isCondensed = false;
   @Input() userRole: string;
@@ -28,7 +30,16 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
   currentUser: { name: string; email: string; role: string; initials: string } = { name: '—', email: '—', role: '—', initials: '?' };
   @ViewChild('sideMenu') sideMenu: ElementRef;
 
-  constructor(private router: Router, public translate: TranslateService, private http: HttpClient, private authService: AuthenticationService) {
+  private permSub: Subscription;
+
+  constructor(
+    private router: Router,
+    public translate: TranslateService,
+    private http: HttpClient,
+    private authService: AuthenticationService,
+    private permissionService: PermissionService,
+    private cdr: ChangeDetectorRef,
+  ) {
     this.router.events.forEach((event) => {
       if (event instanceof NavigationEnd) {
         this._activateMenuDropdown();
@@ -38,15 +49,17 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngOnInit() {
-    console.log('Initialisation du composant Sidebar');
-    this.userRole = this.authService.getUserRole(); // Récupérez le rôle de l'utilisateur directement ici
+    this.userRole = this.authService.getUserRole();
     if (Array.isArray(this.userRole)) {
-      this.userRole = this.userRole[0]; // Assurez-vous que c'est une chaîne
+      this.userRole = this.userRole[0];
     }
-    console.log('Rôle utilisateur récupéré dans la barre latérale:', this.userRole); // Vérifiez le rôle
-    this.menuItems = this.filterMenuItemsByRole(MENU, this.userRole); // Initialisez les éléments du menu après avoir récupéré le rôle
-    console.log('Éléments du menu pour ce rôle:', this.menuItems);
+    this.menuItems = this.filterMenuByPermissions(MENU);
     this._scrollElement();
+
+    // When admin updates this user's role permissions, re-evaluate the sidebar immediately.
+    this.permSub = this.authService.permissionsRefreshed$.subscribe(() => {
+      this.cdr.detectChanges();
+    });
 
     const u = this.authService.getAuthenticatedUser();
     if (u) {
@@ -60,6 +73,10 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
         initials: ((first[0] ?? '') + (last[0] ?? '')).toUpperCase() || '?'
       };
     }
+  }
+
+  ngOnDestroy(): void {
+    this.permSub?.unsubscribe();
   }
 
   ngAfterViewInit() {
@@ -125,16 +142,74 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
-  filterMenuItemsByRole(menuItems: MenuItem[], role: string): MenuItem[] {
-    switch (role) {
-      case 'STAGIAIRE_RH':
-        return menuItems.filter(item => ['MAIN', 'Dashboard', 'Notifications', 'GENERAL', 'File Manager'].includes(item.label));
-      case 'COLLABORATEUR_RH':
-        return menuItems.filter(item => ['MAIN', 'Dashboard', 'Notifications', 'Day-off Request', 'Planning', 'EMPLOYEE MANAGER', 'Employees', 'Attendances'].includes(item.label));
-      case 'ADMIN':
-      default:
-        return menuItems;
+  /** Returns only the menu items the current user is allowed to see,
+   *  based on their assigned permissions. Section titles are included
+   *  only when at least one item below them is visible. */
+  filterMenuByPermissions(items: MenuItem[]): MenuItem[] {
+    const isAdmin = this.authService.getUserRole() === 'ADMIN';
+    const result: MenuItem[] = [];
+    let pendingTitle: MenuItem | null = null;
+
+    for (const item of items) {
+      if (item.isTitle) {
+        pendingTitle = item;
+        continue;
+      }
+
+      if (this.isItemVisible(item, isAdmin)) {
+        if (pendingTitle) { result.push(pendingTitle); pendingTitle = null; }
+
+        // For items with sub-menus, filter sub-items too
+        if (item.subItems?.length) {
+          const visibleSubs = item.subItems.filter(s => this.isItemVisible(s, isAdmin));
+          if (visibleSubs.length > 0) {
+            result.push({ ...item, subItems: visibleSubs });
+          }
+        } else {
+          result.push(item);
+        }
+      }
     }
+    return result;
+  }
+
+  private isItemVisible(item: MenuItem, isAdmin: boolean): boolean {
+    if (isAdmin) return true;                          // ADMIN sees everything
+    if (!item.permission) return true;                 // no permission required → always show
+    return this.permissionService.has(item.permission); // check user's permissions array
+  }
+
+  /** @deprecated use filterMenuByPermissions */
+  filterMenuItemsByRole(menuItems: MenuItem[], role: string): MenuItem[] {
+    return this.filterMenuByPermissions(menuItems);
+  }
+
+  /** Returns true if the current user can see an item with the given permission.
+   *  Passing null/undefined means the item is always visible. */
+  canSee(permission: string | null | undefined): boolean {
+    if (!permission) return true;
+    if (this.authService.getUserRole() === 'ADMIN') return true;
+    return this.permissionService.has(permission);
+  }
+
+  get showEmployeeSection(): boolean {
+    return this.canSee('EMPLOYEE_READ') || this.canSee('INTERN_READ')       ||
+           this.canSee('PLANNING_READ') || this.canSee('LEAVE_READ_ALL')    ||
+           this.canSee('CV_READ')       || this.canSee('SALARY_READ')       ||
+           this.canSee('DOCUMENT_READ') || this.canSee('MEETING_READ')      ||
+           this.canSee('DEPARTMENT_READ');
+  }
+
+  get showOrgSection(): boolean {
+    return this.canSee('DEPARTMENT_READ') || this.canSee('LEAVE_MANAGE_TYPES');
+  }
+
+  get showAnalyticsSection(): boolean {
+    return this.canSee('REPORT_READ') || this.canSee('AUDIT_READ');
+  }
+
+  get showAdminSection(): boolean {
+    return this.canSee('USER_MANAGE') || this.canSee('ROLE_MANAGE');
   }
 
   isCollapsed = false;

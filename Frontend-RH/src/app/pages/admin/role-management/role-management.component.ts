@@ -122,7 +122,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       /* ── Buttons ── */
       .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border:none; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; transition:background .15s; font-family:'Inter',sans-serif }
       .btn:disabled { opacity:.5; cursor:default }
-      .btn-primary   { background:#1B7872; color:#fff } .btn-primary:hover:not(:disabled)   { background:#1A9690 }
+      .btn-primary{background:#1B7872 !important;color:#fff !important;border-color:#1B7872 !important}.btn-primary:hover:not(:disabled){background:#1A9690 !important;border-color:#1A9690 !important}
       .btn-secondary { background:#F1F5F9; color:#4A6080 } .btn-secondary:hover:not(:disabled) { background:#E2E8F0 }
 
       /* ── Drawer (right-side panel) ── */

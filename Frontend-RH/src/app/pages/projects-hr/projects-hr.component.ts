@@ -23,7 +23,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .header-lang{font-size:13px;color:#4A6080;display:flex;align-items:center;gap:6px;cursor:pointer;border-left:1px solid #E2E8F0;padding-left:16px;}
 
     /* ── Top row ── */
-    .top-row{display:grid;grid-template-columns:1fr 1fr 290px;gap:18px;margin-bottom:20px;align-items:start;}
+    .top-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:20px;align-items:start;}
 
     /* ── Card base ── */
     .card{background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(22,34,51,.08);}
@@ -53,10 +53,16 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .time-filter{display:flex;align-items:center;gap:5px;font-size:12px;color:#4A6080;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
 
     /* ── Right column ── */
-    .right-col{display:flex;flex-direction:column;gap:14px;}
-    .add-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;}
+    .add-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#1B7872;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap;}
     .add-btn:hover{background:#1A9690;}
     .add-btn i{font-size:18px;}
+
+    /* ── Total period dropdown ── */
+    .total-dd-wrap{position:relative;}
+    .total-dd{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E2E8F0;border-radius:10px;box-shadow:0 8px 24px rgba(22,34,51,.12);z-index:500;min-width:140px;overflow:hidden;}
+    .total-dd button{display:block;width:100%;text-align:left;padding:9px 16px;font-size:13px;color:#4A6080;background:none;border:none;cursor:pointer;transition:background .12s;}
+    .total-dd button:hover{background:#F8FAFC;color:#1A2B3C;}
+    .total-dd button.active{color:#1B7872;font-weight:700;background:#F0FDF9;}
 
     .deadline-card{padding:18px 20px;}
     .deadline-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
@@ -160,8 +166,63 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .cp-date-input{position:relative;display:flex;align-items:center;}
     .cp-date-input i{position:absolute;left:13px;font-size:16px;color:#8FA3B8;}
     .cp-date-input input{padding-left:36px;}
+
+    /* ── Multi-select employee dropdown ── */
+    .ms-wrap{position:relative;}
+    .ms-overlay{position:fixed;inset:0;z-index:299;}
+    .ms-trigger{width:100%;padding:10px 14px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13.5px;color:#4A6080;font-family:'Inter',sans-serif;background:#fff;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;transition:border .15s;box-sizing:border-box;}
+    .ms-trigger:hover,.ms-trigger:focus{border-color:#2FA8A0;outline:none;box-shadow:0 0 0 3px rgba(47,168,160,.1);}
+    .ms-placeholder{color:#C0CDD8;}
+    .ms-count{color:#1A2B3C;font-weight:500;}
+    .ms-caret{font-size:16px;transition:transform .2s;flex-shrink:0;color:#8FA3B8;}
+    .ms-caret.open{transform:rotate(180deg);}
+    .ms-panel{position:fixed;background:#fff;border:1.5px solid #E2E8F0;border-radius:10px;box-shadow:0 8px 28px rgba(22,34,51,.13);z-index:9999;overflow:hidden;}
+    .ms-search-wrap{padding:10px 12px;border-bottom:1px solid #F0F3F6;display:flex;align-items:center;gap:8px;background:#FAFBFC;}
+    .ms-search-icon{font-size:15px;color:#8FA3B8;flex-shrink:0;}
+    .ms-search-input{flex:1;border:none;outline:none;font-size:13px;color:#1A2B3C;font-family:'Inter',sans-serif;background:transparent;}
+    .ms-search-input::placeholder{color:#C0CDD8;}
+    .ms-list{max-height:210px;overflow-y:auto;}
+    .ms-option{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:background .12s;}
+    .ms-option:hover{background:#F0FDF9;}
+    .ms-option.selected{background:#F0FDF9;}
+    .ms-checkbox{width:18px;height:18px;border-radius:5px;border:1.5px solid #D1D9E0;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+    .ms-checkbox.checked{background:#1B7872;border-color:#1B7872;color:#fff;}
+    .ms-checkbox i{font-size:12px;line-height:1;}
+    .ms-emp-avatar-sm{width:24px;height:24px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#4A6080;flex-shrink:0;}
+    .ms-emp-name{font-size:13px;color:#1A2B3C;flex:1;}
+    .ms-empty{padding:20px;text-align:center;color:#8FA3B8;font-size:13px;}
+    .ms-footer{padding:8px 14px;border-top:1px solid #F0F3F6;font-size:12px;color:#8FA3B8;background:#FAFBFC;}
   `],
   template: `
+  <!-- ══ Employee multi-select floating panel (outside .rp to escape overflow+transform) ══ -->
+  <div class="ms-overlay" *ngIf="empDropOpen" (click)="empDropOpen=false"></div>
+  <div class="ms-panel" *ngIf="empDropOpen"
+       [style.top.px]="empDropTop"
+       [style.left.px]="empDropLeft"
+       [style.width.px]="empDropWidth"
+       (click)="$event.stopPropagation()">
+    <div class="ms-search-wrap">
+      <i class="bx bx-search ms-search-icon"></i>
+      <input class="ms-search-input" type="text" [(ngModel)]="empSearch" placeholder="Search employee..." />
+    </div>
+    <div class="ms-list">
+      <div class="ms-option" *ngFor="let e of filteredEmployees"
+           [class.selected]="isSelected(e.name)"
+           (click)="toggleEmployee(e)">
+        <span class="ms-checkbox" [class.checked]="isSelected(e.name)">
+          <i class="bx bx-check" *ngIf="isSelected(e.name)"></i>
+        </span>
+        <span class="ms-emp-avatar-sm" [style.background]="e.bg">{{ e.initials }}</span>
+        <span class="ms-emp-name">{{ e.name }}</span>
+      </div>
+      <div class="ms-empty" *ngIf="filteredEmployees.length === 0">No employees found</div>
+    </div>
+    <div class="ms-footer" *ngIf="createForm.assignees.length > 0">
+      {{ createForm.assignees.length }} selected &nbsp;·&nbsp;
+      <span style="color:#EF4444;cursor:pointer;" (click)="createForm.assignees=[]">Clear all</span>
+    </div>
+  </div>
+
   <!-- Backdrop -->
   <div class="backdrop" *ngIf="showDetail || showCreate" (click)="closeAll()"></div>
 
@@ -318,13 +379,22 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
       <div class="cp-field">
         <div class="cp-field-lbl">{{ 'PROJECTS.FIELD_ASSIGNEE_EMPLOYEE' | translate }}</div>
-        <select class="cp-select" (change)="addEmployee($any($event.target).value); $any($event.target).value=''">
-          <option value="">{{ 'PROJECTS.SELECT_EMPLOYEE' | translate }}</option>
-          <option *ngFor="let e of employeeOptions" [value]="e.name">{{ e.name }}</option>
-        </select>
-        <div class="cp-chips" style="margin-top:10px;">
+
+        <div class="ms-wrap">
+          <!-- Trigger button -->
+          <button type="button" class="ms-trigger" #empTrigger (click)="toggleEmpDrop(empTrigger)">
+            <span class="ms-placeholder" *ngIf="createForm.assignees.length === 0">{{ 'PROJECTS.SELECT_EMPLOYEE' | translate }}</span>
+            <span class="ms-count" *ngIf="createForm.assignees.length > 0">
+              {{ createForm.assignees.length }} {{ createForm.assignees.length === 1 ? 'employee' : 'employees' }} selected
+            </span>
+            <i class="bx bx-chevron-down ms-caret" [class.open]="empDropOpen"></i>
+          </button>
+        </div>
+
+        <!-- Selected chips -->
+        <div class="cp-chips" style="margin-top:10px;" *ngIf="createForm.assignees.length > 0">
           <span class="cp-emp-chip" *ngFor="let e of createForm.assignees">
-            <span class="cp-emp-avatar">{{ e.initials }}</span>
+            <span class="cp-emp-avatar" [style.background]="e.bg">{{ e.initials }}</span>
             {{ e.name }} <button class="cp-chip-x" (click)="removeEmployee(e.name)">×</button>
           </span>
         </div>
@@ -345,41 +415,50 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
       <div class="page-header" style="flex:1;margin-bottom:0;">
         <h4 class="page-title">{{ 'PROJECTS.TITLE' | translate }}</h4>
-        <div class="header-meta">
-          <span class="header-lang"><i class="bx bx-flag"></i> English <i class="bx bx-chevron-down"></i></span>
-        </div>
       </div>
-      <app-wall-clock></app-wall-clock>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <app-wall-clock></app-wall-clock>
+        <button class="add-btn" (click)="openCreate()"><i class="bx bx-plus"></i> {{ 'PROJECTS.BTN_ADD' | translate }}</button>
+      </div>
     </div>
 
-    <!-- Top row -->
+    <!-- Top row: 3 cards side by side -->
     <div class="top-row">
 
       <!-- Total Project card -->
-      <div class="card total-card">
+      <div class="card total-card" (click)="showTotalDd=false">
         <div class="total-card-head">
           <div>
             <div class="total-label">{{ 'PROJECTS.TOTAL_LABEL' | translate }}</div>
             <div class="total-title">{{ 'PROJECTS.TOTAL_TITLE' | translate }}</div>
           </div>
-          <button class="period-btn">{{ 'PROJECTS.THIS_YEAR' | translate }} <i class="bx bx-chevron-down"></i></button>
+          <div class="total-dd-wrap" (click)="$event.stopPropagation()">
+            <button class="period-btn" (click)="showTotalDd=!showTotalDd">
+              {{ totalPeriodLabel }} <i class="bx bx-chevron-down"></i>
+            </button>
+            <div class="total-dd" *ngIf="showTotalDd">
+              <button [class.active]="totalPeriod==='week'"  (click)="setTotalPeriod('week')">This Week</button>
+              <button [class.active]="totalPeriod==='month'" (click)="setTotalPeriod('month')">This Month</button>
+              <button [class.active]="totalPeriod==='year'"  (click)="setTotalPeriod('year')">This Year</button>
+            </div>
+          </div>
         </div>
         <div class="kpi-row">
           <div class="kpi-box">
             <div class="kpi-lbl">{{ 'PROJECTS.ON_GOING' | translate }}</div>
-            <div class="kpi-val">{{ onGoingCount }}</div>
+            <div class="kpi-val">{{ periodOnGoing }}</div>
           </div>
           <div class="kpi-box">
             <div class="kpi-lbl">{{ 'PROJECTS.ON_HOLD' | translate }}</div>
-            <div class="kpi-val">{{ onHoldCount }}</div>
+            <div class="kpi-val">{{ periodOnHold }}</div>
           </div>
           <div class="kpi-box">
             <div class="kpi-lbl">{{ 'PROJECTS.COMPLETED' | translate }}</div>
-            <div class="kpi-val">{{ completedCount }}</div>
+            <div class="kpi-val">{{ periodCompleted }}</div>
           </div>
         </div>
         <div class="big-num-row">
-          <span class="big-num">{{ totalProjects }}</span>
+          <span class="big-num">{{ periodTotal }}</span>
         </div>
         <div class="big-sub">{{ 'PROJECTS.TOTAL_PROJECTS_SUB' | translate }}</div>
         <apx-chart [series]="areaChart.series" [chart]="areaChart.chart" [colors]="areaChart.colors"
@@ -388,14 +467,13 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         </apx-chart>
       </div>
 
-      <!-- Average Time Spent card -->
+      <!-- Projects Overview card -->
       <div class="card time-card">
         <div class="time-card-head">
           <div>
             <div class="time-label">{{ 'PROJECTS.OVERVIEW_LABEL' | translate }}</div>
             <div class="time-val">{{ totalProjects }}</div>
           </div>
-          <button class="time-filter">{{ 'PROJECTS.ALL_PROJECT' | translate }} <i class="bx bx-chevron-down"></i></button>
         </div>
         <apx-chart [series]="barChart.series" [chart]="barChart.chart" [colors]="barChart.colors"
           [plotOptions]="barChart.plotOptions" [xaxis]="barChart.xaxis" [yaxis]="barChart.yaxis"
@@ -403,20 +481,20 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         </apx-chart>
       </div>
 
-      <!-- Right column -->
-      <div class="right-col">
-        <button class="add-btn" (click)="openCreate()"><i class="bx bx-plus"></i> {{ 'PROJECTS.BTN_ADD' | translate }}</button>
-
-        <div class="card deadline-card">
-          <div class="deadline-head">
-            <div class="deadline-icon-wrap"><i class="bx bx-alarm" style="font-size:18px;color:#4A6080;"></i></div>
-            <span class="deadline-head-title">{{ 'PROJECTS.DEADLINES_TITLE' | translate }}</span>
-          </div>
-          <div class="deadline-section-lbl">{{ 'PROJECTS.TODAY' | translate }}</div>
-          <div *ngFor="let d of deadlines" class="deadline-item">
-            <span class="deadline-name">{{ d.name }}</span>
-            <span class="view-link">{{ 'PROJECTS.VIEW' | translate }} <i class="bx bx-right-arrow-alt"></i></span>
-          </div>
+      <!-- Upcoming Deadlines card -->
+      <div class="card deadline-card">
+        <div class="deadline-head">
+          <div class="deadline-icon-wrap"><i class="bx bx-alarm" style="font-size:18px;color:#4A6080;"></i></div>
+          <span class="deadline-head-title">{{ 'PROJECTS.DEADLINES_TITLE' | translate }}</span>
+        </div>
+        <div class="deadline-section-lbl">{{ 'PROJECTS.TODAY' | translate }}</div>
+        <div *ngFor="let d of deadlines" class="deadline-item">
+          <span class="deadline-name">{{ d.name }}</span>
+          <span class="view-link">{{ 'PROJECTS.VIEW' | translate }} <i class="bx bx-right-arrow-alt"></i></span>
+        </div>
+        <div *ngIf="deadlines.length === 0" style="padding:24px 0;text-align:center;color:#8FA3B8;font-size:13px;">
+          <i class="bx bx-check-circle" style="font-size:28px;display:block;margin-bottom:8px;color:#22C55E"></i>
+          No upcoming deadlines
         </div>
       </div>
 
@@ -489,6 +567,40 @@ export class ProjectsHrComponent implements OnInit {
   isEditMode = false;
   selectedProject: any = null;
 
+  // Multi-select employee dropdown
+  empDropOpen = false;
+  empSearch = '';
+  empDropTop = 0;
+  empDropLeft = 0;
+  empDropWidth = 0;
+
+  toggleEmpDrop(trigger: HTMLElement): void {
+    if (this.empDropOpen) { this.empDropOpen = false; return; }
+    const rect = trigger.getBoundingClientRect();
+    this.empDropTop   = rect.bottom + 6;
+    this.empDropLeft  = rect.left;
+    this.empDropWidth = rect.width;
+    this.empDropOpen  = true;
+  }
+
+  get filteredEmployees(): { name: string; initials: string; bg: string }[] {
+    const q = this.empSearch.toLowerCase().trim();
+    if (!q) return this.employeeOptions;
+    return this.employeeOptions.filter(e => e.name.toLowerCase().includes(q));
+  }
+
+  isSelected(name: string): boolean {
+    return this.createForm.assignees.some((a: any) => a.name === name);
+  }
+
+  toggleEmployee(e: { name: string; initials: string; bg: string }): void {
+    if (this.isSelected(e.name)) {
+      this.createForm.assignees = this.createForm.assignees.filter((a: any) => a.name !== e.name);
+    } else {
+      this.createForm.assignees.push({ ...e });
+    }
+  }
+
   createForm = this.emptyForm();
 
   // Loaded from real API
@@ -498,6 +610,41 @@ export class ProjectsHrComponent implements OnInit {
 
   // All projects created in-session (no backend endpoint for projects yet)
   rows: any[] = [];
+
+  // ── Total Project period filter ──
+  totalPeriod: 'week' | 'month' | 'year' = 'year';
+  showTotalDd = false;
+
+  get totalPeriodLabel(): string {
+    return { week: 'This Week', month: 'This Month', year: 'This Year' }[this.totalPeriod];
+  }
+
+  setTotalPeriod(p: 'week' | 'month' | 'year'): void {
+    this.totalPeriod = p;
+    this.showTotalDd = false;
+    this.buildAreaChart();
+  }
+
+  private get rowsInPeriod(): any[] {
+    const now = new Date();
+    if (this.totalPeriod === 'week') {
+      const start = new Date(now);
+      start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+      start.setHours(0, 0, 0, 0);
+      return this.rows.filter(r => r.createdAt && new Date(r.createdAt) >= start);
+    }
+    if (this.totalPeriod === 'month') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      return this.rows.filter(r => r.createdAt && new Date(r.createdAt) >= start);
+    }
+    const start = new Date(now.getFullYear(), 0, 1);
+    return this.rows.filter(r => r.createdAt && new Date(r.createdAt) >= start);
+  }
+
+  get periodOnGoing():   number { return this.rowsInPeriod.filter(r => r.status === 'On Going').length; }
+  get periodOnHold():    number { return this.rowsInPeriod.filter(r => r.status === 'On Hold').length; }
+  get periodCompleted(): number { return this.rowsInPeriod.filter(r => r.status === 'Completed').length; }
+  get periodTotal():     number { return this.rowsInPeriod.length; }
 
   // Upcoming deadlines derived from projects with approaching end dates
   get deadlines(): any[] {
@@ -574,6 +721,8 @@ export class ProjectsHrComponent implements OnInit {
     this.showDetail = false;
     this.isEditMode = false;
     this.createForm = this.emptyForm();
+    this.empDropOpen = false;
+    this.empSearch = '';
   }
 
   openEdit() {
@@ -597,6 +746,8 @@ export class ProjectsHrComponent implements OnInit {
     this.showCreate = false;
     this.selectedProject = null;
     this.isEditMode = false;
+    this.empDropOpen = false;
+    this.empSearch = '';
   }
 
   submitCreate() {
@@ -626,6 +777,7 @@ export class ProjectsHrComponent implements OnInit {
         start:     now.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
         end:       endStr?.trim() ?? '—',
         endRaw:    endStr?.trim() ?? '',
+        createdAt: now,
         status:    'On Going',
         services:  [...this.createForm.services],
         manager:   this.createForm.manager,
@@ -633,6 +785,7 @@ export class ProjectsHrComponent implements OnInit {
       };
       this.rows = [newRow, ...this.rows];
       this.buildCharts(this.rows.length);
+      this.buildAreaChart();
     }
     this.closeAll();
   }
@@ -674,24 +827,61 @@ export class ProjectsHrComponent implements OnInit {
     return { name: '', timeline: '', services: [] as string[], manager: '', assignees: [] as any[], status: 'On Going' };
   }
 
-  private buildCharts(empCount: number): void {
-    // Area chart: show project counts per status (no historical data without backend)
-    const onGoing   = this.onGoingCount;
-    const onHold    = this.onHoldCount;
-    const completed = this.completedCount;
-    const total     = this.totalProjects;
+  private buildAreaChart(): void {
+    const now = new Date();
+    let categories: string[];
+    let data: number[];
+
+    if (this.totalPeriod === 'week') {
+      categories = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const weekStart = new Date(now);
+      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+      weekStart.setHours(0, 0, 0, 0);
+      data = categories.map((_, i) => {
+        const s = new Date(weekStart); s.setDate(s.getDate() + i);
+        const e = new Date(s);        e.setDate(e.getDate() + 1);
+        return this.rows.filter(r => r.createdAt && new Date(r.createdAt) >= s && new Date(r.createdAt) < e).length;
+      });
+    } else if (this.totalPeriod === 'month') {
+      categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      data = [0, 1, 2, 3].map(w => {
+        const s = new Date(monthStart); s.setDate(s.getDate() + w * 7);
+        const e = new Date(s);          e.setDate(e.getDate() + 7);
+        return this.rows.filter(r => r.createdAt && new Date(r.createdAt) >= s && new Date(r.createdAt) < e).length;
+      });
+    } else {
+      categories = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      data = categories.map((_, i) => {
+        const s = new Date(now.getFullYear(), i, 1);
+        const e = new Date(now.getFullYear(), i + 1, 1);
+        return this.rows.filter(r => r.createdAt && new Date(r.createdAt) >= s && new Date(r.createdAt) < e).length;
+      });
+    }
 
     this.areaChart = {
-      series: [{ name: 'Projects', data: total > 0 ? [0, total] : [0, 0] }],
+      series: [{ name: 'Projects', data }],
       chart: { type: 'area', height: 110, toolbar: { show: false }, sparkline: { enabled: true } },
       colors: ['#2FA8A0'],
       stroke: { curve: 'smooth', width: 2 },
       fill: { type: 'gradient', gradient: { opacityFrom: .35, opacityTo: .02 } },
-      xaxis: { labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
+      xaxis: { categories, labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
       grid: { show: false },
       dataLabels: { enabled: false },
-      tooltip: { enabled: false },
+      tooltip: {
+        enabled: true,
+        x: { show: true },
+        y: { formatter: (val: number) => `${val} project(s)` },
+      },
     };
+  }
+
+  private buildCharts(empCount: number): void {
+    this.buildAreaChart();
+
+    const onGoing   = this.onGoingCount;
+    const onHold    = this.onHoldCount;
+    const completed = this.completedCount;
 
     this.barChart = {
       series: [{ name: 'Employees', data: [

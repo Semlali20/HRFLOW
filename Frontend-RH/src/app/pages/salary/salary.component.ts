@@ -28,7 +28,18 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .overview-card{background:#fff;border-radius:12px;padding:24px 26px;box-shadow:0 4px 20px rgba(22,34,51,.08);}
     .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
     .card-title{font-size:15px;font-weight:700;color:#1A2B3C;}
-    .filter-btn{display:flex;align-items:center;gap:5px;font-size:12.5px;color:#4A6080;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 14px;cursor:pointer;}
+    .filter-btn{display:flex;align-items:center;gap:5px;font-size:12.5px;color:#4A6080;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
+    .filter-btn:hover{background:#F0F3F6;}
+    .period-nav{display:flex;align-items:center;gap:6px;position:relative;}
+    .period-nav-lbl{font-size:12px;color:#1A2B3C;font-weight:600;white-space:nowrap;min-width:90px;text-align:center;}
+    .period-arrow{width:26px;height:26px;border-radius:6px;border:1px solid #E2E8F0;background:#F8FAFC;color:#4A6080;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .15s;flex-shrink:0;}
+    .period-arrow:hover:not([disabled]){background:#E2E8F0;color:#1A2B3C;}
+    .period-arrow[disabled]{opacity:.35;cursor:default;}
+    .period-dd-wrap{position:relative;}
+    .period-dd{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E2E8F0;border-radius:10px;box-shadow:0 8px 24px rgba(22,34,51,.12);z-index:200;min-width:130px;overflow:hidden;}
+    .period-dd button{display:block;width:100%;text-align:left;padding:9px 16px;font-size:13px;color:#4A6080;background:none;border:none;cursor:pointer;transition:background .12s;}
+    .period-dd button:hover{background:#F8FAFC;color:#1A2B3C;}
+    .period-dd button.active{color:#1B7872;font-weight:700;background:#F0FDF9;}
 
     /* distribution section */
     .dist-section{display:grid;grid-template-columns:1fr auto;align-items:center;gap:0;margin-bottom:20px;}
@@ -55,7 +66,8 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .payroll-lbl{font-size:12px;color:#8FA3B8;margin-bottom:8px;letter-spacing:.02em;}
     .payroll-date{font-size:22px;font-weight:800;color:#1A2B3C;margin-bottom:18px;letter-spacing:-.02em;}
     .payroll-btn{width:100%;padding:13px;background:#1B7872;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.01em;}
-    .payroll-btn:hover{background:#1A9690;}
+    .payroll-btn:hover:not([disabled]){background:#1A9690;}
+    .payroll-btn[disabled]{background:#CBD5E0;color:#fff;cursor:not-allowed;opacity:.7;}
 
     /* ── Table ── */
     .table-card{background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(22,34,51,.08);overflow:hidden;}
@@ -76,8 +88,8 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .status-chip{display:inline-flex;padding:4px 12px;border-radius:999px;font-size:11.5px;font-weight:700;}
     .chip-unpaid{background:#FFE4E6;color:#BE123C;}
     .chip-paid  {background:#DCFCE7;color:#15803D;}
-    .eye-btn{background:none;border:none;color:#B0BEC5;font-size:16px;cursor:pointer;padding:0;}
-    .eye-btn:hover{color:#4A6080;}
+    .eye-btn{background:#F1F5F9;border:none;color:#4A6080;font-size:15px;cursor:pointer;padding:0;width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+    .eye-btn:hover{background:#1B7872;color:#fff;}
 
     /* ── Backdrop & panel ── */
     .backdrop{position:fixed;inset:0;background:rgba(10,20,35,.35);z-index:1800;backdrop-filter:blur(1px);}
@@ -92,8 +104,8 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .rp-body{flex:1;overflow-y:auto;padding:22px;}
 
     /* employee banner */
-    .dp-emp-banner{display:flex;gap:18px;margin-bottom:20px;}
-    .dp-photo{width:90px;height:90px;border-radius:10px;background:repeating-conic-gradient(#E2E8F0 0% 25%,#F8FAFC 0% 50%) 0 0/14px 14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8FA3B8;font-weight:500;border:1px solid #E2E8F0;}
+    .dp-emp-banner{display:flex;gap:18px;margin-bottom:20px;align-items:center;}
+    .dp-avatar{width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,#1B7872,#2FA8A0);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;}
     .dp-section{font-size:14px;font-weight:700;color:#1A2B3C;margin-bottom:10px;}
     .dp-field{display:grid;grid-template-columns:150px 1fr;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid #F5F7FA;}
     .dp-field:last-of-type{border-bottom:none;}
@@ -132,22 +144,15 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     </div>
     <div class="rp-body">
 
-      <!-- Employee Information -->
+      <!-- Employee Banner -->
       <div class="dp-emp-banner">
-        <div class="dp-photo">{{ 'SALARY.IMAGE_PLACEHOLDER' | translate }}</div>
+        <div class="dp-avatar">{{ getInitials(selected.name) }}</div>
         <div style="flex:1;">
-          <div class="dp-section">{{ 'SALARY.SECTION_EMPLOYEE_INFO' | translate }}</div>
-          <div class="dp-field">
-            <span class="dp-lbl"><i class="bx bx-id-card"></i> {{ 'SALARY.EMPLOYEE_ID' | translate }}</span>
-            <span class="dp-val">{{ selected.empId }}</span>
-          </div>
-          <div class="dp-field">
-            <span class="dp-lbl"><i class="bx bx-font"></i> {{ 'SALARY.FULL_NAME' | translate }}</span>
-            <span class="dp-val">{{ selected.name }}</span>
-          </div>
-          <div class="dp-field" style="border-bottom:none;">
-            <span class="dp-lbl"><i class="bx bx-user-circle"></i> {{ 'SALARY.ROLE' | translate }}</span>
-            <span class="dp-val">{{ selected.role }}</span>
+          <div style="font-size:17px;font-weight:700;color:#1A2B3C;margin-bottom:2px;">{{ selected.name }}</div>
+          <div style="font-size:13px;color:#8FA3B8;margin-bottom:6px;">{{ selected.role }}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;color:#4A6080;background:#F1F5F9;border-radius:6px;padding:3px 10px;">ID: {{ selected.empId }}</span>
+            <span style="font-size:12px;color:#4A6080;background:#F1F5F9;border-radius:6px;padding:3px 10px;">{{ selected.department }}</span>
           </div>
         </div>
       </div>
@@ -157,27 +162,31 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       <!-- Salary Information -->
       <div class="dp-section">{{ 'SALARY.SECTION_SALARY_INFO' | translate }}</div>
       <div class="dp-field">
+        <span class="dp-lbl"><i class="bx bx-briefcase"></i> {{ 'SALARY.CONTRACT_TYPE' | translate }}</span>
+        <span class="dp-val">{{ selected.contractType || '—' }}</span>
+      </div>
+      <div class="dp-field">
         <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.HOURLY_RATE' | translate }}</span>
         <span class="dp-val">{{ selected.hourlyRate }}</span>
       </div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.ANNUAL_SALARY' | translate }}</span>
+        <span class="dp-lbl"><i class="bx bx-trending-up"></i> {{ 'SALARY.ANNUAL_SALARY' | translate }}</span>
         <span class="dp-val">{{ selected.annualSalary }}</span>
       </div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.OVERTIME_RATE' | translate }}</span>
+        <span class="dp-lbl"><i class="bx bx-time-five"></i> {{ 'SALARY.OVERTIME_RATE' | translate }}</span>
         <span class="dp-val">{{ selected.overtimeRate }}</span>
       </div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.BONUSES' | translate }}</span>
-        <span class="dp-val--highlight">{{ selected.bonuses }}</span>
+        <span class="dp-lbl"><i class="bx bx-gift"></i> {{ 'SALARY.BONUSES' | translate }}</span>
+        <span class="dp-val">{{ selected.bonuses }}</span>
       </div>
       <div class="dp-field">
         <span class="dp-lbl"><i class="bx bx-minus-circle"></i> {{ 'SALARY.DEDUCTIONS_AMOUNT' | translate }}</span>
         <span class="dp-val">{{ selected.deductionsAmount }}</span>
       </div>
-      <div class="dp-field" style="align-items:flex-start;">
-        <span class="dp-lbl" style="padding-top:6px;"><i class="bx bx-minus-circle"></i> {{ 'SALARY.DEDUCTIONS_INCLUDED' | translate }}</span>
+      <div class="dp-field" style="align-items:flex-start;" *ngIf="selected.deductionTypes?.length > 0">
+        <span class="dp-lbl" style="padding-top:6px;"><i class="bx bx-list-ul"></i> {{ 'SALARY.DEDUCTIONS_INCLUDED' | translate }}</span>
         <div class="chips-wrap">
           <span class="d-chip" *ngFor="let d of selected.deductionTypes">{{ d }}</span>
         </div>
@@ -191,7 +200,15 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
       <!-- Payroll History -->
       <div class="dp-section">{{ 'SALARY.SECTION_PAYROLL_HISTORY' | translate }}</div>
-      <table class="ph-table">
+
+      <!-- Empty history state -->
+      <div *ngIf="!selected.history || selected.history.length === 0"
+           style="padding:32px 0;text-align:center;color:#8FA3B8;">
+        <i class="bx bx-receipt" style="font-size:32px;display:block;margin-bottom:8px;"></i>
+        <div style="font-size:13px;">{{ 'SALARY.NO_HISTORY' | translate }}</div>
+      </div>
+
+      <table class="ph-table" *ngIf="selected.history && selected.history.length > 0">
         <thead>
           <tr>
             <th>{{ 'SALARY.DATE' | translate }}</th>
@@ -229,10 +246,29 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     <div class="top-row">
 
       <!-- Salary Overview -->
-      <div class="overview-card">
+      <div class="overview-card" (click)="showPeriodDropdown=false">
         <div class="card-head">
           <span class="card-title">{{ 'SALARY.SECTION_OVERVIEW' | translate }}</span>
-          <button class="filter-btn">{{ 'SALARY.TODAY' | translate }} <i class="bx bx-chevron-down"></i></button>
+          <div class="period-nav" (click)="$event.stopPropagation()">
+            <button class="period-arrow" (click)="overviewOffset=overviewOffset-1" title="Previous">
+              <i class="bx bx-chevron-left"></i>
+            </button>
+            <span class="period-nav-lbl">{{ periodNavLabel }}</span>
+            <button class="period-arrow" (click)="overviewOffset=overviewOffset+1" [disabled]="overviewOffset>=0" title="Next">
+              <i class="bx bx-chevron-right"></i>
+            </button>
+            <div class="period-dd-wrap">
+              <button class="filter-btn" (click)="showPeriodDropdown=!showPeriodDropdown">
+                {{ periodTypeLabel }} <i class="bx bx-chevron-down"></i>
+              </button>
+              <div class="period-dd" *ngIf="showPeriodDropdown">
+                <button [class.active]="overviewPeriod==='today'"  (click)="setPeriodType('today')">Today</button>
+                <button [class.active]="overviewPeriod==='week'"   (click)="setPeriodType('week')">This Week</button>
+                <button [class.active]="overviewPeriod==='month'"  (click)="setPeriodType('month')">This Month</button>
+                <button [class.active]="overviewPeriod==='year'"   (click)="setPeriodType('year')">This Year</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Employee Contract Distribution (from real data) -->
@@ -254,7 +290,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         <!-- Insight KPIs (derived from real employee counts) -->
         <div class="insight-lbl">{{ 'SALARY.INSIGHT' | translate }}</div>
         <div class="kpi-row">
-          <div class="kpi-box kpi-box--highlight">
+          <div class="kpi-box">
             <div class="kpi-lbl">{{ 'SALARY.TOTAL_EMPLOYEES' | translate }}</div>
             <div class="kpi-val">{{ totalCount }}</div>
           </div>
@@ -314,7 +350,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         </div>
         <div class="payroll-lbl">{{ 'SALARY.NEXT_PAYROLL' | translate }}</div>
         <div class="payroll-date">—</div>
-        <button class="payroll-btn">{{ 'SALARY.PAYROLL_DETAIL' | translate }}</button>
+        <button class="payroll-btn" [disabled]="rows.length === 0" (click)="openDetail(rows[0])">{{ 'SALARY.PAYROLL_DETAIL' | translate }}</button>
       </div>
 
     </div>
@@ -356,10 +392,11 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
               <th>{{ 'SALARY.DEDUCTIONS' | translate }}</th>
               <th>{{ 'SALARY.NET_PAY' | translate }}</th>
               <th>{{ 'SALARY.STATUS' | translate }}</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let r of rows" (click)="openDetail(r)">
+            <tr *ngFor="let r of rows" (click)="openDetail(r)" style="cursor:pointer;">
               <td class="td-id">{{ r.id }}</td>
               <td class="td-name">{{ r.name }}</td>
               <td>{{ r.department }}</td>
@@ -368,6 +405,9 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
               <td class="td-amt">{{ r.deductions }}</td>
               <td class="td-amt">{{ r.net }}</td>
               <td><span class="status-chip chip-unpaid">{{ 'SALARY.PENDING' | translate }}</span></td>
+              <td (click)="$event.stopPropagation(); openDetail(r)">
+                <button class="eye-btn" title="View details"><i class="bx bx-show"></i></button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -380,6 +420,43 @@ export class SalaryComponent implements OnInit {
   today = new Date();
   tabs = ['SALARY.TAB_EMPLOYEE_SALARY', 'SALARY.TAB_BONUSES', 'SALARY.TAB_SETTLEMENT'];
   activeTab = 'SALARY.TAB_EMPLOYEE_SALARY';
+
+  // ── Period navigator ──
+  overviewPeriod: 'today' | 'week' | 'month' | 'year' = 'today';
+  overviewOffset = 0;
+  showPeriodDropdown = false;
+
+  get periodTypeLabel(): string {
+    return { today: 'Today', week: 'This Week', month: 'This Month', year: 'This Year' }[this.overviewPeriod];
+  }
+
+  get periodNavLabel(): string {
+    const now = new Date();
+    const off = this.overviewOffset;
+    if (this.overviewPeriod === 'today') {
+      const d = new Date(now); d.setDate(d.getDate() + off);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    if (this.overviewPeriod === 'week') {
+      const s = new Date(now); s.setDate(s.getDate() - ((s.getDay() + 6) % 7) + off * 7);
+      const e = new Date(s); e.setDate(e.getDate() + 6);
+      return `${s.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} – ${e.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}`;
+    }
+    if (this.overviewPeriod === 'month') {
+      const d = new Date(now.getFullYear(), now.getMonth() + off, 1);
+      return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+    }
+    if (this.overviewPeriod === 'year') {
+      return String(now.getFullYear() + off);
+    }
+    return '';
+  }
+
+  setPeriodType(p: 'today' | 'week' | 'month' | 'year'): void {
+    this.overviewPeriod = p;
+    this.overviewOffset = 0;
+    this.showPeriodDropdown = false;
+  }
 
   showDetail = false;
   selected: any = null;
@@ -404,6 +481,11 @@ export class SalaryComponent implements OnInit {
 
   openDetail(r: any) { this.selected = r; this.showDetail = true; }
   closeAll() { this.showDetail = false; this.selected = null; }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  }
 
   ngOnInit(): void {
     this.loading = true;

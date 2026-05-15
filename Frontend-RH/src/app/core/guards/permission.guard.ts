@@ -18,7 +18,9 @@ export function permissionGuard(permission: string): CanActivateFn {
             return false;
         }
         if (!permService.has(permission)) {
-            router.navigate(['/unauthorized']);
+            // ADMIN bypasses all permission checks
+            if (authService.getUserRole() === 'ADMIN') return true;
+            router.navigate(['/dashboard']);
             return false;
         }
         return true;

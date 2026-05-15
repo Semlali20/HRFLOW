@@ -23,7 +23,7 @@ const BASE = `${environment.apiUrl}/leaves`;
     .header-right{display:flex;gap:10px;align-items:center}
     .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
     .btn:disabled{opacity:.5;cursor:default}
-    .btn-primary{background:#1B7872;color:#fff}.btn-primary:hover:not(:disabled){background:#1A9690}
+    .btn-primary{background:#1B7872 !important;color:#fff !important;border-color:#1B7872 !important}.btn-primary:hover:not(:disabled){background:#155f5a !important;border-color:#155f5a !important}
     .btn-secondary{background:#F1F5F9;color:#4A6080}.btn-secondary:hover:not(:disabled){background:#E2E8F0}
     .filter-bar{display:flex;gap:12px;align-items:center;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(22,34,51,.08);padding:12px 18px;margin-bottom:18px}
     .f-select{padding:8px 32px 8px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;color:#4A6080;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238FA3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;appearance:none;outline:none;cursor:pointer}

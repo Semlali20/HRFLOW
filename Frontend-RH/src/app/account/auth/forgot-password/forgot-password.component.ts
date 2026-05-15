@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -37,8 +37,8 @@ import { AuthenticationService } from 'src/app/core/services/auth.service';
 
     /* OTP inputs */
     .otp-row { display:flex; gap:10px; margin-bottom:16px; }
-    .otp-input { width:52px; height:60px; border:1.5px solid #E8EDF2; border-radius:10px; text-align:center; font-family:'Inter',sans-serif; font-size:22px; font-weight:700; color:#1A2B3C; outline:none; transition:border .15s; }
-    .otp-input:focus { border-color:#2FA8A0; }
+    .otp-input { width:52px; height:60px; border:1.5px solid #E8EDF2; border-radius:10px; text-align:center; font-family:'Inter',sans-serif; font-size:22px; font-weight:700; color:#1A2B3C; outline:none; transition:border .15s; background:#fff; }
+    .otp-input:focus { border-color:#2FA8A0; box-shadow:0 0 0 3px rgba(47,168,160,.1); }
     .otp-input.filled { border-color:#2FA8A0; background:#E8F7F6; }
     .otp-input:disabled { background:#f5f7fa; border-color:#E8EDF2; color:#aaa; }
 
@@ -47,14 +47,12 @@ import { AuthenticationService } from 'src/app/core/services/auth.service';
     .resend-link { color:#2FA8A0; font-weight:600; cursor:pointer; }
     .resend-link:hover { text-decoration:underline; }
     .resend-timer { color:#F87171; font-weight:700; }
-    .resend-timer.expired { color:#F87171; }
 
     /* Expired warning */
     .expired-banner { background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:10px 14px; font-size:13px; color:#B91C1C; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
 
     /* Error */
     .error-msg { background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:10px 14px; font-size:13px; color:#B91C1C; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-    .success-msg { background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:10px 14px; font-size:13px; color:#166534; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
 
     .btn-main { width:100%; background:#2FA8A0; color:#fff; border:none; border-radius:9px; padding:13px; font-size:14px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:background .15s; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:8px; }
     .btn-main:hover:not(:disabled) { background:#228880; }
@@ -114,14 +112,12 @@ import { AuthenticationService } from 'src/app/core/services/auth.service';
           <div *ngIf="errorMsg" class="error-msg"><i class="bx bx-error-circle"></i> {{ errorMsg }}</div>
 
           <div class="otp-row">
-            <input *ngFor="let v of otp; let i=index"
-              class="otp-input" [class.filled]="otp[i]"
-              type="text" maxlength="1" inputmode="numeric"
-              [(ngModel)]="otp[i]"
-              [disabled]="otpExpired"
-              (input)="onOtpInput($event,i)"
-              (keydown)="onOtpKey($event,i)"
-              [id]="'otp'+i">
+            <input id="otp0" class="otp-input" [class.filled]="digits[0]" type="text" inputmode="numeric" maxlength="1" [disabled]="otpExpired" (input)="onInput($event,0)" (keydown)="onKey($event,0)">
+            <input id="otp1" class="otp-input" [class.filled]="digits[1]" type="text" inputmode="numeric" maxlength="1" [disabled]="otpExpired" (input)="onInput($event,1)" (keydown)="onKey($event,1)">
+            <input id="otp2" class="otp-input" [class.filled]="digits[2]" type="text" inputmode="numeric" maxlength="1" [disabled]="otpExpired" (input)="onInput($event,2)" (keydown)="onKey($event,2)">
+            <input id="otp3" class="otp-input" [class.filled]="digits[3]" type="text" inputmode="numeric" maxlength="1" [disabled]="otpExpired" (input)="onInput($event,3)" (keydown)="onKey($event,3)">
+            <input id="otp4" class="otp-input" [class.filled]="digits[4]" type="text" inputmode="numeric" maxlength="1" [disabled]="otpExpired" (input)="onInput($event,4)" (keydown)="onKey($event,4)">
+            <input id="otp5" class="otp-input" [class.filled]="digits[5]" type="text" inputmode="numeric" maxlength="1" [disabled]="otpExpired" (input)="onInput($event,5)" (keydown)="onKey($event,5)">
           </div>
 
           <div class="resend-row">
@@ -132,7 +128,7 @@ import { AuthenticationService } from 'src/app/core/services/auth.service';
             <span class="resend-link" (click)="sendCode()">Send Again</span>
           </div>
 
-          <button class="btn-main" (click)="confirmOtp()" [disabled]="loading || otpExpired || otpString.length < 6">
+          <button class="btn-main" (click)="confirmOtp()" [disabled]="loading || otpExpired || !otpComplete">
             <span class="spinner" *ngIf="loading"></span>
             <span>{{ loading ? 'Verifying…' : 'Confirm' }}</span>
           </button>
@@ -180,7 +176,7 @@ import { AuthenticationService } from 'src/app/core/services/auth.service';
 export class ForgotPasswordComponent implements OnDestroy {
   step = 1;
   email = '';
-  otp: string[] = ['', '', '', '', '', ''];
+  digits: string[] = ['', '', '', '', '', ''];
   newPassword = '';
   confirmPassword = '';
   showPwd = false;
@@ -198,9 +194,9 @@ export class ForgotPasswordComponent implements OnDestroy {
     return user.slice(0, 2) + '***@' + domain;
   }
 
-  get otpString(): string {
-    return this.otp.join('');
-  }
+  get otpString(): string { return this.digits.join(''); }
+
+  get otpComplete(): boolean { return this.digits.every(d => d !== ''); }
 
   get timerDisplay(): string {
     const m = Math.floor(this.timerSec / 60);
@@ -208,7 +204,7 @@ export class ForgotPasswordComponent implements OnDestroy {
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
-  constructor(private router: Router, private authService: AuthenticationService) {}
+  constructor(private router: Router, private authService: AuthenticationService, private cdr: ChangeDetectorRef) {}
 
   ngOnDestroy(): void { this.stopTimer(); }
 
@@ -221,11 +217,14 @@ export class ForgotPasswordComponent implements OnDestroy {
     this.authService.forgotPassword(this.email.trim()).subscribe({
       next: () => {
         this.loading = false;
-        this.otp = ['', '', '', '', '', ''];
         this.otpExpired = false;
+        this.digits = ['', '', '', '', '', ''];
         this.step = 2;
         this.startTimer(120);
-        setTimeout(() => (document.getElementById('otp0') as HTMLInputElement)?.focus(), 50);
+        setTimeout(() => {
+          this.clearInputDoms();
+          (document.getElementById('otp0') as HTMLInputElement)?.focus();
+        }, 50);
       },
       error: (err) => {
         this.loading = false;
@@ -237,7 +236,7 @@ export class ForgotPasswordComponent implements OnDestroy {
   // ── Confirm OTP ────────────────────────────────────────────────────────────
 
   confirmOtp(): void {
-    if (this.otpExpired || this.otpString.length < 6) return;
+    if (this.otpExpired || !this.otpComplete) return;
     this.loading = true;
     this.errorMsg = '';
     this.authService.verifyOtp(this.email, this.otpString).subscribe({
@@ -256,25 +255,13 @@ export class ForgotPasswordComponent implements OnDestroy {
   // ── Reset Password ─────────────────────────────────────────────────────────
 
   doReset(): void {
-    if (this.newPassword !== this.confirmPassword) {
-      this.errorMsg = 'Passwords do not match.';
-      return;
-    }
-    if (this.newPassword.length < 8) {
-      this.errorMsg = 'Password must be at least 8 characters.';
-      return;
-    }
+    if (this.newPassword !== this.confirmPassword) { this.errorMsg = 'Passwords do not match.'; return; }
+    if (this.newPassword.length < 8) { this.errorMsg = 'Password must be at least 8 characters.'; return; }
     this.loading = true;
     this.errorMsg = '';
     this.authService.resetPassword(this.email, this.otpString, this.newPassword).subscribe({
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['/account/auth/login']);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.errorMsg = err?.error?.message || 'Could not reset password. Please start over.';
-      }
+      next: () => { this.loading = false; this.router.navigate(['/account/auth/login']); },
+      error: (err) => { this.loading = false; this.errorMsg = err?.error?.message || 'Could not reset password. Please start over.'; }
     });
   }
 
@@ -286,10 +273,8 @@ export class ForgotPasswordComponent implements OnDestroy {
     this.otpExpired = false;
     this.timerRef = setInterval(() => {
       this.timerSec--;
-      if (this.timerSec <= 0) {
-        this.stopTimer();
-        this.otpExpired = true;
-      }
+      if (this.timerSec <= 0) { this.stopTimer(); this.otpExpired = true; }
+      this.cdr.detectChanges();
     }, 1000);
   }
 
@@ -297,20 +282,35 @@ export class ForgotPasswordComponent implements OnDestroy {
     if (this.timerRef) { clearInterval(this.timerRef); this.timerRef = null; }
   }
 
-  // ── OTP Input Navigation ───────────────────────────────────────────────────
+  // ── OTP Input Handlers ─────────────────────────────────────────────────────
 
-  onOtpInput(event: any, index: number): void {
-    const val = event.target.value.replace(/\D/g, '');
-    this.otp[index] = val ? val[0] : '';
-    event.target.value = this.otp[index];
-    if (this.otp[index] && index < 5) {
+  onInput(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const digit = input.value.replace(/\D/g, '').slice(-1);
+    input.value = digit;
+    this.digits[index] = digit;
+    this.cdr.detectChanges();
+    if (digit && index < 5) {
       (document.getElementById('otp' + (index + 1)) as HTMLInputElement)?.focus();
     }
   }
 
-  onOtpKey(event: KeyboardEvent, index: number): void {
-    if (event.key === 'Backspace' && !this.otp[index] && index > 0) {
-      (document.getElementById('otp' + (index - 1)) as HTMLInputElement)?.focus();
+  onKey(event: KeyboardEvent, index: number): void {
+    if (event.key === 'Backspace') {
+      const input = event.target as HTMLInputElement;
+      if (!input.value && index > 0) {
+        this.digits[index - 1] = '';
+        const prev = document.getElementById('otp' + (index - 1)) as HTMLInputElement;
+        if (prev) { prev.value = ''; prev.focus(); }
+        this.cdr.detectChanges();
+      }
+    }
+  }
+
+  private clearInputDoms(): void {
+    for (let i = 0; i < 6; i++) {
+      const el = document.getElementById('otp' + i) as HTMLInputElement;
+      if (el) el.value = '';
     }
   }
 

@@ -98,6 +98,33 @@ public class AuthController {
                 .build());
     }
 
+    // ── CURRENT USER ──────────────────────────────────────────────────────────
+
+    /**
+     * Returns the caller's current role + permissions, freshly loaded from DB.
+     * Frontend polls this every ~60 s to pick up permission changes without re-login.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<JwtResponse> getCurrentUser(
+            @AuthenticationPrincipal UserDetailsImpl currentUser) {
+
+        List<String> permissions = currentUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .sorted()
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(JwtResponse.builder()
+                .id(currentUser.getId())
+                .firstName(currentUser.getFirstname())
+                .lastName(currentUser.getLastname())
+                .email(currentUser.getEmail())
+                .title(currentUser.getTitle())
+                .roles(List.of(currentUser.getUserRole()))
+                .permissions(permissions)
+                .mustChangePassword(currentUser.isMustChangePassword())
+                .build());
+    }
+
     // ── REGISTER ──────────────────────────────────────────────────────────────
 
     @PostMapping("/register")

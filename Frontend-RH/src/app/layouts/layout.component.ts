@@ -1,16 +1,20 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { EventService } from '../core/services/event.service';
+import { AuthenticationService } from '../core/services/auth.service';
 
 import {
   LAYOUT_VERTICAL, LAYOUT_HORIZONTAL, LAYOUT_WIDTH, TOPBAR, LAYOUT_MODE, SIDEBAR_TYPE
 } from './layouts.model';
+
+/** How often to silently refresh the user's permissions from the backend (ms). */
+const PERMISSION_REFRESH_INTERVAL_MS = 60_000;
 
 @Component({
   selector: 'app-layout',
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss']
 })
-export class LayoutComponent implements OnInit, AfterViewInit {
+export class LayoutComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // layout related config
   layoutType: string;
@@ -19,7 +23,9 @@ export class LayoutComponent implements OnInit, AfterViewInit {
   mode: string;
   sidebartype: string;
 
-  constructor(private eventService: EventService) { }
+  private permRefreshTimer: any;
+
+  constructor(private eventService: EventService, private authService: AuthenticationService) { }
 
   ngOnInit() {
     // default settings
@@ -58,7 +64,17 @@ export class LayoutComponent implements OnInit, AfterViewInit {
     this.changeSidebar(this.sidebartype);
     this.changeMode(this.mode);
 
+    // Silently refresh permissions every minute so admin-side changes
+    // are reflected without forcing a re-login.
+    this.permRefreshTimer = setInterval(() => {
+      if (this.authService.isLoggedIn()) {
+        this.authService.refreshCurrentUser().subscribe({ error: () => {} });
+      }
+    }, PERMISSION_REFRESH_INTERVAL_MS);
+  }
 
+  ngOnDestroy(): void {
+    clearInterval(this.permRefreshTimer);
   }
 
   // Theme Dark Light Mode

@@ -22,9 +22,8 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .btn-solid{background:#1B7872;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
     .btn-ghost{background:#fff;color:#2FA8A0;border:1.5px solid #2FA8A0;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
 
-    .top-row{display:grid;grid-template-columns:1fr 340px 290px;gap:18px;margin-bottom:20px;}
-    .right-col{display:flex;flex-direction:column;gap:14px;}
-    .add-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;}
+    .top-row{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:20px;}
+    .add-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#1B7872;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap;}
     .add-btn:hover{background:#155f5a;}
     .add-btn--ghost{background:#fff;color:#1B7872;border:2px solid #1B7872;}
     .add-btn--ghost:hover{background:#f0fdf9;}
@@ -287,7 +286,12 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       <div class="page-header" style="flex:1;margin-bottom:0;">
         <h4 class="page-title">{{ 'ATTENDANCE.TITLE' | translate }}</h4>
       </div>
-      <app-wall-clock></app-wall-clock>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <app-wall-clock></app-wall-clock>
+        <button class="add-btn" (click)="openCreateSickLeave()">
+          <i class="bx bx-plus"></i> {{ 'ATTENDANCE.BTN_CREATE_SICK_LEAVE' | translate }}
+        </button>
+      </div>
     </div>
 
     <div class="top-row">
@@ -345,13 +349,6 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
           </div>
           <span class="emp-att-pct">{{ e.pct }}%</span>
         </div>
-      </div>
-
-      <!-- Action column -->
-      <div class="right-col">
-        <button class="add-btn" (click)="openCreateSickLeave()">
-          <i class="bx bx-plus"></i> {{ 'ATTENDANCE.BTN_CREATE_SICK_LEAVE' | translate }}
-        </button>
       </div>
 
     </div>

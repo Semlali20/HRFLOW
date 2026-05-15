@@ -113,6 +113,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
   private sub: Subscription;
+  private refreshTimer: any;
 
   get unreadCount(): number { return this.notifications.filter(n => !n.read).length; }
 
@@ -123,9 +124,22 @@ export class ChatComponent implements OnInit, OnDestroy {
       if (notifs.length > 0 && !this.loading) this.notifications = notifs;
     });
     this.load();
+    // Auto-refresh every 30 seconds
+    this.refreshTimer = setInterval(() => this.silentRefresh(), 30_000);
   }
 
-  ngOnDestroy(): void { this.sub?.unsubscribe(); }
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+    clearInterval(this.refreshTimer);
+  }
+
+  /** Refresh without showing the full loading spinner */
+  private silentRefresh(): void {
+    this.notificationService.getAll().subscribe({
+      next: data => { this.notifications = data; this.error = null; },
+      error: () => {}
+    });
+  }
 
   load(): void {
     this.loading = true;
