@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
 import { FileManagerService } from 'src/app/pages/filemanager/filemanager.service';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-uploads',
@@ -14,7 +15,12 @@ export class UploadsComponent implements OnInit {
     files: File[] = [];
     isLoading = false;
 
-    constructor(private router: Router, private fileManagerService: FileManagerService) {}
+    constructor(
+        private router: Router,
+        private fileManagerService: FileManagerService,
+        private confirmSvc: ConfirmService,
+        private translate: TranslateService,
+    ) {}
 
     ngOnInit(): void {
         this.breadCrumbItems = [{ label: 'Forms' }, { label: 'Form File Upload', active: true }];
@@ -28,24 +34,27 @@ export class UploadsComponent implements OnInit {
         this.files.splice(index, 1);
     }
 
-    uploadFiles(): void {
-        if (this.files.length === 0) { Swal.fire('Erreur', 'Aucun fichier sélectionné', 'error'); return; }
+    async uploadFiles(): Promise<void> {
+        if (this.files.length === 0) {
+            await this.confirmSvc.alert(this.translate.instant('UPLOADS.TOAST_NO_FILE'), this.translate.instant('UPLOADS.TOAST_ERROR_TITLE'), 'error');
+            return;
+        }
         this.isLoading = true;
         const uploadAll = this.files.map(file => this.fileManagerService.upload(file));
         let completed = 0;
         uploadAll.forEach(obs => {
             obs.subscribe({
-                next: () => {
+                next: async () => {
                     completed++;
                     if (completed === uploadAll.length) {
                         this.isLoading = false;
-                        Swal.fire('Succès', 'Fichiers téléchargés avec succès !', 'success')
-                            .then(() => this.router.navigate(['/filemanager']));
+                        await this.confirmSvc.alert(this.translate.instant('UPLOADS.TOAST_SUCCESS'), this.translate.instant('UPLOADS.TOAST_SUCCESS_TITLE'), 'success');
+                        this.router.navigate(['/filemanager']);
                     }
                 },
-                error: () => {
+                error: async () => {
                     this.isLoading = false;
-                    Swal.fire('Erreur', 'Erreur lors du téléchargement', 'error');
+                    await this.confirmSvc.alert(this.translate.instant('UPLOADS.TOAST_ERROR'), this.translate.instant('UPLOADS.TOAST_ERROR_TITLE'), 'error');
                 }
             });
         });

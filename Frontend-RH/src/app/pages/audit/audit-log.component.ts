@@ -2,11 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuditService, AuditLog } from './audit.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
 @Component({
   selector: 'app-audit-log',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule, DatePipe, TranslateModule, WallClockComponent],
   styles: [`
     .page { padding: 0 24px 40px; animation: fadeIn .4s ease both; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none} }
@@ -69,34 +71,36 @@ import { AuditService, AuditLog } from './audit.service';
   <div class="page">
 
     <!-- Header -->
-    <div class="page-header">
-      <h4 class="page-title">Audit Log</h4>
-      <span class="page-date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="page-header" style="flex:1;margin-bottom:0;">
+        <h4 class="page-title">{{ 'AUDIT_LOG.TITLE' | translate }}</h4>
+      </div>
+      <app-wall-clock></app-wall-clock>
     </div>
 
     <!-- Filters -->
     <div class="filters-card">
       <div class="filter-group">
-        <label class="filter-label">Filter by Email</label>
-        <input class="filter-input" [(ngModel)]="filterEmail" placeholder="user@example.com" />
+        <label class="filter-label">{{ 'AUDIT_LOG.FILTER_EMAIL' | translate }}</label>
+        <input class="filter-input" [(ngModel)]="filterEmail" [placeholder]="'AUDIT_LOG.EMAIL_PLACEHOLDER' | translate" />
       </div>
       <div class="filter-group">
-        <label class="filter-label">Filter by Module</label>
+        <label class="filter-label">{{ 'AUDIT_LOG.FILTER_MODULE' | translate }}</label>
         <select class="filter-input" [(ngModel)]="filterModule">
-          <option value="">All Modules</option>
+          <option value="">{{ 'AUDIT_LOG.ALL_MODULES' | translate }}</option>
           <option *ngFor="let m of modules">{{ m }}</option>
         </select>
       </div>
       <div class="filter-group">
-        <label class="filter-label">From</label>
+        <label class="filter-label">{{ 'AUDIT_LOG.FROM' | translate }}</label>
         <input class="filter-input" type="datetime-local" [(ngModel)]="filterFrom" />
       </div>
       <div class="filter-group">
-        <label class="filter-label">To</label>
+        <label class="filter-label">{{ 'AUDIT_LOG.TO' | translate }}</label>
         <input class="filter-input" type="datetime-local" [(ngModel)]="filterTo" />
       </div>
-      <button class="filter-btn" (click)="applyFilter()"><i class="bx bx-filter-alt"></i> Apply</button>
-      <button class="reset-btn" (click)="resetFilter()"><i class="bx bx-reset"></i> Reset</button>
+      <button class="filter-btn" (click)="applyFilter()"><i class="bx bx-filter-alt"></i> {{ 'AUDIT_LOG.BTN_APPLY' | translate }}</button>
+      <button class="reset-btn" (click)="resetFilter()"><i class="bx bx-reset"></i> {{ 'AUDIT_LOG.BTN_RESET' | translate }}</button>
     </div>
 
     <!-- Table -->
@@ -104,18 +108,18 @@ import { AuditService, AuditLog } from './audit.service';
 
       <!-- Loading -->
       <div class="state-box" *ngIf="loading">
-        <div class="spinner"></div>Loading audit logs…
+        <div class="spinner"></div>{{ 'AUDIT_LOG.LOADING' | translate }}
       </div>
 
       <!-- Error -->
       <div class="state-box state-box--error" *ngIf="!loading && error">
         <i class="bx bx-error-circle"></i>{{ error }}
-        <br><button style="margin-top:12px;padding:7px 18px;border:none;border-radius:8px;background:#2FA8A0;color:#fff;cursor:pointer;font-size:13px" (click)="loadPage(currentPage)">Retry</button>
+        <br><button style="margin-top:12px;padding:7px 18px;border:none;border-radius:8px;background:#2FA8A0;color:#fff;cursor:pointer;font-size:13px" (click)="loadPage(currentPage)">{{ 'AUDIT_LOG.BTN_RETRY' | translate }}</button>
       </div>
 
       <!-- Empty -->
       <div class="state-box" *ngIf="!loading && !error && logs.length === 0">
-        <i class="bx bx-history"></i>No audit logs found.
+        <i class="bx bx-history"></i>{{ 'AUDIT_LOG.NO_LOGS' | translate }}
       </div>
 
       <!-- Table -->
@@ -123,12 +127,12 @@ import { AuditService, AuditLog } from './audit.service';
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>Timestamp</th>
-              <th>User Email</th>
-              <th>Action</th>
-              <th>Module</th>
-              <th>Description</th>
+              <th>{{ 'AUDIT_LOG.TABLE_NUM' | translate }}</th>
+              <th>{{ 'AUDIT_LOG.TABLE_TIMESTAMP' | translate }}</th>
+              <th>{{ 'AUDIT_LOG.TABLE_USER_EMAIL' | translate }}</th>
+              <th>{{ 'AUDIT_LOG.TABLE_ACTION' | translate }}</th>
+              <th>{{ 'AUDIT_LOG.TABLE_MODULE' | translate }}</th>
+              <th>{{ 'AUDIT_LOG.TABLE_DESCRIPTION' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -146,7 +150,7 @@ import { AuditService, AuditLog } from './audit.service';
 
       <!-- Pagination (only for paginated mode) -->
       <div class="pagination-row" *ngIf="!loading && !error && totalPages > 1 && !filterActive">
-        <span class="pagination-info">Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} entries)</span>
+        <span class="pagination-info">{{ 'AUDIT_LOG.PAGINATION' | translate | replace:'{x}':(currentPage + 1) | replace:'{y}':totalPages | replace:'{z}':totalElements }}</span>
         <div class="pagination-btns">
           <button class="page-btn" (click)="loadPage(currentPage - 1)" [disabled]="currentPage === 0">
             <i class="bx bx-chevron-left"></i>
@@ -183,7 +187,7 @@ export class AuditLogComponent implements OnInit {
 
   modules = ['EMPLOYEE', 'STAGIAIRE', 'PLANNING', 'CV', 'ADMIN', 'LEAVE'];
 
-  constructor(private auditService: AuditService) {}
+  constructor(private auditService: AuditService, private translate: TranslateService) {}
 
   ngOnInit(): void {
     this.loadPage(0);

@@ -63,13 +63,13 @@ public class StageOfferServiceImpl implements StageOfferService {
 
     @Override
     public Page<StageOfferResponse> findAll(Pageable pageable) {
-        return stageOfferRepository.findAll(pageable)
+        return stageOfferRepository.findAllWithDepartment(pageable)
                 .map(offer -> enrichWithCount(stageOfferMapper.toResponse(offer)));
     }
 
     @Override
     public Page<StageOfferResponse> findByStatus(OfferStatus status, Pageable pageable) {
-        return stageOfferRepository.findByStatus(status, pageable)
+        return stageOfferRepository.findByStatusWithDepartment(status, pageable)
                 .map(offer -> enrichWithCount(stageOfferMapper.toResponse(offer)));
     }
 

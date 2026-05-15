@@ -1,0 +1,27 @@
+# Claude Code internal files
+.claude/
+
+# Backend — Maven build output
+Backend-RH/target/
+Backend-RH/*.log
+Backend-RH/backend.log
+Backend-RH/backend-new.log
+
+# Backend — uploaded user files (runtime data, not source)
+Backend-RH/uploads/
+Backend-RH/stored-cvs/
+
+# Frontend — dependencies & build output
+Frontend-RH/node_modules/
+Frontend-RH/dist/
+Frontend-RH/.angular/
+Frontend-RH/.cache/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.iml
+.idea/
+.vscode/
+*.suo
+*.user

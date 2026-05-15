@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { DepartmentService, DeptRef, PosRef } from 'src/app/core/services/department.service';
+import { AdminService } from '../admin/admin.service';
 import { Collaborateur, CollaborateurCreateDto } from 'src/app/core/models/hr.models';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
 interface EmpRow {
   matricule: number;
@@ -25,7 +30,7 @@ interface EmpRow {
 @Component({
   selector: 'app-collaborateur',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, NgApexchartsModule, TranslateModule, WallClockComponent],
   styles: [`
     /* ================================================================
        WIKO HR — Employee Page
@@ -47,9 +52,17 @@ interface EmpRow {
 
     /* ── Layout ── */
     .emp-top-row {
-      display: grid; grid-template-columns: 1fr 420px;
+      display: grid; grid-template-columns: 1fr 420px 290px;
       gap: 20px; align-items: start; margin-bottom: 18px;
     }
+    .right-col { display:flex; flex-direction:column; gap:14px; }
+    .add-btn {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:100%; padding:14px; background:#1B7872; color:#fff;
+      border:none; border-radius:12px; font-size:14px; font-weight:600;
+      cursor:pointer; transition:background .15s;
+    }
+    .add-btn:hover { background:#155f5a; }
 
     /* ── Stats Card ── */
     .emp-stats-card {
@@ -151,14 +164,7 @@ interface EmpRow {
     .emp-act-icon:hover { color:#4A6080; }
     .emp-act-icon--del:hover { color:#EF4444; }
 
-    /* ── Add Button ── */
-    .emp-add-btn {
-      padding:9px 18px; border:none; border-radius:10px;
-      background:#2FA8A0; color:#fff; font-size:13.5px; font-weight:600;
-      display:flex; align-items:center; gap:7px; white-space:nowrap;
-      cursor:pointer; transition:background .15s; flex-shrink:0;
-    }
-    .emp-add-btn:hover { background:#1A9690; }
+    /* ── Import Button ── */
 
     /* ── Search bar ── */
     .search-row { display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid #F0F3F6; }
@@ -215,7 +221,7 @@ interface EmpRow {
     }
     .edp-close-btn:hover { background:#E2E8F0; }
 
-    .edp-body { flex:1; overflow-y:auto; padding:20px 24px 24px; scrollbar-width:thin; scrollbar-color:#E2E8F0 transparent; }
+    .edp-body { flex:1; min-height:0; overflow-y:auto; padding:20px 24px 24px; scrollbar-width:thin; scrollbar-color:#E2E8F0 transparent; }
     .edp-avatar {
       width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#1B7872,#2FA8A0);
       display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700;
@@ -245,7 +251,7 @@ interface EmpRow {
       display:flex; align-items:center; justify-content:center; cursor:pointer; color:#4A6080;
     }
     .ecm-close-btn:hover { background:#E2E8F0; }
-    .ecm-body { flex:1; overflow-y:auto; padding:20px 24px; scrollbar-width:thin; scrollbar-color:#E2E8F0 transparent; }
+    .ecm-body { flex:1; min-height:0; overflow-y:auto; padding:20px 24px; scrollbar-width:thin; scrollbar-color:#E2E8F0 transparent; }
     .ecm-section-title { font-family:'Inter',sans-serif; font-size:14px; font-weight:700; color:#1A2B3C; margin:20px 0 14px; padding-bottom:8px; border-bottom:1px solid #F0F3F6; }
     .ecm-fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .ecm-field-group { display:flex; flex-direction:column; gap:5px; }
@@ -278,6 +284,18 @@ interface EmpRow {
     .toast-msg { position:fixed; bottom:24px; right:24px; z-index:2000; padding:12px 20px; border-radius:10px; font-size:13.5px; font-weight:600; color:#fff; animation:fadeIn .3s; }
     .toast-msg--success { background:#22C55E; }
     .toast-msg--error   { background:#EF4444; }
+
+    /* ── Sub-filter row ── */
+    .sub-filter-row { display:flex; align-items:center; gap:8px; padding:10px 20px; background:#F8FAFC; border-bottom:1px solid #F0F3F6; flex-wrap:wrap; }
+    .sub-filter-btn {
+      padding:5px 14px; border-radius:20px; border:1.5px solid #E2E8F0;
+      background:#fff; font-size:12px; font-weight:500; color:#4A6080;
+      cursor:pointer; transition:all .13s; white-space:nowrap;
+    }
+    .sub-filter-btn:hover { border-color:#2FA8A0; color:#1B7872; background:#F0FEF8; }
+    .sub-filter-btn--active { background:#2FA8A0; color:#fff; border-color:#2FA8A0; font-weight:600; }
+    .sub-filter-clear { margin-left:auto; font-size:12px; color:#8FA3B8; cursor:pointer; display:flex; align-items:center; gap:4px; }
+    .sub-filter-clear:hover { color:#EF4444; }
   `],
   template: `
   <!-- ── Backdrop ── -->
@@ -291,10 +309,10 @@ interface EmpRow {
   <!-- ══ EMPLOYEE DETAIL PANEL ══ -->
   <div class="emp-detail-panel" *ngIf="detailEmployee" (click)="$event.stopPropagation()">
     <div class="edp-header">
-      <span class="edp-title">Employee Detail</span>
+      <span class="edp-title">{{ 'EMPLOYEES.DETAIL_TITLE' | translate }}</span>
       <div class="edp-header-right">
         <button class="edp-edit-btn" (click)="openEdit(detailEmployee)">
-          <i class="bx bx-edit-alt"></i> Edit Employee
+          <i class="bx bx-edit-alt"></i> {{ 'EMPLOYEES.BTN_EDIT' | translate }}
         </button>
         <button class="edp-close-btn" (click)="detailEmployee=null"><i class="bx bx-x"></i></button>
       </div>
@@ -302,27 +320,44 @@ interface EmpRow {
     <div class="edp-body">
       <div class="edp-avatar">{{ initials(detailEmployee) }}</div>
 
-      <div class="edp-section-title">Employee Information</div>
+      <div class="edp-section-title">{{ 'EMPLOYEES.SECTION_EMPLOYEE_INFO' | translate }}</div>
       <div class="edp-info-grid">
-        <div class="edp-field"><i class="bx bx-id-card"></i><span class="edp-lbl">Matricule</span><span class="edp-val">{{ detailEmployee.matricule }}</span></div>
-        <div class="edp-field"><i class="bx bx-user"></i><span class="edp-lbl">Full Name</span><span class="edp-val">{{ detailEmployee.prenom }} {{ detailEmployee.nom }}</span></div>
-        <div class="edp-field"><i class="bx bx-calendar"></i><span class="edp-lbl">Date of Birth</span><span class="edp-val">{{ detailEmployee.date_naissance || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-envelope"></i><span class="edp-lbl">Email</span><span class="edp-val">{{ detailEmployee.email || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-credit-card"></i><span class="edp-lbl">CIN</span><span class="edp-val">{{ detailEmployee.CIN || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-flag"></i><span class="edp-lbl">Nationality</span><span class="edp-val">{{ detailNationalite || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-male-female"></i><span class="edp-lbl">Gender</span><span class="edp-val">{{ detailEmployee.sexe || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-time"></i><span class="edp-lbl">Age</span><span class="edp-val">{{ detailEmployee.age || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-id-card"></i><span class="edp-lbl">{{ 'EMPLOYEES.MATRICULE' | translate }}</span><span class="edp-val">{{ detailEmployee.matricule }}</span></div>
+        <div class="edp-field"><i class="bx bx-user"></i><span class="edp-lbl">{{ 'EMPLOYEES.FULL_NAME' | translate }}</span><span class="edp-val">{{ detailEmployee.prenom }} {{ detailEmployee.nom }}</span></div>
+        <div class="edp-field"><i class="bx bx-calendar"></i><span class="edp-lbl">{{ 'EMPLOYEES.DATE_OF_BIRTH' | translate }}</span><span class="edp-val">{{ detailEmployee.date_naissance || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-envelope"></i><span class="edp-lbl">{{ 'EMPLOYEES.EMAIL' | translate }}</span><span class="edp-val">{{ detailEmployee.email || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-credit-card"></i><span class="edp-lbl">{{ 'EMPLOYEES.CIN' | translate }}</span><span class="edp-val">{{ detailEmployee.CIN || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-flag"></i><span class="edp-lbl">{{ 'EMPLOYEES.NATIONALITY' | translate }}</span><span class="edp-val">{{ detailNationalite || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-male-female"></i><span class="edp-lbl">{{ 'EMPLOYEES.GENDER' | translate }}</span><span class="edp-val">{{ detailEmployee.sexe || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-time"></i><span class="edp-lbl">{{ 'EMPLOYEES.AGE' | translate }}</span><span class="edp-val">{{ detailEmployee.age || '—' }}</span></div>
       </div>
 
-      <div class="edp-section-title" style="margin-top:20px">Work Information</div>
+      <div class="edp-section-title" style="margin-top:20px">{{ 'EMPLOYEES.SECTION_WORK_INFO' | translate }}</div>
       <div class="edp-info-grid">
-        <div class="edp-field"><i class="bx bx-briefcase"></i><span class="edp-lbl">Fonction</span><span class="edp-val">{{ detailEmployee.Fonction || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-building"></i><span class="edp-lbl">Department</span><span class="edp-val">{{ detailDepartement || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-file-blank"></i><span class="edp-lbl">Contract Type</span><span class="edp-val">{{ detailEmployee.Type || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-category"></i><span class="edp-lbl">Category</span><span class="edp-val">{{ detailEmployee.CATEGORIE || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-calendar-alt"></i><span class="edp-lbl">Start Date</span><span class="edp-val">{{ detailEmployee.date_entree || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-globe"></i><span class="edp-lbl">Filiale</span><span class="edp-val">{{ detailEmployee.FILIALE || '—' }}</span></div>
-        <div class="edp-field"><i class="bx bx-award"></i><span class="edp-lbl">Anciennete (years)</span><span class="edp-val">{{ detailAnciennete ?? '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-briefcase"></i><span class="edp-lbl">{{ 'EMPLOYEES.FONCTION' | translate }}</span><span class="edp-val">{{ detailEmployee.Fonction || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-building"></i><span class="edp-lbl">{{ 'EMPLOYEES.DEPARTMENT' | translate }}</span><span class="edp-val">{{ detailDepartement || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-file-blank"></i><span class="edp-lbl">{{ 'EMPLOYEES.CONTRACT_TYPE_FIELD' | translate }}</span><span class="edp-val">{{ detailEmployee.Type || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-category"></i><span class="edp-lbl">{{ 'EMPLOYEES.CATEGORY' | translate }}</span><span class="edp-val">{{ detailEmployee.CATEGORIE || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-calendar-alt"></i><span class="edp-lbl">{{ 'EMPLOYEES.START_DATE' | translate }}</span><span class="edp-val">{{ detailEmployee.date_entree || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-globe"></i><span class="edp-lbl">{{ 'EMPLOYEES.FILIALE' | translate }}</span><span class="edp-val">{{ detailEmployee.FILIALE || '—' }}</span></div>
+        <div class="edp-field"><i class="bx bx-award"></i><span class="edp-lbl">{{ 'EMPLOYEES.ANCIENNETE' | translate }}</span><span class="edp-val">{{ detailAnciennete ?? '—' }}</span></div>
+      </div>
+
+      <div class="edp-section-title" style="margin-top:20px">{{ 'EMPLOYEES.SECTION_ACCOUNT' | translate }}</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <select style="flex:1;padding:8px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#4A6080;outline:none;background:#fff;min-width:200px"
+                [(ngModel)]="linkUserId">
+          <option [ngValue]="null">{{ 'EMPLOYEES.SELECT_USER' | translate }}</option>
+          <option *ngFor="let u of allUsers" [ngValue]="u.id">{{ u.label }}</option>
+        </select>
+        <button style="padding:8px 16px;border:none;border-radius:8px;background:#1B7872;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"
+                [disabled]="!linkUserId || linkingUser" (click)="linkUserToEmployee()">
+          <i class="bx bx-link"></i> {{ 'EMPLOYEES.BTN_LINK' | translate }}
+        </button>
+        <button style="padding:8px 16px;border:none;border-radius:8px;background:#FEE2E2;color:#BE123C;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"
+                [disabled]="linkingUser" (click)="unlinkUserFromEmployee()">
+          <i class="bx bx-unlink"></i> {{ 'EMPLOYEES.BTN_UNLINK' | translate }}
+        </button>
       </div>
     </div>
   </div>
@@ -330,95 +365,112 @@ interface EmpRow {
   <!-- ══ CREATE / EDIT PANEL ══ -->
   <div class="emp-create-modal" *ngIf="showCreateModal" (click)="$event.stopPropagation()">
     <div class="ecm-header">
-      <span class="ecm-title">{{ editingEmployee ? 'Edit Employee' : 'Create New Employee' }}</span>
+      <span class="ecm-title">{{ editingEmployee ? ('EMPLOYEES.MODAL_EDIT_TITLE' | translate) : ('EMPLOYEES.MODAL_CREATE_TITLE' | translate) }}</span>
       <button class="ecm-close-btn" (click)="showCreateModal=false"><i class="bx bx-x"></i></button>
     </div>
     <div class="ecm-body">
-      <div class="ecm-section-title">Employee Information</div>
+      <div class="ecm-section-title">{{ 'EMPLOYEES.SECTION_MODAL_EMP_INFO' | translate }}</div>
       <div class="ecm-fields-grid">
         <div class="ecm-field-group">
-          <label class="ecm-label">First Name (Prénom) *</label>
-          <input class="ecm-input" [(ngModel)]="form.prenom" placeholder="Enter first name" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_FIRSTNAME' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.prenom" [placeholder]="'EMPLOYEES.FIRSTNAME_PH' | translate" />
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Last Name (Nom) *</label>
-          <input class="ecm-input" [(ngModel)]="form.nom" placeholder="Enter last name" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_LASTNAME' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.nom" [placeholder]="'EMPLOYEES.LASTNAME_PH' | translate" />
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Email *</label>
-          <input class="ecm-input" [(ngModel)]="form.email" placeholder="employee@example.com" type="email" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_EMAIL' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.email" [placeholder]="'EMPLOYEES.EMAIL_PH' | translate" type="email" />
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Date of Birth</label>
-          <input class="ecm-input" [(ngModel)]="form.date_naissance" placeholder="YYYY-MM-DD" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_DOB' | translate }}</label>
+          <input type="date" class="ecm-input" [(ngModel)]="form.date_naissance" [max]="today" />
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">CIN</label>
-          <input class="ecm-input" [(ngModel)]="form.CIN" placeholder="National ID" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_CIN' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.CIN" [placeholder]="'EMPLOYEES.CIN_PH' | translate" />
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Gender</label>
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_GENDER' | translate }}</label>
           <div class="ecm-select-wrap">
             <select class="ecm-select" [(ngModel)]="form.sexe">
-              <option value="">Select gender</option>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
+              <option value="">{{ 'EMPLOYEES.SELECT_GENDER' | translate }}</option>
+              <option value="MALE">{{ 'EMPLOYEES.GENDER_MALE' | translate }}</option>
+              <option value="FEMALE">{{ 'EMPLOYEES.GENDER_FEMALE' | translate }}</option>
+              <option value="OTHER">{{ 'EMPLOYEES.GENDER_OTHER' | translate }}</option>
             </select>
             <i class="bx bx-chevron-down ecm-select-icon"></i>
           </div>
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Nationality</label>
-          <input class="ecm-input" [(ngModel)]="form.nationalite" placeholder="Nationality" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_NATIONALITY' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.nationalite" [placeholder]="'EMPLOYEES.FIELD_NATIONALITY' | translate" />
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Age</label>
-          <input class="ecm-input" [(ngModel)]="form.age" placeholder="Age" type="number" min="18" max="70" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_AGE' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.age" [placeholder]="'EMPLOYEES.FIELD_AGE' | translate" type="number" min="18" max="70" />
         </div>
       </div>
 
-      <div class="ecm-section-title">Work Information</div>
+      <div class="ecm-section-title">{{ 'EMPLOYEES.SECTION_MODAL_WORK_INFO' | translate }}</div>
       <div class="ecm-fields-grid">
         <div class="ecm-field-group">
-          <label class="ecm-label">Fonction</label>
-          <input class="ecm-input" [(ngModel)]="form.Fonction" placeholder="Job title" />
-        </div>
-        <div class="ecm-field-group">
-          <label class="ecm-label">Department</label>
-          <input class="ecm-input" [(ngModel)]="form.departement" placeholder="Department" />
-        </div>
-        <div class="ecm-field-group">
-          <label class="ecm-label">Contract Type</label>
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_DEPARTMENT' | translate }}</label>
           <div class="ecm-select-wrap">
-            <select class="ecm-select" [(ngModel)]="form.Type">
-              <option value="">Select type</option>
-              <option value="CDI">CDI</option>
-              <option value="CDD">CDD</option>
-              <option value="Intérim">Intérim</option>
-              <option value="Stage">Stage</option>
+            <select class="ecm-select" [(ngModel)]="form.departmentId">
+              <option [ngValue]="null">{{ 'EMPLOYEES.SELECT_DEPARTMENT' | translate }}</option>
+              <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
             </select>
             <i class="bx bx-chevron-down ecm-select-icon"></i>
           </div>
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Category</label>
-          <input class="ecm-input" [(ngModel)]="form.CATEGORIE" placeholder="Category" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_FONCTION' | translate }}</label>
+          <div class="ecm-select-wrap">
+            <select class="ecm-select" [(ngModel)]="form.positionId">
+              <option [ngValue]="null">{{ 'EMPLOYEES.SELECT_FONCTION' | translate }}</option>
+              <option *ngFor="let p of filteredPositions" [ngValue]="p.id">{{ p.name }}</option>
+            </select>
+            <i class="bx bx-chevron-down ecm-select-icon"></i>
+          </div>
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Start Date</label>
-          <input class="ecm-input" [(ngModel)]="form.date_entree" placeholder="YYYY-MM-DD" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_CONTRACT_TYPE' | translate }}</label>
+          <div class="ecm-select-wrap">
+            <select class="ecm-select" [(ngModel)]="form.Type">
+              <option value="">{{ 'EMPLOYEES.SELECT_CONTRACT' | translate }}</option>
+              <option value="CDI">{{ 'EMPLOYEES.CONTRACT_CDI' | translate }}</option>
+              <option value="CDD">{{ 'EMPLOYEES.CONTRACT_CDD' | translate }}</option>
+              <option value="INTERIM">{{ 'EMPLOYEES.CONTRACT_INTERIM' | translate }}</option>
+              <option value="STAGE">{{ 'EMPLOYEES.CONTRACT_STAGE' | translate }}</option>
+              <option value="FREELANCE">{{ 'EMPLOYEES.CONTRACT_FREELANCE' | translate }}</option>
+              <option value="PRESTATAIRE">{{ 'EMPLOYEES.CONTRACT_PRESTATAIRE' | translate }}</option>
+              <option value="APPRENTISSAGE">{{ 'EMPLOYEES.CONTRACT_APPRENTISSAGE' | translate }}</option>
+              <option value="CIVP">{{ 'EMPLOYEES.CONTRACT_CIVP' | translate }}</option>
+            </select>
+            <i class="bx bx-chevron-down ecm-select-icon"></i>
+          </div>
         </div>
         <div class="ecm-field-group">
-          <label class="ecm-label">Filiale</label>
-          <input class="ecm-input" [(ngModel)]="form.FILIALE" placeholder="Branch" />
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_CATEGORY' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.CATEGORIE" [placeholder]="'EMPLOYEES.CATEGORY' | translate" />
+        </div>
+        <div class="ecm-field-group">
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_START_DATE' | translate }}</label>
+          <input type="date" class="ecm-input" [(ngModel)]="form.date_entree" [max]="today" />
+        </div>
+        <div class="ecm-field-group">
+          <label class="ecm-label">{{ 'EMPLOYEES.FIELD_FILIALE' | translate }}</label>
+          <input class="ecm-input" [(ngModel)]="form.FILIALE" [placeholder]="'EMPLOYEES.FILIALE_PH' | translate" />
         </div>
       </div>
     </div>
     <div class="ecm-footer">
-      <button class="ecm-cancel-btn" (click)="showCreateModal=false">Cancel</button>
+      <button class="ecm-cancel-btn" (click)="showCreateModal=false">{{ 'EMPLOYEES.CANCEL' | translate }}</button>
       <button class="ecm-create-btn" (click)="submitForm()" [disabled]="saving">
-        <span *ngIf="saving"><i class="bx bx-loader-alt bx-spin"></i> Saving...</span>
-        <span *ngIf="!saving">{{ editingEmployee ? 'Save Changes' : 'Create' }}</span>
+        <span *ngIf="saving"><i class="bx bx-loader-alt bx-spin"></i> {{ 'EMPLOYEES.SAVING' | translate }}</span>
+        <span *ngIf="!saving">{{ editingEmployee ? ('EMPLOYEES.SAVE_CHANGES' | translate) : ('EMPLOYEES.CREATE' | translate) }}</span>
       </button>
     </div>
   </div>
@@ -427,14 +479,11 @@ interface EmpRow {
   <div class="emp-container">
 
     <!-- Header -->
-    <div class="emp-header">
-      <h4 class="emp-header__title">Employee</h4>
-      <div class="emp-header__right">
-        <span class="emp-header__date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
-        <button class="emp-add-btn" (click)="openCreate()">
-          <i class="bx bx-plus"></i> Add New Employee
-        </button>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">
+      <div class="emp-header" style="flex:1;margin-bottom:0;">
+        <h4 class="emp-header__title">{{ 'EMPLOYEES.TITLE' | translate }}</h4>
       </div>
+      <app-wall-clock></app-wall-clock>
     </div>
 
     <!-- Top row: Stats + Chart -->
@@ -443,15 +492,15 @@ interface EmpRow {
       <!-- Stats Card -->
       <div class="emp-stats-card">
         <div class="emp-stats-header-row">
-          <span class="emp-stats-label">Total Employee</span>
+          <span class="emp-stats-label">{{ 'EMPLOYEES.TOTAL_EMPLOYEES' | translate }}</span>
           <div class="emp-emptype-filter">
-            <span>Contract Type</span>
+            <span>{{ 'EMPLOYEES.CONTRACT_TYPE' | translate }}</span>
             <i class="bx bx-chevron-down"></i>
           </div>
         </div>
         <div class="emp-stats-num-row">
           <span class="emp-stats-total">{{ total | number }}</span>
-          <span class="emp-stats-unit">Employees</span>
+          <span class="emp-stats-unit">{{ 'EMPLOYEES.EMPLOYEES' | translate }}</span>
         </div>
 
         <div class="emp-stats-bar">
@@ -465,29 +514,29 @@ interface EmpRow {
           <div class="emp-stats-item">
             <div class="emp-stats-item-row"><span class="emp-dot emp-dot--ft"></span><span class="emp-stats-item-lbl">CDI</span></div>
             <div class="emp-stats-item-num">{{ cdiCount | number }}</div>
-            <div class="emp-stats-item-sub">Employees</div>
+            <div class="emp-stats-item-sub">{{ 'EMPLOYEES.EMPLOYEES' | translate }}</div>
           </div>
           <div class="emp-stats-item">
             <div class="emp-stats-item-row"><span class="emp-dot emp-dot--pt"></span><span class="emp-stats-item-lbl">CDD</span></div>
             <div class="emp-stats-item-num">{{ cddCount | number }}</div>
-            <div class="emp-stats-item-sub">Employees</div>
+            <div class="emp-stats-item-sub">{{ 'EMPLOYEES.EMPLOYEES' | translate }}</div>
           </div>
           <div class="emp-stats-item">
-            <div class="emp-stats-item-row"><span class="emp-dot emp-dot--ct"></span><span class="emp-stats-item-lbl">Intérim</span></div>
+            <div class="emp-stats-item-row"><span class="emp-dot emp-dot--ct"></span><span class="emp-stats-item-lbl">{{ 'EMPLOYEES.CONTRACT_INTERIM' | translate }}</span></div>
             <div class="emp-stats-item-num">{{ interimCount | number }}</div>
-            <div class="emp-stats-item-sub">Employees</div>
+            <div class="emp-stats-item-sub">{{ 'EMPLOYEES.EMPLOYEES' | translate }}</div>
           </div>
           <div class="emp-stats-item">
-            <div class="emp-stats-item-row"><span class="emp-dot emp-dot--int"></span><span class="emp-stats-item-lbl">Stage</span></div>
+            <div class="emp-stats-item-row"><span class="emp-dot emp-dot--int"></span><span class="emp-stats-item-lbl">{{ 'EMPLOYEES.CONTRACT_STAGE' | translate }}</span></div>
             <div class="emp-stats-item-num">{{ stageCount | number }}</div>
-            <div class="emp-stats-item-sub">Employees</div>
+            <div class="emp-stats-item-sub">{{ 'EMPLOYEES.EMPLOYEES' | translate }}</div>
           </div>
         </div>
       </div>
 
       <!-- Chart Card -->
       <div class="emp-chart-card">
-        <div class="emp-chart-title">Department Distribution</div>
+        <div class="emp-chart-title">{{ 'EMPLOYEES.DEPT_DISTRIBUTION' | translate }}</div>
         <div class="emp-chart-wrap">
           <apx-chart
             [series]="donutChart.series"
@@ -507,23 +556,41 @@ interface EmpRow {
         </div>
       </div>
 
+      <!-- Action column -->
+      <div class="right-col">
+        <button class="add-btn" (click)="openCreate()">
+          <i class="bx bx-plus"></i> {{ 'EMPLOYEES.ADD_EMPLOYEE' | translate }}
+        </button>
+      </div>
+
     </div>
 
     <!-- Table Card -->
     <div class="emp-table-card">
       <div class="emp-tabs-bar">
-        <button *ngFor="let t of tableTabs" class="emp-tab" [class.emp-tab--active]="activeTableTab===t" (click)="activeTableTab=t">{{ t }}</button>
-        <span class="emp-tabs-updated"><i class="bx bx-refresh" style="cursor:pointer" (click)="loadData()"></i>&nbsp; Updated just now</span>
+        <button *ngFor="let t of tableTabs" class="emp-tab" [class.emp-tab--active]="activeTableTab===t.key" (click)="setTab(t.key)">{{ t.label | translate }}</button>
+        <span class="emp-tabs-updated"><i class="bx bx-refresh" style="cursor:pointer" (click)="loadData()"></i>&nbsp; {{ 'EMPLOYEES.UPDATED_NOW' | translate }}</span>
+      </div>
+
+      <!-- Sub-filter row -->
+      <div class="sub-filter-row" *ngIf="filterOptions.length > 0">
+        <button *ngFor="let opt of filterOptions"
+                class="sub-filter-btn"
+                [class.sub-filter-btn--active]="activeFilter === opt"
+                (click)="setFilter(opt)">{{ opt }}</button>
+        <span class="sub-filter-clear" *ngIf="activeFilter" (click)="setFilter('')">
+          <i class="bx bx-x"></i> {{ 'EMPLOYEES.CLEAR' | translate }}
+        </span>
       </div>
 
       <!-- Search + Import -->
       <div class="search-row">
         <div class="search-input-wrap">
           <i class="bx bx-search search-icon"></i>
-          <input class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="applySearch()" placeholder="Search by name, function, department…" />
+          <input class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="applySearch()" [placeholder]="'EMPLOYEES.SEARCH_PH' | translate" />
         </div>
-        <label class="import-btn" title="Import from Excel">
-          <i class="bx bx-upload"></i> Import Excel
+        <label class="import-btn" [title]="'EMPLOYEES.IMPORT_EXCEL' | translate">
+          <i class="bx bx-upload"></i> {{ 'EMPLOYEES.IMPORT_EXCEL' | translate }}
           <input type="file" accept=".xlsx,.xls" style="display:none" (change)="onFileImport($event)" />
         </label>
       </div>
@@ -532,33 +599,33 @@ interface EmpRow {
         <!-- Loading state -->
         <div class="state-box" *ngIf="loading">
           <div class="spinner"></div>
-          Loading employees…
+          {{ 'EMPLOYEES.LOADING' | translate }}
         </div>
 
         <!-- Error state -->
         <div class="state-box state-box--error" *ngIf="!loading && error">
           <i class="bx bx-error-circle"></i>
           {{ error }}
-          <br><button style="margin-top:12px;padding:7px 18px;border:none;border-radius:8px;background:#2FA8A0;color:#fff;cursor:pointer;font-size:13px" (click)="loadData()">Retry</button>
+          <br><button style="margin-top:12px;padding:7px 18px;border:none;border-radius:8px;background:#2FA8A0;color:#fff;cursor:pointer;font-size:13px" (click)="loadData()">{{ 'AUDIT_LOG.BTN_RETRY' | translate }}</button>
         </div>
 
         <!-- Empty state -->
         <div class="state-box" *ngIf="!loading && !error && filteredRows.length === 0">
           <i class="bx bx-user-x"></i>
-          {{ searchQuery ? 'No employees match your search.' : 'No employees found.' }}
+          {{ searchQuery ? ('EMPLOYEES.NO_MATCH' | translate) : ('EMPLOYEES.NO_EMPLOYEES' | translate) }}
         </div>
 
         <!-- Data table -->
         <table *ngIf="!loading && !error && filteredRows.length > 0">
           <thead>
             <tr>
-              <th>Matricule</th>
-              <th>Name</th>
-              <th>Start Date</th>
-              <th>Contract Type</th>
-              <th>Function</th>
-              <th>Gender</th>
-              <th>Action</th>
+              <th>{{ 'EMPLOYEES.TABLE_MATRICULE' | translate }}</th>
+              <th>{{ 'EMPLOYEES.TABLE_NAME' | translate }}</th>
+              <th>{{ 'EMPLOYEES.TABLE_START_DATE' | translate }}</th>
+              <th>{{ 'EMPLOYEES.TABLE_CONTRACT_TYPE' | translate }}</th>
+              <th>{{ 'EMPLOYEES.TABLE_FUNCTION' | translate }}</th>
+              <th>{{ 'EMPLOYEES.TABLE_GENDER' | translate }}</th>
+              <th>{{ 'EMPLOYEES.TABLE_ACTION' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -583,7 +650,7 @@ interface EmpRow {
       <!-- Pagination -->
       <div class="pagination-row" *ngIf="!loading && !error && filteredRows.length > 0">
         <span class="pagination-info">
-          Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, filteredRows.length) }} of {{ filteredRows.length }} employees
+          {{ 'EMPLOYEES.SHOWING' | translate:{from: (currentPage - 1) * pageSize + 1, to: Math.min(currentPage * pageSize, filteredRows.length), total: filteredRows.length} }}
         </span>
         <div class="pagination-btns">
           <button class="page-btn" (click)="currentPage=currentPage-1" [disabled]="currentPage===1"><i class="bx bx-chevron-left"></i></button>
@@ -598,7 +665,7 @@ interface EmpRow {
 })
 export class CollaborateurComponent implements OnInit {
 
-  today = new Date();
+  today = new Date().toISOString().split('T')[0];
   Math = Math;
 
   // ── Data ──
@@ -615,18 +682,37 @@ export class CollaborateurComponent implements OnInit {
 
   // ── Stats (computed from real data) ──
   get total()       { return this.allEmployees.length; }
-  get cdiCount()    { return this.allEmployees.filter(e => e.Type === 'CDI').length; }
-  get cddCount()    { return this.allEmployees.filter(e => e.Type === 'CDD').length; }
-  get interimCount(){ return this.allEmployees.filter(e => e.Type === 'Intérim').length; }
-  get stageCount()  { return this.allEmployees.filter(e => e.Type === 'Stage').length; }
+  get cdiCount()    { return this.allEmployees.filter(e => e.Type?.toUpperCase() === 'CDI').length; }
+  get cddCount()    { return this.allEmployees.filter(e => e.Type?.toUpperCase() === 'CDD').length; }
+  get interimCount(){ return this.allEmployees.filter(e => e.Type?.toUpperCase() === 'INTERIM').length; }
+  get stageCount()  { return this.allEmployees.filter(e => e.Type?.toUpperCase() === 'STAGE').length; }
 
   get detailNationalite(): string { return this.detailEmployee?.['Nationalité'] ?? ''; }
   get detailDepartement(): string { return this.detailEmployee?.['Département'] ?? ''; }
   get detailAnciennete(): number | null { return this.detailEmployee?.['Ancienneté'] ?? null; }
 
   // ── Table ──
-  tableTabs = ['All', 'Contract Type', 'Gender', 'Department'];
-  activeTableTab = 'All';
+  tableTabs = [
+    { key: 'ALL',           label: 'EMPLOYEES.TAB_ALL'       },
+    { key: 'CONTRACT_TYPE', label: 'EMPLOYEES.CONTRACT_TYPE' },
+    { key: 'GENDER',        label: 'EMPLOYEES.GENDER'        },
+    { key: 'DEPARTMENT',    label: 'EMPLOYEES.DEPARTMENT'    },
+  ];
+  activeTableTab = 'ALL';
+  activeFilter = '';
+
+  get filterOptions(): string[] {
+    if (this.activeTableTab === 'CONTRACT_TYPE') {
+      return [...new Set(this.rows.map(r => r.empType).filter(Boolean))].sort();
+    }
+    if (this.activeTableTab === 'GENDER') {
+      return ['MALE', 'FEMALE'];
+    }
+    if (this.activeTableTab === 'DEPARTMENT') {
+      return [...new Set(this.rows.map(r => r.department).filter(Boolean))].sort();
+    }
+    return [];
+  }
 
   // ── Panels ──
   detailEmployee: Collaborateur | null = null;
@@ -657,10 +743,45 @@ export class CollaborateurComponent implements OnInit {
   donutLegend: { label: string; color: string }[] = [];
   private readonly COLORS = ['#3B82F6','#EF4444','#9CA3AF','#F59E0B','#22C55E','#F97316','#8B5CF6','#EC4899'];
 
-  constructor(private collaborateurService: CollaborateurService) {}
+  // ── Reference data (departments / positions) ──
+  departments: DeptRef[] = [];
+  positions: PosRef[] = [];
+
+  get filteredPositions(): PosRef[] {
+    if (!this.form.departmentId) return this.positions;
+    return this.positions.filter(p => !p.departmentId || p.departmentId === this.form.departmentId);
+  }
+
+  // ── Link User state ──
+  allUsers: { id: number; label: string }[] = [];
+  linkUserId: number | null = null;
+  linkingUser = false;
+
+  constructor(
+    private collaborateurService: CollaborateurService,
+    private deptService: DepartmentService,
+    private adminService: AdminService,
+    private confirmSvc: ConfirmService,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
+    this.loadReferenceData();
+  }
+
+  loadReferenceData(): void {
+    this.deptService.getActiveDepartments().subscribe({ next: d => this.departments = d, error: () => {} });
+    this.deptService.getAllPositions().subscribe({ next: p => this.positions = p, error: () => {} });
+    this.adminService.getAllUsers().subscribe({
+      next: users => {
+        this.allUsers = users.map(u => ({
+          id: u.id,
+          label: `${u.firstName} ${u.lastName} (${u.email})`,
+        }));
+      },
+      error: () => {}
+    });
   }
 
   loadData(): void {
@@ -681,16 +802,41 @@ export class CollaborateurComponent implements OnInit {
     });
   }
 
+  setTab(tab: string): void {
+    this.activeTableTab = tab;
+    this.activeFilter = '';
+    this.applySearch();
+  }
+
+  setFilter(value: string): void {
+    this.activeFilter = this.activeFilter === value ? '' : value;
+    this.applySearch();
+  }
+
   applySearch(): void {
     const q = this.searchQuery.trim().toLowerCase();
-    this.filteredRows = q
-      ? this.rows.filter(r =>
-          r.name.toLowerCase().includes(q) ||
-          (r.role?.toLowerCase() ?? '').includes(q) ||
-          (r.department?.toLowerCase() ?? '').includes(q) ||
-          String(r.matricule).includes(q)
-        )
-      : [...this.rows];
+    let result = [...this.rows];
+
+    if (this.activeFilter) {
+      if (this.activeTableTab === 'CONTRACT_TYPE') {
+        result = result.filter(r => r.empType === this.activeFilter);
+      } else if (this.activeTableTab === 'GENDER') {
+        result = result.filter(r => r.gender.toUpperCase() === this.activeFilter.toUpperCase());
+      } else if (this.activeTableTab === 'DEPARTMENT') {
+        result = result.filter(r => r.department === this.activeFilter);
+      }
+    }
+
+    if (q) {
+      result = result.filter(r =>
+        r.name.toLowerCase().includes(q) ||
+        (r.role?.toLowerCase() ?? '').includes(q) ||
+        (r.department?.toLowerCase() ?? '').includes(q) ||
+        String(r.matricule).includes(q)
+      );
+    }
+
+    this.filteredRows = result;
     this.currentPage = 1;
   }
 
@@ -702,6 +848,32 @@ export class CollaborateurComponent implements OnInit {
     this.detailEmployee = emp;
     this.showCreateModal = false;
     this.editingEmployee = null;
+    this.linkUserId = null;
+  }
+
+  linkUserToEmployee(): void {
+    const empId = (this.detailEmployee as any)?._backendId;
+    if (!empId || !this.linkUserId) return;
+    this.linkingUser = true;
+    this.collaborateurService.linkUser(empId, this.linkUserId).subscribe({
+      next: () => {
+        this.linkingUser = false;
+        this.linkUserId = null;
+        this.showToast(this.translate.instant('EMPLOYEES.TOAST_LINKED'), 'success');
+      },
+      error: e => { this.linkingUser = false; this.showToast(e?.error?.message || this.translate.instant('EMPLOYEES.TOAST_LINKED'), 'error'); }
+    });
+  }
+
+  async unlinkUserFromEmployee(): Promise<void> {
+    const empId = (this.detailEmployee as any)?._backendId;
+    if (!empId) return;
+    if (!(await this.confirmSvc.confirm(this.translate.instant('EMPLOYEES.CONFIRM_UNLINK_MSG'), this.translate.instant('EMPLOYEES.CONFIRM_UNLINK_BTN')))) return;
+    this.linkingUser = true;
+    this.collaborateurService.unlinkUser(empId).subscribe({
+      next: () => { this.linkingUser = false; this.showToast(this.translate.instant('EMPLOYEES.TOAST_UNLINKED'), 'success'); },
+      error: e => { this.linkingUser = false; this.showToast(e?.error?.message || this.translate.instant('EMPLOYEES.TOAST_UNLINKED'), 'error'); }
+    });
   }
 
   openCreate(): void {
@@ -725,8 +897,9 @@ export class CollaborateurComponent implements OnInit {
       date_naissance: emp.date_naissance ?? '',
       FILIALE: emp.FILIALE ?? '',
       Type: emp.Type ?? '',
-      departement: emp.Département ?? '',
-      Fonction: emp.Fonction ?? '',
+      departmentId: (emp as any)._departmentId ?? null,
+      positionId:   (emp as any)._positionId   ?? null,
+      _version:     (emp as any)._version      ?? null,
       date_entree: emp.date_entree ?? '',
       anciennete: emp.Ancienneté ?? null,
     };
@@ -741,15 +914,28 @@ export class CollaborateurComponent implements OnInit {
 
   submitForm(): void {
     if (!this.form.nom || !this.form.prenom || !this.form.email) {
-      this.showToast('Nom, Prénom and Email are required.', 'error');
+      this.showToast(this.translate.instant('EMPLOYEES.FIELD_FIRSTNAME') + ', ' + this.translate.instant('EMPLOYEES.FIELD_LASTNAME') + ' and Email are required.', 'error');
       return;
     }
     this.saving = true;
     const dto: any = {
-      ...this.form,
-      Nationalité: this.form.nationalite,
-      Département: this.form.departement,
-      Ancienneté: this.form.anciennete,
+      firstName:    this.form.prenom        || null,
+      lastName:     this.form.nom           || null,
+      email:        this.form.email         || null,
+      gender:       this.form.sexe          || null,
+      cin:          this.form.CIN           || null,
+      nationality:  this.form.nationalite   || null,
+      category:     this.form.CATEGORIE     || null,
+      dateOfBirth:  this.form.date_naissance || null,
+      branch:       this.form.FILIALE       || null,
+      contractType: this.form.Type          || null,
+      hireDate:     this.form.date_entree   || null,
+      phone:        this.form.phone         || null,
+      address:      this.form.address       || null,
+      departmentId: this.form.departmentId  ?? null,
+      positionId:   this.form.positionId    ?? null,
+      status:       this.form.status        || null,
+      version:      this.form._version      ?? null,
     };
 
     if (this.editingEmployee) {
@@ -762,11 +948,11 @@ export class CollaborateurComponent implements OnInit {
           this.showCreateModal = false;
           this.editingEmployee = null;
           this.saving = false;
-          this.showToast('Employee updated successfully.', 'success');
+          this.showToast(this.translate.instant('EMPLOYEES.TOAST_UPDATED'), 'success');
         },
         error: err => {
           this.saving = false;
-          this.showToast(err?.error?.message || 'Failed to update employee.', 'error');
+          this.showToast(err?.error?.message || this.translate.instant('EMPLOYEES.TOAST_UPDATED'), 'error');
         }
       });
     } else {
@@ -778,27 +964,27 @@ export class CollaborateurComponent implements OnInit {
           this.buildChart(this.allEmployees);
           this.showCreateModal = false;
           this.saving = false;
-          this.showToast('Employee created successfully.', 'success');
+          this.showToast(this.translate.instant('EMPLOYEES.TOAST_CREATED'), 'success');
         },
         error: err => {
           this.saving = false;
-          this.showToast(err?.error?.message || 'Failed to create employee.', 'error');
+          this.showToast(err?.error?.message || this.translate.instant('EMPLOYEES.TOAST_CREATED'), 'error');
         }
       });
     }
   }
 
-  deleteEmployee(matricule: number): void {
-    if (!confirm('Are you sure you want to delete this employee?')) return;
+  async deleteEmployee(matricule: number): Promise<void> {
+    if (!(await this.confirmSvc.confirm(this.translate.instant('EMPLOYEES.CONFIRM_DELETE_MSG'), this.translate.instant('EMPLOYEES.CONFIRM_DELETE_BTN')))) return;
     this.collaborateurService.delete(matricule).subscribe({
       next: () => {
         this.allEmployees = this.allEmployees.filter(e => e.matricule !== matricule);
         this.rows = this.allEmployees.map(e => this.toRow(e));
         this.applySearch();
         this.buildChart(this.allEmployees);
-        this.showToast('Employee deleted.', 'success');
+        this.showToast(this.translate.instant('EMPLOYEES.TOAST_DELETED'), 'success');
       },
-      error: err => this.showToast(err?.error?.message || 'Failed to delete employee.', 'error')
+      error: err => this.showToast(err?.error?.message || this.translate.instant('EMPLOYEES.TOAST_DELETED'), 'error')
     });
   }
 
@@ -807,10 +993,10 @@ export class CollaborateurComponent implements OnInit {
     if (!file) return;
     this.collaborateurService.importFromExcel(file).subscribe({
       next: () => {
-        this.showToast('Import successful. Reloading data…', 'success');
+        this.showToast(this.translate.instant('EMPLOYEES.TOAST_IMPORT_SUCCESS'), 'success');
         this.loadData();
       },
-      error: err => this.showToast(err?.error || 'Import failed.', 'error')
+      error: err => this.showToast(err?.error || this.translate.instant('EMPLOYEES.TOAST_IMPORT_SUCCESS'), 'error')
     });
   }
 
@@ -831,7 +1017,7 @@ export class CollaborateurComponent implements OnInit {
       empType: e.Type ?? '',
       empTypeClass: this.contractClass(e.Type),
       role: e.Fonction ?? '',
-      gender: e.sexe ?? '',
+      gender: this.normalizeGender(e.sexe),
       genderClass: this.genderClass(e.sexe),
       dob: e.date_naissance ?? '',
       email: e.email ?? '',
@@ -850,6 +1036,14 @@ export class CollaborateurComponent implements OnInit {
     if (t.includes('INTÉRIM') || t.includes('INTERIM')) return 'contract';
     if (t === 'STAGE') return 'intern';
     return 'fulltime';
+  }
+
+  private normalizeGender(sexe?: string): string {
+    if (!sexe) return '';
+    const s = sexe.toUpperCase();
+    if (s === 'F' || s === 'FEMALE' || s === 'FEMME' || s === 'FEMININ') return 'FEMALE';
+    if (s === 'M' || s === 'MALE'   || s === 'HOMME'  || s === 'MASCULIN') return 'MALE';
+    return sexe;
   }
 
   private genderClass(sexe?: string): string {
@@ -902,7 +1096,7 @@ export class CollaborateurComponent implements OnInit {
   }
 
   private emptyForm(): any {
-    return { nom:'', prenom:'', email:'', sexe:'', CIN:'', nationalite:'', CATEGORIE:'', age: null, date_naissance:'', FILIALE:'', Type:'', departement:'', Fonction:'', date_entree:'', anciennete: null };
+    return { nom:'', prenom:'', email:'', sexe:'', CIN:'', nationalite:'', CATEGORIE:'', age: null, date_naissance:'', FILIALE:'', Type:'', departmentId: null as number | null, positionId: null as number | null, date_entree:'', anciennete: null };
   }
 
   private showToast(message: string, type: 'success' | 'error'): void {

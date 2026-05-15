@@ -1,3 +1,9 @@
+// ─── Shared reference type (matches backend RefSummary DTO) ─────────────────
+export interface RefSummary {
+    readonly id: number;
+    readonly name: string;
+}
+
 // ─── Collaborateur (Employee) ───────────────────────────────────────────────
 // Matches backend entity: Collaborateurs.java
 
@@ -290,23 +296,27 @@ export interface LeaveType {
 
 export interface LeaveRequest {
     readonly id: number;
-    readonly requester: { readonly id: number; readonly firstname: string; readonly lastname: string; readonly email: string };
-    readonly leaveType: LeaveType;
+    readonly version?: number;
+    readonly requester: RefSummary;
+    readonly leaveType: RefSummary;
     readonly startDate: string;
     readonly endDate: string;
     readonly durationDays: number;
     readonly reason: string;
     readonly status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+    readonly approver?: RefSummary;
     readonly approverComment: string;
     readonly createdAt: string;
     readonly decidedAt: string;
 }
 
 export interface LeaveBalance {
-    readonly leaveType: LeaveType;
+    readonly id?: number;
+    readonly leaveType: RefSummary;
     readonly year: number;
     readonly totalDays: number;
     readonly usedDays: number;
+    readonly pendingDays?: number;
     readonly remainingDays: number;
 }
 
@@ -323,13 +333,14 @@ export type PlanningEventType = 'MEETING' | 'INTERVIEW' | 'TRAINING' | 'HOLIDAY'
 
 export interface PlanningEvent {
     readonly id?: number;
+    readonly version?: number;
     readonly title: string;
     readonly description?: string;
     readonly startDateTime: string;
     readonly endDateTime?: string;
     readonly location?: string;
     readonly type: PlanningEventType;
-    readonly createdBy?: { readonly id: number; readonly firstname: string; readonly lastname: string };
+    readonly createdBy?: RefSummary;
 }
 
 // ─── File Manager ────────────────────────────────────────────────────────────
@@ -369,11 +380,14 @@ export interface Role {
 
 export interface AdminUser {
     readonly id: number;
+    readonly version?: number;
     readonly firstName: string;
     readonly lastName: string;
     readonly email: string;
-    readonly title: string;
-    readonly roles: readonly Role[];
+    readonly title?: string;
+    readonly mustChangePassword?: boolean;
+    readonly roles: readonly string[];
+    readonly permissions?: readonly string[];
 }
 
 // ─── CV / Stage Offers (Recruitment Kanban) ──────────────────────────────────
@@ -393,13 +407,14 @@ export interface StageOffer {
 
 export interface CvApplication {
     readonly id: number;
-    readonly offer?: StageOffer;
+    readonly version?: number;
+    readonly offer?: RefSummary;
     readonly candidateName: string;
     readonly candidateEmail: string;
     readonly cvFileName: string;
     readonly stage: KanbanStage;
     readonly notes: string;
-    readonly submittedAt: string;
+    readonly createdAt: string;
 }
 
 export const KANBAN_STAGES: readonly KanbanStage[] = [

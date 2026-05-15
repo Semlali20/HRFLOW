@@ -1,11 +1,11 @@
 import { MenuItem } from './menu.model';
 export const MENU: MenuItem[] = [
   {
-    label: 'MAIN',
+    label: 'PRINCIPAL',
     isTitle: true,
   },
   {
-    label: 'Dashboard',
+    label: 'Tableau de bord',
     link: '/dashboard',
     icon: 'bxs-dashboard',
   },
@@ -15,7 +15,7 @@ export const MENU: MenuItem[] = [
     icon: 'bxs-bell',
   },
   {
-    label: 'Day-off Request',
+    label: 'Demande de congé',
     link: '/dayoff',
     icon: 'bxs-calendar-check',
   },
@@ -26,51 +26,84 @@ export const MENU: MenuItem[] = [
   },
 
   {
-    label: 'EMPLOYEE MANAGER',
+    label: 'GESTION RH',
     isTitle: true,
   },
   {
-    label: 'Employees',
+    label: 'Employés',
     link: '/collaborateur',
     icon: 'bxs-group',
   },
   {
-    label: 'Interns',
-    link: '/stagiaires/grid',
+    label: 'Stagiaires',
+    link: '/stagiaires',
     icon: 'bxs-graduation',
   },
   {
-    label: 'Leave Management',
-    link: '/leave',
+    label: 'Congés',
     icon: 'bxs-door-open',
+    subItems: [
+      { label: 'Liste des demandes', link: '/leave' },
+      { label: 'Soldes de congés',   link: '/leave/balance' },
+    ]
   },
   {
-    label: 'Attendances',
+    label: 'Présences',
     link: '/attendance',
     icon: 'bxs-time',
   },
   {
-    label: 'Recruitment & CV',
-    link: '/UploadsCv',
+    label: 'Recrutement & CV',
+    link: '/recruitment',
     icon: 'bxs-user-plus',
   },
   {
-    label: 'Salary',
+    label: 'Salaires',
     link: '/salary',
     icon: 'bxs-wallet',
   },
+  {
+    label: 'Documents',
+    link: '/documents',
+    icon: 'bxs-folder-open',
+  },
+  {
+    label: 'Réunions & Suivis',
+    link: '/meetings',
+    icon: 'bxs-conversation',
+  },
 
   {
-    label: 'ANALYTICS',
+    label: 'ORGANISATION',
     isTitle: true,
   },
   {
-    label: 'Reports',
+    label: 'Départements & Postes',
+    link: '/org',
+    icon: 'bxs-building-house',
+  },
+  {
+    label: 'Jours Fériés',
+    link: '/public-holidays',
+    icon: 'bxs-party',
+  },
+
+  {
+    label: 'ANALYTIQUE',
+    isTitle: true,
+  },
+  {
+    label: 'Statistiques',
+    link: '/statistics',
+    icon: 'bxs-chart',
+  },
+  {
+    label: 'Rapports',
     link: '/reports',
     icon: 'bxs-bar-chart-alt-2',
   },
   {
-    label: 'Audit Log',
+    label: 'Journal d\'audit',
     link: '/audit',
     icon: 'bxs-list-check',
   },
@@ -80,27 +113,27 @@ export const MENU: MenuItem[] = [
     isTitle: true,
   },
   {
-    label: 'User Management',
+    label: 'Utilisateurs',
     link: '/admin/users',
     icon: 'bxs-user-badge',
   },
   {
-    label: 'Role Management',
+    label: 'Rôles & Permissions',
     link: '/admin/roles',
     icon: 'bxs-shield',
   },
 
   {
-    label: 'GENERAL',
+    label: 'GÉNÉRAL',
     isTitle: true,
   },
   {
-    label: 'File Manager',
+    label: 'Gestionnaire fichiers',
     link: '/filemanager',
     icon: 'bxs-folder',
   },
   {
-    label: 'Settings',
+    label: 'Paramètres',
     link: '/settings',
     icon: 'bxs-cog',
   },

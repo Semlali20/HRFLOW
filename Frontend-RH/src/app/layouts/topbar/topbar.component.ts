@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, Inject, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -24,19 +24,25 @@ export class TopbarComponent implements OnInit, OnDestroy {
     notifications: HrNotification[] = [];
     unreadCount = 0;
     currentUser: any;
-    username: any;
+    username = '';
+    userInitials = '';
     openMobileMenu = false;
-    userRole: string;
+    userRole = '';
+
+    // Panel open states
+    langOpen    = false;
+    themeOpen   = false;
+    notifOpen   = false;
+    profileOpen = false;
+    searchOpen  = false;
+    searchQuery = '';
 
     private notifSub: Subscription;
     private countSub: Subscription;
 
     listLang = [
-        { text: 'English',  flag: 'assets/images/flags/us.jpg',      lang: 'en' },
-        { text: 'Spanish',  flag: 'assets/images/flags/spain.jpg',    lang: 'es' },
-        { text: 'German',   flag: 'assets/images/flags/germany.jpg',  lang: 'de' },
-        { text: 'Italian',  flag: 'assets/images/flags/italy.jpg',    lang: 'it' },
-        { text: 'Russian',  flag: 'assets/images/flags/russia.jpg',   lang: 'ru' },
+        { text: 'English', flag: 'assets/images/flags/us.jpg', lang: 'en' },
+        { text: 'Français', flag: 'assets/images/flags/french.jpg', lang: 'fr' },
     ];
 
     @Output() settingsButtonClicked = new EventEmitter();
@@ -56,32 +62,38 @@ export class TopbarComponent implements OnInit, OnDestroy {
     get currentTheme(): AppTheme { return this.themeService.current; }
     setTheme(t: AppTheme): void  { this.themeService.apply(t); }
 
+    get themeLabel(): string {
+        const m: Record<AppTheme, string> = {
+            light: this.translate.instant('TOPBAR.THEME_LIGHT'),
+            dark:  this.translate.instant('TOPBAR.THEME_DARK'),
+            teal:  this.translate.instant('TOPBAR.THEME_TEAL'),
+        };
+        return m[this.currentTheme] || this.currentTheme;
+    }
+
     ngOnInit(): void {
-        this.openMobileMenu = false;
         this.element = document.documentElement;
 
-        this.cookieValue = this._cookiesService.get('lang');
-        const val = this.listLang.filter(x => x.lang === this.cookieValue);
-        this.countryName = val.map(el => el.text);
-        if (val.length === 0) {
-            if (this.flagvalue === undefined) { this.valueset = 'assets/images/flags/us.jpg'; }
+        this.cookieValue = this._cookiesService.get('lang') || 'en';
+        const val = this.listLang.find(x => x.lang === this.cookieValue);
+        if (val) {
+            this.flagvalue  = val.flag;
+            this.countryName = val.text;
         } else {
-            this.flagvalue = val.map(el => el.flag);
+            this.flagvalue = 'assets/images/flags/us.jpg';
         }
 
         this.currentUser = this.authService.getAuthenticatedUser();
         if (this.currentUser) {
-            this.username = `${this.currentUser.lastname} ${this.currentUser.firstname}`;
+            const last  = this.currentUser.lastname  || '';
+            const first = this.currentUser.firstname || '';
+            this.username     = `${last} ${first}`.trim();
+            this.userInitials = ((last[0] || '') + (first[0] || '')).toUpperCase() || '?';
         }
         this.userRole = this.authService.getUserRole() ?? '';
 
-        // Subscribe to SSE-based notifications
-        this.notifSub = this.notificationService.notifications$.subscribe(n => {
-            this.notifications = n;
-        });
-        this.countSub = this.notificationService.unreadCount$.subscribe(c => {
-            this.unreadCount = c;
-        });
+        this.notifSub = this.notificationService.notifications$.subscribe(n => { this.notifications = n; });
+        this.countSub = this.notificationService.unreadCount$.subscribe(c => { this.unreadCount = c; });
         this.notificationService.connect();
     }
 
@@ -90,9 +102,30 @@ export class TopbarComponent implements OnInit, OnDestroy {
         this.countSub?.unsubscribe();
     }
 
+    // Close all panels when clicking outside the bar
+    @HostListener('document:click')
+    closeAll(): void {
+        this.langOpen = this.themeOpen = this.notifOpen = this.profileOpen = false;
+    }
+
+    onBarClick(e: MouseEvent): void {
+        e.stopPropagation();
+    }
+
+    togglePanel(panel: 'lang' | 'theme' | 'notif' | 'profile', e: MouseEvent): void {
+        e.stopPropagation();
+        const wasOpen = this[`${panel}Open`];
+        this.langOpen = this.themeOpen = this.notifOpen = this.profileOpen = false;
+        if (!wasOpen) this[`${panel}Open`] = true;
+    }
+
+    onSearchBlur(): void {
+        setTimeout(() => { if (!this.searchQuery) this.searchOpen = false; }, 150);
+    }
+
     setLanguage(text: string, lang: string, flag: string): void {
         this.countryName = text;
-        this.flagvalue = flag;
+        this.flagvalue   = flag;
         this.cookieValue = lang;
         this.languageService.setLanguage(lang);
     }
@@ -101,26 +134,21 @@ export class TopbarComponent implements OnInit, OnDestroy {
         this.notificationService.markAllRead().subscribe();
     }
 
-    toggleRightSidebar(): void {
-        this.settingsButtonClicked.emit();
+    notifTypeClass(type: string): string {
+        const m: Record<string, string> = {
+            LEAVE: 'dot-amber', DOCUMENT: 'dot-teal', ATTENDANCE: 'dot-blue',
+            RECRUITMENT: 'dot-purple', SALARY: 'dot-green', ALERT: 'dot-red',
+        };
+        return m[type] ?? 'dot-gray';
     }
 
-    toggleMobileMenu(event: any): void {
-        event.preventDefault();
-        this.mobileMenuButtonClicked.emit();
-    }
+    focusSearch(): void { /* triggers sidebar quick search */ }
+
+    toggleRightSidebar(): void { this.settingsButtonClicked.emit(); }
+    toggleMobileMenu(event: any): void { event.preventDefault(); this.mobileMenuButtonClicked.emit(); }
 
     logout(): void {
         this.notificationService.disconnect();
         this.authService.logout();
-    }
-
-    fullscreen(): void {
-        document.body.classList.toggle('fullscreen-enable');
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-        } else if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
     }
 }

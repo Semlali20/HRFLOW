@@ -16,6 +16,8 @@ import com.innovx.gestionrh.mapper.DocumentMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -128,6 +130,11 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    public Page<DocumentResponse> findAll(Pageable pageable) {
+        return documentRepository.findAll(pageable).map(documentMapper::toResponse);
+    }
+
+    @Override
     public Page<DocumentResponse> findByEmployee(Long employeeId, Pageable pageable) {
         if (!collaborateursRepository.existsById(employeeId)) {
             throw new ResourceNotFoundException("Employee", "id", employeeId);
@@ -176,6 +183,20 @@ public class DocumentServiceImpl implements DocumentService {
         } catch (IOException e) {
             log.warn("Could not delete file '{}' from storage: {}", document.getStoredPath(), e.getMessage());
         }
+    }
+
+    // ── DOWNLOAD ─────────────────────────────────────────────────────────────
+
+    @Override
+    public Resource download(Long id) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document", "id", id));
+        Path filePath = Paths.get(storagePath).resolve(document.getStoredPath()).normalize();
+        Resource resource = new FileSystemResource(filePath);
+        if (!resource.exists()) {
+            throw new ResourceNotFoundException("File", "path", document.getStoredPath());
+        }
+        return resource;
     }
 
     // ── PRIVATE HELPERS ───────────────────────────────────────────────────────

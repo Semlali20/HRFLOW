@@ -29,9 +29,9 @@ public class CvController {
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     @PreAuthorize("hasAuthority('CV_UPLOAD')")
     public ResponseEntity<ApiResponse<CvApplicationResponse>> upload(
-            @RequestParam Long offerId,
-            @RequestParam String candidateName,
-            @RequestParam String candidateEmail,
+            @RequestParam(required = false) Long offerId,
+            @RequestParam(required = false) String candidateName,
+            @RequestParam(required = false) String candidateEmail,
             @RequestParam(required = false) String candidatePhone,
             @RequestParam("file") MultipartFile cvFile) {
         CvApplicationResponse response = cvService.apply(offerId, candidateName, candidateEmail,
@@ -42,7 +42,7 @@ public class CvController {
     @GetMapping("/applications")
     @PreAuthorize("hasAuthority('CV_READ')")
     public ResponseEntity<PagedResponse<CvApplicationResponse>> findAll(
-            @PageableDefault(size = 20, sort = "submittedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(PagedResponse.of(cvService.findAll(pageable)));
     }
 
@@ -56,7 +56,7 @@ public class CvController {
     @PreAuthorize("hasAuthority('CV_READ')")
     public ResponseEntity<PagedResponse<CvApplicationResponse>> findByOffer(
             @PathVariable Long offerId,
-            @PageableDefault(size = 20, sort = "submittedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(PagedResponse.of(cvService.findByOffer(offerId, pageable)));
     }
 
@@ -64,7 +64,7 @@ public class CvController {
     @PreAuthorize("hasAuthority('CV_READ')")
     public ResponseEntity<PagedResponse<CvApplicationResponse>> findByStage(
             @PathVariable KanbanStage stage,
-            @PageableDefault(size = 20, sort = "submittedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(PagedResponse.of(cvService.findByStage(stage, pageable)));
     }
 

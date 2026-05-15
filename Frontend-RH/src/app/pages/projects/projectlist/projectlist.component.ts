@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
 import { StagiaireService } from 'src/app/core/services/stagiaire.service';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-projectlist',
@@ -22,7 +23,12 @@ export class ProjectlistComponent implements OnInit {
   currentSortColumn: string = '';
   currentSortOrder: 'asc' | 'desc' = 'asc';
 
-  constructor(private router: Router, private stagiaireService: StagiaireService) {}
+  constructor(
+    private router: Router,
+    private stagiaireService: StagiaireService,
+    private confirmSvc: ConfirmService,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit(): void {
     this.fetchStagiaires();
@@ -90,17 +96,12 @@ export class ProjectlistComponent implements OnInit {
     this.router.navigate(['/stagiaires/edit'], { queryParams: { id: stagiaire.matricule } });
   }
 
-  deleteStagiaires(stagiaire: any): void {
-    Swal.fire({
-      title: 'Confirmation', text: 'Are you sure you want to delete this stagiaire?', icon: 'warning',
-      showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, delete it!'
-    }).then(result => {
-      if (result.isConfirmed) {
-        this.stagiaireService.delete(stagiaire.matricule).subscribe({
-          next: () => { Swal.fire('Deleted!', 'The stagiaire has been deleted.', 'success'); this.fetchStagiaires(); },
-          error: () => Swal.fire('Error', 'Failed to delete stagiaire', 'error')
-        });
-      }
+  async deleteStagiaires(stagiaire: any): Promise<void> {
+    const confirmed = await this.confirmSvc.confirm(this.translate.instant('INTERNS.DELETE_CONFIRM'), this.translate.instant('INTERNS.CONFIRM_TITLE'));
+    if (!confirmed) return;
+    this.stagiaireService.delete(stagiaire.matricule).subscribe({
+      next: async () => { await this.confirmSvc.alert(this.translate.instant('INTERNS.DELETE_SUCCESS'), this.translate.instant('INTERNS.DELETED_TITLE'), 'success'); this.fetchStagiaires(); },
+      error: async () => await this.confirmSvc.alert(this.translate.instant('INTERNS.DELETE_ERROR'), this.translate.instant('INTERNS.ERROR_TITLE'), 'error'),
     });
   }
 

@@ -1,45 +1,244 @@
-<div class="profile-page">
-  <header class="profile-header">
-    <h1>Profil Utilisateur</h1>
-  </header>
-  <div class="profile-content">
-    <div class="profile-section profile-info">
-      <div class="profile-item">
-        <mat-icon>person</mat-icon>
-        <span>{{ firstName }} {{ lastName }}</span>
-      </div>
-      <div class="profile-item">
-        <mat-icon>email</mat-icon>
-        <span>{{ email }}</span>
-      </div>
-      <div class="profile-item">
-        <mat-icon>work</mat-icon>
-        <span>{{ title }}</span>
+<div class="pf-page">
+
+  <!-- ── Page Header + Clock ──────────────────────────────────────────────── -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+    <div class="pf-page-header" style="flex:1;margin-bottom:0;">
+      <h4 class="pf-page-title">{{ 'PROFILE.PAGE_TITLE' | translate }}</h4>
+    </div>
+    <app-wall-clock></app-wall-clock>
+  </div>
+
+  <!-- Loading bar -->
+  <div class="pf-loading-bar" *ngIf="isLoading">
+    <div class="pf-loading-fill"></div>
+  </div>
+
+  <!-- ── Hero Card ─────────────────────────────────────────────────────────── -->
+  <div class="pf-hero">
+    <div class="pf-hero-left">
+      <div class="pf-hero-avatar">{{ initials }}</div>
+      <div class="pf-hero-meta">
+        <h1 class="pf-hero-name">{{ lastName }} {{ firstName }}</h1>
+        <p class="pf-hero-title">{{ title || '—' }}</p>
+        <span class="pf-role-badge">{{ displayRole }}</span>
       </div>
     </div>
-    <div class="profile-section profile-actions">
-      <button *ngIf="isAdmin()" mat-raised-button color="primary" (click)="createUser()">Créer un utilisateur</button>
-      <button mat-raised-button color="accent" (click)="editPassword()">Modifier le mot de passe</button>
+    <div class="pf-hero-actions">
+      <button class="pf-btn pf-btn--outline" (click)="openEditPassword()">
+        <i class="bx bx-lock-alt"></i>
+        {{ 'PROFILE.BTN_CHANGE_PWD' | translate }}
+      </button>
+      <button *ngIf="isAdmin()" class="pf-btn pf-btn--primary" (click)="openCreateUser()">
+        <i class="bx bx-user-plus"></i>
+        {{ 'PROFILE.BTN_CREATE_USER' | translate }}
+      </button>
     </div>
+  </div>
+
+  <!-- ── Info Grid ─────────────────────────────────────────────────────────── -->
+  <div class="pf-grid">
+
+    <!-- Personal Info -->
+    <div class="pf-card">
+      <div class="pf-card-head">
+        <i class="bx bx-user-circle pf-card-icon"></i>
+        <span class="pf-card-title">{{ 'PROFILE.CARD_PERSONAL' | translate }}</span>
+      </div>
+      <div class="pf-card-body">
+        <div class="pf-row">
+          <span class="pf-label"><i class="bx bx-id-card"></i> {{ 'PROFILE.LABEL_FULL_NAME' | translate }}</span>
+          <span class="pf-value">{{ lastName }} {{ firstName }}</span>
+        </div>
+        <div class="pf-row">
+          <span class="pf-label"><i class="bx bx-envelope"></i> {{ 'PROFILE.LABEL_EMAIL' | translate }}</span>
+          <span class="pf-value">{{ email }}</span>
+        </div>
+        <div class="pf-row">
+          <span class="pf-label"><i class="bx bx-briefcase"></i> {{ 'PROFILE.LABEL_TITLE' | translate }}</span>
+          <span class="pf-value">{{ title || '—' }}</span>
+        </div>
+        <div class="pf-row">
+          <span class="pf-label"><i class="bx bx-user-check"></i> {{ 'PROFILE.LABEL_ROLE' | translate }}</span>
+          <span class="pf-role-badge pf-role-badge--sm">{{ displayRole }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="pf-card">
+      <div class="pf-card-head">
+        <i class="bx bx-shield-quarter pf-card-icon"></i>
+        <span class="pf-card-title">{{ 'PROFILE.CARD_SECURITY' | translate }}</span>
+      </div>
+      <div class="pf-card-body">
+        <div class="pf-row" *ngIf="createdAt">
+          <span class="pf-label"><i class="bx bx-calendar-plus"></i> {{ 'PROFILE.LABEL_CREATED' | translate }}</span>
+          <span class="pf-value">{{ createdAt | date:'dd MMM yyyy, HH:mm' }}</span>
+        </div>
+        <div class="pf-row" *ngIf="updatedAt">
+          <span class="pf-label"><i class="bx bx-revision"></i> {{ 'PROFILE.LABEL_UPDATED' | translate }}</span>
+          <span class="pf-value">{{ updatedAt | date:'dd MMM yyyy, HH:mm' }}</span>
+        </div>
+        <div class="pf-row" *ngIf="lastPasswordChange">
+          <span class="pf-label"><i class="bx bx-lock-open-alt"></i> {{ 'PROFILE.LABEL_LAST_PWD' | translate }}</span>
+          <span class="pf-value">{{ lastPasswordChange | date:'dd MMM yyyy' }}</span>
+        </div>
+        <div class="pf-row">
+          <span class="pf-label"><i class="bx bx-info-circle"></i> {{ 'PROFILE.LABEL_PWD_STATUS' | translate }}</span>
+          <span class="pf-status"
+                [class.pf-status--warn]="mustChangePassword"
+                [class.pf-status--ok]="!mustChangePassword">
+            <i class="bx" [class.bx-check-circle]="!mustChangePassword" [class.bx-error-circle]="mustChangePassword"></i>
+            {{ mustChangePassword ? ('PROFILE.PWD_MUST_CHANGE' | translate) : ('PROFILE.PWD_UP_TO_DATE' | translate) }}
+          </span>
+        </div>
+        <div class="pf-row" *ngIf="!createdAt && !lastPasswordChange">
+          <span class="pf-empty-hint">
+            <i class="bx bx-info-circle"></i>
+            {{ 'PROFILE.ADMIN_DATA_HINT' | translate }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions -->
+    <div class="pf-card pf-card--full" *ngIf="permissions.length > 0">
+      <div class="pf-card-head">
+        <i class="bx bx-key pf-card-icon"></i>
+        <span class="pf-card-title">{{ 'PROFILE.CARD_PERMISSIONS' | translate }}</span>
+        <span class="pf-count-badge">{{ permissions.length }}</span>
+      </div>
+      <div class="pf-card-body pf-perms">
+        <span class="pf-perm-tag" *ngFor="let p of permissions">{{ p }}</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ══════════════════════════ MODALS ══════════════════════════════════════ -->
+
+<!-- ── Create User (right-side drawer) ───────────────────────────────────── -->
+<div class="pf-backdrop" *ngIf="showCreateUserModal" (click)="showCreateUserModal=false"></div>
+<div class="pf-drawer" *ngIf="showCreateUserModal" (click)="$event.stopPropagation()">
+  <div class="pf-drawer-head">
+    <div class="pf-drawer-icon"><i class="bx bx-user-plus"></i></div>
+    <span class="pf-drawer-title">{{ 'PROFILE.MODAL_CREATE_TITLE' | translate }}</span>
+    <button class="pf-modal-close" (click)="showCreateUserModal=false"><i class="bx bx-x"></i></button>
+  </div>
+
+  <div class="pf-drawer-body">
+    <div class="pf-section-title">{{ 'PROFILE.CARD_PERSONAL' | translate }}</div>
+    <div class="pf-field-row">
+      <div class="pf-field">
+        <label class="pf-lbl">{{ 'PROFILE.FIELD_FIRSTNAME' | translate }}</label>
+        <input class="pf-input" [(ngModel)]="newUser.firstName" [placeholder]="'PROFILE.FIRSTNAME_PH' | translate">
+      </div>
+      <div class="pf-field">
+        <label class="pf-lbl">{{ 'PROFILE.FIELD_LASTNAME' | translate }}</label>
+        <input class="pf-input" [(ngModel)]="newUser.lastName" [placeholder]="'PROFILE.LASTNAME_PH' | translate">
+      </div>
+    </div>
+    <div class="pf-field">
+      <label class="pf-lbl">{{ 'PROFILE.FIELD_EMAIL' | translate }}</label>
+      <input class="pf-input" type="email" [(ngModel)]="newUser.email" [placeholder]="'PROFILE.EMAIL_PH' | translate">
+    </div>
+
+    <div class="pf-section-title">{{ 'PROFILE.CARD_WORK' | translate }}</div>
+    <div class="pf-field">
+      <label class="pf-lbl">{{ 'PROFILE.FIELD_TITLE_POS' | translate }}</label>
+      <input class="pf-input" [(ngModel)]="newUser.title" [placeholder]="'PROFILE.TITLE_PH' | translate">
+    </div>
+    <div class="pf-field">
+      <label class="pf-lbl">{{ 'PROFILE.FIELD_ROLE' | translate }}</label>
+      <div class="pf-role-dd" (click)="showRoleDropdown = !showRoleDropdown; $event.stopPropagation()" [class.pf-role-dd--open]="showRoleDropdown">
+        <div class="pf-role-dd-trigger">
+          <span class="pf-role-dd-avatar" *ngIf="newUser.userRole">{{ newUser.userRole[0] }}</span>
+          <span class="pf-role-dd-value" [class.pf-role-dd-value--ph]="!newUser.userRole">
+            {{ selectedRoleLabel || ('PROFILE.ROLE_SELECT_PH' | translate) }}
+          </span>
+          <i class="bx bx-chevron-down pf-role-dd-chevron"></i>
+        </div>
+        <div class="pf-role-dd-menu" *ngIf="showRoleDropdown" (click)="$event.stopPropagation()">
+          <div class="pf-role-dd-item"
+               *ngFor="let r of roles"
+               [class.pf-role-dd-item--active]="r.name === newUser.userRole"
+               (click)="selectRole(r.name)">
+            <span class="pf-role-dd-item-avatar">{{ r.name[0] }}</span>
+            <div class="pf-role-dd-item-info">
+              <span class="pf-role-dd-item-name">{{ r.name.replace('_', ' ') }}</span>
+              <span class="pf-role-dd-item-desc" *ngIf="r.description">{{ r.description }}</span>
+            </div>
+            <i class="bx bx-check pf-role-dd-item-check" *ngIf="r.name === newUser.userRole"></i>
+          </div>
+          <div class="pf-role-dd-empty" *ngIf="roles.length === 0">
+            <i class="bx bx-shield-quarter"></i> No roles available
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pf-err" *ngIf="createUserError">
+      <i class="bx bx-error-circle"></i> {{ createUserError }}
+    </div>
+  </div>
+
+  <div class="pf-drawer-foot">
+    <button class="pf-btn-cancel" (click)="showCreateUserModal=false">{{ 'PROFILE.BTN_CANCEL' | translate }}</button>
+    <button class="pf-btn-submit" (click)="submitCreateUser()">
+      <i class="bx bx-check"></i> {{ 'PROFILE.BTN_CREATE' | translate }}
+    </button>
   </div>
 </div>
-<div class="profile-charts" [ngSwitch]="userRole">
-    <div class="chart" *ngSwitchCase="'ADMIN'">
-        <h2>Graphique en Barres pour le Type de Stage</h2>
-        <apx-chart [series]="typeDeStageOptions.series" [chart]="typeDeStageOptions.chart" [xaxis]="typeDeStageOptions.xaxis" [yaxis]="typeDeStageOptions.yaxis" [title]="typeDeStageOptions.title"></apx-chart>
+
+<!-- ── Edit Password ───────────────────────────────────────────────────────── -->
+<div class="pf-backdrop" *ngIf="showEditPasswordModal" (click)="showEditPasswordModal=false"></div>
+<div class="pf-modal" *ngIf="showEditPasswordModal">
+  <div class="pf-modal-head">
+    <div class="pf-modal-icon pf-modal-icon--teal"><i class="bx bx-lock-alt"></i></div>
+    <span class="pf-modal-title">{{ 'PROFILE.MODAL_PWD_TITLE' | translate }}</span>
+    <button class="pf-modal-close" (click)="showEditPasswordModal=false"><i class="bx bx-x"></i></button>
+  </div>
+  <div class="pf-modal-body">
+    <div class="pf-field">
+      <label class="pf-lbl">{{ 'PROFILE.FIELD_OLD_PWD' | translate }}</label>
+      <div class="pf-pwd-wrap">
+        <input class="pf-input" [type]="showPwd.old ? 'text' : 'password'"
+               [(ngModel)]="pwdForm.oldPassword" [placeholder]="'PROFILE.OLD_PWD_PH' | translate">
+        <button class="pf-pwd-eye" (click)="showPwd.old = !showPwd.old">
+          <i class="bx" [class.bx-show]="!showPwd.old" [class.bx-hide]="showPwd.old"></i>
+        </button>
       </div>
-      <div class="chart" *ngSwitchCase="'ADMIN'">
-        <h2>Histogramme pour l'Âge des Collaborateurs</h2>
-        <apx-chart [series]="ageDesCollaborateursOptions.series" [chart]="ageDesCollaborateursOptions.chart" [xaxis]="ageDesCollaborateursOptions.xaxis" [yaxis]="ageDesCollaborateursOptions.yaxis" [title]="ageDesCollaborateursOptions.title"></apx-chart>
-      </div>
-    <div class="chart" *ngSwitchCase="'STAGIAIRE_RH'">
-      <h2>Graphique en Barres pour le Type de Stage</h2>
-      <apx-chart [series]="typeDeStageOptions.series" [chart]="typeDeStageOptions.chart" [xaxis]="typeDeStageOptions.xaxis" [yaxis]="typeDeStageOptions.yaxis" [title]="typeDeStageOptions.title"></apx-chart>
     </div>
-    <div class="chart" *ngSwitchCase="'COLLABORATEUR_RH'">
-      <h2>Histogramme pour l'Âge des Collaborateurs</h2>
-      <apx-chart [series]="ageDesCollaborateursOptions.series" [chart]="ageDesCollaborateursOptions.chart" [xaxis]="ageDesCollaborateursOptions.xaxis" [yaxis]="ageDesCollaborateursOptions.yaxis" [title]="ageDesCollaborateursOptions.title"></apx-chart>
+    <div class="pf-field">
+      <label class="pf-lbl">{{ 'PROFILE.FIELD_NEW_PWD' | translate }}</label>
+      <div class="pf-pwd-wrap">
+        <input class="pf-input" [type]="showPwd.new ? 'text' : 'password'"
+               [(ngModel)]="pwdForm.newPassword" [placeholder]="'PROFILE.NEW_PWD_PH' | translate">
+        <button class="pf-pwd-eye" (click)="showPwd.new = !showPwd.new">
+          <i class="bx" [class.bx-show]="!showPwd.new" [class.bx-hide]="showPwd.new"></i>
+        </button>
+      </div>
+    </div>
+    <div class="pf-field">
+      <label class="pf-lbl">{{ 'PROFILE.FIELD_CONFIRM_PWD' | translate }}</label>
+      <div class="pf-pwd-wrap">
+        <input class="pf-input" [type]="showPwd.confirm ? 'text' : 'password'"
+               [(ngModel)]="pwdForm.confirmPassword" [placeholder]="'PROFILE.CONFIRM_PWD_PH' | translate">
+        <button class="pf-pwd-eye" (click)="showPwd.confirm = !showPwd.confirm">
+          <i class="bx" [class.bx-show]="!showPwd.confirm" [class.bx-hide]="showPwd.confirm"></i>
+        </button>
+      </div>
+    </div>
+    <div class="pf-err" *ngIf="editPwdError">
+      <i class="bx bx-error-circle"></i> {{ editPwdError }}
     </div>
   </div>
-
-
+  <div class="pf-modal-foot">
+    <button class="pf-btn-cancel" (click)="showEditPasswordModal=false">{{ 'PROFILE.BTN_CANCEL' | translate }}</button>
+    <button class="pf-btn-submit" (click)="submitEditPassword()">
+      <i class="bx bx-check"></i> {{ 'PROFILE.BTN_SAVE' | translate }}
+    </button>
+  </div>
+</div>

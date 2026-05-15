@@ -12,18 +12,23 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CvApplicationRepository extends JpaRepository<CvApplication, Long> {
 
-    Page<CvApplication> findByOfferId(Long offerId, Pageable pageable);
+    // JOIN FETCH offer so the lazy proxy is always initialized before the transaction ends
+    @Query(value = "SELECT a FROM CvApplication a LEFT JOIN FETCH a.offer",
+           countQuery = "SELECT count(a) FROM CvApplication a")
+    Page<CvApplication> findAllWithOffer(Pageable pageable);
 
-    Page<CvApplication> findByStage(KanbanStage stage, Pageable pageable);
+    @Query(value = "SELECT a FROM CvApplication a LEFT JOIN FETCH a.offer WHERE a.offer.id = :offerId",
+           countQuery = "SELECT count(a) FROM CvApplication a WHERE a.offer.id = :offerId")
+    Page<CvApplication> findByOfferIdWithOffer(@Param("offerId") Long offerId, Pageable pageable);
+
+    @Query(value = "SELECT a FROM CvApplication a LEFT JOIN FETCH a.offer WHERE a.stage = :stage",
+           countQuery = "SELECT count(a) FROM CvApplication a WHERE a.stage = :stage")
+    Page<CvApplication> findByStageWithOffer(@Param("stage") KanbanStage stage, Pageable pageable);
 
     long countByOfferId(Long offerId);
 
     boolean existsByOfferIdAndCandidateEmail(Long offerId, String candidateEmail);
 
-    /**
-     * Full-text search against extracted CV text using PostgreSQL ILIKE.
-     * Replaces the Elasticsearch-based search that was previously used.
-     */
     @Query(value = "SELECT * FROM cv_applications WHERE extracted_text ILIKE CONCAT('%', :keyword, '%') ORDER BY created_at DESC",
            countQuery = "SELECT count(*) FROM cv_applications WHERE extracted_text ILIKE CONCAT('%', :keyword, '%')",
            nativeQuery = true)

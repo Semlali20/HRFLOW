@@ -1,22 +1,82 @@
-<div class="account-pages my-5 pt-5">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="text-center mb-5">
-          <h1 class="display-2 fw-medium">5<i class="bx bx-buoy bx-spin text-primary display-3"></i>0</h1>
-          <h4 class="text-uppercase">Internal Server Error</h4>
-          <div class="mt-5 text-center">
-            <a class="btn btn-primary" routerLink="/">Back to Dashboard</a>
-          </div>
-        </div>
-      </div>
+<div class="err-page">
+
+  <!-- Ambient blobs -->
+  <div class="err-blob err-blob--1"></div>
+  <div class="err-blob err-blob--2"></div>
+
+  <div class="err-card">
+
+    <!-- Illustration -->
+    <div class="err-illustration">
+      <svg viewBox="0 0 260 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- desk surface shadow -->
+        <ellipse cx="130" cy="176" rx="115" ry="10" fill="#CBD5E0" opacity=".35"/>
+        <!-- desk surface -->
+        <ellipse cx="130" cy="172" rx="118" ry="12" fill="#E2E8F0" opacity=".55"/>
+
+        <!-- ── COFFEE PUDDLE spreading left from cup opening ── -->
+        <ellipse cx="95" cy="168" rx="70" ry="9" fill="#C4A882" opacity=".45"/>
+        <ellipse cx="80" cy="168" rx="52" ry="6" fill="#A07850" opacity=".3"/>
+
+        <!-- coffee drip stream from cup mouth -->
+        <path d="M138 148 Q128 158 108 165 Q90 168 70 167" stroke="#A07850" stroke-width="6" stroke-linecap="round" opacity=".4"/>
+
+        <!-- ── CUP LYING ON ITS SIDE (mouth facing left) ── -->
+        <!-- cup body: a rounded rectangle rotated, sitting on desk -->
+        <!-- Base of cup (right closed end) -->
+        <path d="M200 130 Q204 130 204 136 L204 162 Q204 168 200 168 L148 168 Q142 168 140 162 L136 140 Q134 133 140 131 Z"
+              fill="white" stroke="#E2E8F0" stroke-width="2"/>
+
+        <!-- teal band on the cup body (middle section) -->
+        <path d="M175 130 L180 168 L158 168 L153 130 Z" fill="#2FA8A0" opacity=".9"/>
+
+        <!-- coffee bean on band -->
+        <ellipse cx="167" cy="149" rx="6" ry="4" fill="white" opacity=".55" transform="rotate(-90 167 149)"/>
+        <line x1="167" y1="145" x2="167" y2="153" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+
+        <!-- cup bottom circle (right end cap) -->
+        <ellipse cx="202" cy="149" rx="6" ry="20" fill="#F0F4F8" stroke="#E2E8F0" stroke-width="1.5"/>
+
+        <!-- cup mouth / open end (left side, ellipse) -->
+        <ellipse cx="138" cy="150" rx="5" ry="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1.5"/>
+        <!-- coffee visible inside mouth -->
+        <ellipse cx="137" cy="150" rx="3.5" ry="14" fill="#A07850" opacity=".5"/>
+
+        <!-- cup handle sticking up -->
+        <path d="M188 131 Q210 120 212 135 Q214 148 196 148" stroke="#E2E8F0" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+        <!-- lid fallen flat on desk beside cup -->
+        <ellipse cx="220" cy="170" rx="16" ry="5" fill="#F0F4F8" stroke="#E2E8F0" stroke-width="1.5" transform="rotate(-8 220 170)"/>
+        <ellipse cx="220" cy="169" rx="10" ry="3" fill="#E2E8F0" opacity=".5" transform="rotate(-8 220 169)"/>
+
+        <!-- ── PLANT (left) ── -->
+        <rect x="14" y="128" width="30" height="40" rx="5" fill="white" stroke="#E2E8F0" stroke-width="1.5"/>
+        <ellipse cx="29" cy="128" rx="15" ry="4" fill="#F0F4F8" stroke="#E2E8F0" stroke-width="1.5"/>
+        <path d="M29 128 Q14 102 8 82"  stroke="#7CB98F" stroke-width="7" stroke-linecap="round"/>
+        <path d="M29 128 Q44 106 50 88" stroke="#5DAA72" stroke-width="7" stroke-linecap="round"/>
+        <path d="M29 128 Q29 104 29 88" stroke="#6DB882" stroke-width="5" stroke-linecap="round"/>
+
+        <!-- ── FAINT 500 ── -->
+        <text x="130" y="88" text-anchor="middle" font-size="54" font-weight="800"
+              font-family="Inter,sans-serif" fill="#2FA8A0" opacity=".05">500</text>
+
+      </svg>
     </div>
-    <div class="row justify-content-center">
-      <div class="col-md-8 col-xl-6">
-        <div>
-          <img src="assets/images/error-img.png" alt="" class="img-fluid">
-        </div>
-      </div>
+
+    <!-- Text -->
+    <h2 class="err-title">Error!</h2>
+    <p class="err-sub">Something went wrong,<br>Please try again later.</p>
+
+    <!-- Actions -->
+    <div class="err-actions">
+      <a routerLink="/" class="err-btn err-btn--primary">
+        <i class="bx bx-home-alt-2"></i> Back to Dashboard
+      </a>
+      <button class="err-btn err-btn--ghost" onclick="window.location.reload()">
+        <i class="bx bx-refresh"></i> Retry
+      </button>
     </div>
+
   </div>
 </div>

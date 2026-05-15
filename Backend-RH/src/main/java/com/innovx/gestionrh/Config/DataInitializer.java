@@ -2,14 +2,18 @@ package com.innovx.gestionrh.Config;
 
 import com.innovx.gestionrh.Entity.Permission;
 import com.innovx.gestionrh.Entity.Role;
+import com.innovx.gestionrh.Entity.User;
 import com.innovx.gestionrh.Repository.PermissionRepository;
 import com.innovx.gestionrh.Repository.RoleRepository;
+import com.innovx.gestionrh.Repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
@@ -19,6 +23,8 @@ public class DataInitializer {
 
     private final PermissionRepository permissionRepository;
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @PostConstruct
     @Transactional
@@ -26,6 +32,7 @@ public class DataInitializer {
         log.info("Initializing RBAC permissions and roles...");
         initPermissions();
         initRoles();
+        initAdminUser();
         log.info("RBAC initialization complete.");
     }
 
@@ -99,6 +106,12 @@ public class DataInitializer {
                 new String[]{"AUDIT_READ",            "ADMIN",     "View audit logs"},
                 new String[]{"SYSTEM_CONFIG",         "ADMIN",     "System-level configuration"},
 
+                // ── Salary / Payslips ─────────────────────────────────────────
+                new String[]{"SALARY_READ",           "SALARY",    "View payslips and salary data"},
+                new String[]{"SALARY_CREATE",         "SALARY",    "Create payslips"},
+                new String[]{"SALARY_UPDATE",         "SALARY",    "Update payslips and change status"},
+                new String[]{"SALARY_DELETE",         "SALARY",    "Delete (soft) payslips"},
+
                 // ── Approvals ─────────────────────────────────────────────────
                 new String[]{"APPROVAL_READ",         "APPROVAL",  "View pending approvals"},
                 new String[]{"APPROVAL_PROCESS",      "APPROVAL",  "Approve or reject items"}
@@ -139,6 +152,7 @@ public class DataInitializer {
                 "PLANNING_READ", "PLANNING_CREATE",
                 "LEAVE_REQUEST", "LEAVE_APPROVE", "LEAVE_REJECT", "LEAVE_READ_ALL", "LEAVE_MANAGE_TYPES",
                 "DOCUMENT_READ", "DOCUMENT_UPLOAD", "DOCUMENT_DELETE",
+                "SALARY_READ", "SALARY_CREATE", "SALARY_UPDATE", "SALARY_DELETE",
                 "REPORT_READ", "REPORT_GENERATE", "REPORT_EXPORT");
         createRoleIfAbsent("COLLABORATEUR_RH", "Employee HR manager", collaborateurRhPerms);
 
@@ -159,6 +173,32 @@ public class DataInitializer {
                 "PLANNING_READ",
                 "DOCUMENT_READ");
         createRoleIfAbsent("EMPLOYEE", "Regular employee — self-service access", employeePerms);
+    }
+
+    // ── Admin User ────────────────────────────────────────────────────────────
+
+    private void initAdminUser() {
+        final String adminEmail = "admin@innovx.com";
+        if (userRepository.existsByEmail(adminEmail)) {
+            log.info("Admin user already exists — skipping.");
+            return;
+        }
+        Role adminRole = roleRepository.findByName("ADMIN")
+                .orElseThrow(() -> new IllegalStateException("ADMIN role not found after initRoles()"));
+
+        User admin = User.builder()
+                .firstName("Admin")
+                .lastName("System")
+                .email(adminEmail)
+                .title("System Administrator")
+                .password(passwordEncoder.encode("Admin@123"))
+                .mustChangePassword(false)
+                .lastPasswordChange(LocalDateTime.now())
+                .roles(new HashSet<>(Set.of(adminRole)))
+                .build();
+
+        userRepository.save(admin);
+        log.info("Admin user created — email: {}, password: Admin@123", adminEmail);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

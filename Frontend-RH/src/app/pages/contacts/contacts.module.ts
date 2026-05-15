@@ -1,6 +1,7 @@
 import { MatIconModule } from '@angular/material/icon';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -9,6 +10,7 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 
 import { NgSelectModule } from '@ng-select/ng-select';
 
+import { SharedModule } from '../../shared/shared.module';
 import { WidgetModule } from '../../shared/widget/widget.module';
 import { UIModule } from '../../shared/ui/ui.module';
 import { ContactsRoutingModule } from './contacts-routing.module';
@@ -27,6 +29,7 @@ import { CanvasJSAngularChartsModule } from '@canvasjs/angular-charts';
     MatIconModule,
     NgApexchartsModule,
     ContactsRoutingModule,
+    SharedModule,
     WidgetModule,
     UIModule,
     NgSelectModule,
@@ -37,7 +40,8 @@ import { CanvasJSAngularChartsModule } from '@canvasjs/angular-charts';
     TooltipModule.forRoot(),
     PaginationModule.forRoot(),
     BsDropdownModule,
-    ModalModule
+    ModalModule,
+    TranslateModule
   ]
 })
 export class ContactsModule { }

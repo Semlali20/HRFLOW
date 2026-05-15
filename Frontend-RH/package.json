@@ -99,6 +99,7 @@
     "@types/node": "^20.4.1",
     "@types/youtube": "^0.0.47",
     "codelyzer": "^6.0.2",
+    "cypress": "^15.15.0",
     "jasmine-core": "^5.0.1",
     "jasmine-spec-reporter": "^7.0.0",
     "karma": "^6.4.2",

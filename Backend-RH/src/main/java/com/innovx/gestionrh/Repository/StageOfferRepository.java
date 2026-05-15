@@ -12,11 +12,21 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StageOfferRepository extends JpaRepository<StageOffer, Long> {
 
-    Page<StageOffer> findByStatus(OfferStatus status, Pageable pageable);
+    // JOIN FETCH department so the lazy proxy is always initialized before the transaction ends
+    @Query(value = "SELECT o FROM StageOffer o LEFT JOIN FETCH o.department",
+           countQuery = "SELECT count(o) FROM StageOffer o")
+    Page<StageOffer> findAllWithDepartment(Pageable pageable);
+
+    @Query(value = "SELECT o FROM StageOffer o LEFT JOIN FETCH o.department WHERE o.status = :status",
+           countQuery = "SELECT count(o) FROM StageOffer o WHERE o.status = :status")
+    Page<StageOffer> findByStatusWithDepartment(@Param("status") OfferStatus status, Pageable pageable);
 
     Page<StageOffer> findByDepartmentId(Long departmentId, Pageable pageable);
 
-    @Query("SELECT o FROM StageOffer o WHERE " +
+    @Query(value = "SELECT o FROM StageOffer o LEFT JOIN FETCH o.department WHERE " +
+           "LOWER(o.title) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+           "LOWER(o.description) LIKE LOWER(CONCAT('%', :q, '%'))",
+           countQuery = "SELECT count(o) FROM StageOffer o WHERE " +
            "LOWER(o.title) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(o.description) LIKE LOWER(CONCAT('%', :q, '%'))")
     Page<StageOffer> search(@Param("q") String query, Pageable pageable);

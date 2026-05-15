@@ -20,6 +20,7 @@ import { OverviewComponent } from './overview/overview.component';
 import { CreateComponent } from './create/create.component';
 
 import { NgxPaginationModule } from 'ngx-pagination';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [ProjectgridComponent, ProjectlistComponent, OverviewComponent, CreateComponent],
@@ -37,7 +38,8 @@ import { NgxPaginationModule } from 'ngx-pagination';
     NgxDropzoneModule,
 
     BsDatepickerModule.forRoot(),
-    PaginationModule.forRoot()
+    PaginationModule.forRoot(),
+    TranslateModule,
   ]
 })
 

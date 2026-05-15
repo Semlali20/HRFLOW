@@ -3,11 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
 @Component({
   selector: 'app-projects-hr',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, NgApexchartsModule, TranslateModule, WallClockComponent],
   styles: [`
     .page { padding:0 24px 40px; font-family:'Inter',sans-serif; animation:fadeIn .4s ease both; }
     @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -165,10 +168,10 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
   <!-- ══ Project Detail Panel ══ -->
   <div class="rp" *ngIf="showDetail && selectedProject">
     <div class="rp-header">
-      <span class="rp-title">Project Detail</span>
+      <span class="rp-title">{{ 'PROJECTS.DETAIL_TITLE' | translate }}</span>
       <div class="rp-head-right">
         <button class="edit-project-btn" (click)="openEdit()">
-          <i class="bx bx-edit-alt"></i> Edit Project
+          <i class="bx bx-edit-alt"></i> {{ 'PROJECTS.BTN_EDIT_PROJECT' | translate }}
         </button>
         <button class="rp-close" (click)="closeAll()"><i class="bx bx-x"></i></button>
       </div>
@@ -177,11 +180,11 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <div class="dp-project-name">{{ selectedProject.name }}</div>
 
       <div class="dp-field">
-        <span class="dp-field-lbl"><i class="bx bx-purchase-tag-alt"></i> Project ID</span>
+        <span class="dp-field-lbl"><i class="bx bx-purchase-tag-alt"></i> {{ 'PROJECTS.FIELD_PROJECT_ID' | translate }}</span>
         <span class="dp-field-val">#ID128472</span>
       </div>
       <div class="dp-field">
-        <span class="dp-field-lbl"><i class="bx bx-user"></i> Project Manager</span>
+        <span class="dp-field-lbl"><i class="bx bx-user"></i> {{ 'PROJECTS.FIELD_PROJECT_MANAGER' | translate }}</span>
         <span class="dp-field-val">
           <span class="dp-manager-row">
             <span class="dp-manager-avatar">MS</span> Mrs. Mole Stewart
@@ -189,7 +192,7 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
         </span>
       </div>
       <div class="dp-field">
-        <span class="dp-field-lbl"><i class="bx bx-group"></i> Assignee</span>
+        <span class="dp-field-lbl"><i class="bx bx-group"></i> {{ 'PROJECTS.FIELD_ASSIGNEE' | translate }}</span>
         <span class="dp-field-val">
           <div class="avatar-group">
             <div class="avatar" *ngFor="let a of selectedProject.assignees" [style.background]="a.bg">{{ a.initials }}</div>
@@ -197,7 +200,7 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
         </span>
       </div>
       <div class="dp-field">
-        <span class="dp-field-lbl"><i class="bx bx-loader-circle"></i> Status</span>
+        <span class="dp-field-lbl"><i class="bx bx-loader-circle"></i> {{ 'PROJECTS.FIELD_STATUS' | translate }}</span>
         <span class="dp-field-val">
           <span class="dp-status-badge status-progress">
             <span style="width:7px;height:7px;border-radius:50%;background:#15803D;display:inline-block;"></span>
@@ -206,11 +209,11 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
         </span>
       </div>
       <div class="dp-field">
-        <span class="dp-field-lbl"><i class="bx bx-calendar"></i> Timeline</span>
+        <span class="dp-field-lbl"><i class="bx bx-calendar"></i> {{ 'PROJECTS.FIELD_TIMELINE' | translate }}</span>
         <span class="dp-field-val" style="font-weight:600;">May 12, 2024 - December 12, 2024</span>
       </div>
       <div class="dp-field">
-        <span class="dp-field-lbl"><i class="bx bx-cube-alt"></i> Services</span>
+        <span class="dp-field-lbl"><i class="bx bx-cube-alt"></i> {{ 'PROJECTS.FIELD_SERVICES' | translate }}</span>
         <span class="dp-field-val">
           <span class="dp-service-chip">UI Design</span>
           <span class="dp-service-chip">Website Develope</span>
@@ -220,10 +223,10 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
 
       <!-- Tabs -->
       <div class="dp-tabs">
-        <button class="dp-tab" [class.active]="detailTab==='activity'" (click)="detailTab='activity'">Activity</button>
-        <button class="dp-tab" [class.active]="detailTab==='attachments'" (click)="detailTab='attachments'">Attachments</button>
-        <button class="dp-tab" [class.active]="detailTab==='feedback'" (click)="detailTab='feedback'">Feedback</button>
-        <button class="dp-tab" [class.active]="detailTab==='completed'" (click)="detailTab='completed'">Completed</button>
+        <button class="dp-tab" [class.active]="detailTab==='activity'" (click)="detailTab='activity'">{{ 'PROJECTS.TAB_ACTIVITY' | translate }}</button>
+        <button class="dp-tab" [class.active]="detailTab==='attachments'" (click)="detailTab='attachments'">{{ 'PROJECTS.TAB_ATTACHMENTS' | translate }}</button>
+        <button class="dp-tab" [class.active]="detailTab==='feedback'" (click)="detailTab='feedback'">{{ 'PROJECTS.TAB_FEEDBACK' | translate }}</button>
+        <button class="dp-tab" [class.active]="detailTab==='completed'" (click)="detailTab='completed'">{{ 'PROJECTS.TAB_COMPLETED' | translate }}</button>
       </div>
 
       <!-- Activity tab -->
@@ -231,10 +234,10 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
         <table class="dp-activity-table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Employee</th>
-              <th>Services</th>
-              <th>Hour Worked</th>
+              <th>{{ 'PROJECTS.ACTIVITY_DATE' | translate }}</th>
+              <th>{{ 'PROJECTS.ACTIVITY_EMPLOYEE' | translate }}</th>
+              <th>{{ 'PROJECTS.ACTIVITY_SERVICES' | translate }}</th>
+              <th>{{ 'PROJECTS.ACTIVITY_HOURS' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -253,7 +256,7 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
         </table>
       </div>
       <div *ngIf="detailTab!=='activity'" style="padding:40px 0;text-align:center;color:#8FA3B8;font-size:13px;">
-        No {{ detailTab }} data yet.
+        {{ 'PROJECTS.NO_TAB_DATA' | translate:{tab: detailTab} }}
       </div>
     </div>
   </div>
@@ -261,7 +264,7 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
   <!-- ══ Create / Edit Panel ══ -->
   <div class="rp" *ngIf="showCreate">
     <div class="rp-header">
-      <span class="rp-title">{{ isEditMode ? 'Edit Project' : 'Create New Project' }}</span>
+      <span class="rp-title">{{ isEditMode ? ('PROJECTS.EDIT_TITLE' | translate) : ('PROJECTS.CREATE_TITLE' | translate) }}</span>
       <div class="rp-head-right">
         <button class="rp-close" (click)="closeAll()"><i class="bx bx-x"></i></button>
       </div>
@@ -269,29 +272,29 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
     <div class="rp-body" style="padding-bottom:0;">
 
       <!-- Project Information -->
-      <div class="cp-section-title">Project Information</div>
+      <div class="cp-section-title">{{ 'PROJECTS.SECTION_PROJECT_INFO' | translate }}</div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Project Name</div>
-        <input class="cp-input" type="text" placeholder="Enter project name" [(ngModel)]="createForm.name" />
+        <div class="cp-field-lbl">{{ 'PROJECTS.FIELD_PROJECT_NAME' | translate }}</div>
+        <input class="cp-input" type="text" [placeholder]="'PROJECTS.PROJECT_NAME_PH' | translate" [(ngModel)]="createForm.name" />
       </div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Timeline</div>
+        <div class="cp-field-lbl">{{ 'PROJECTS.FIELD_TIMELINE_FORM' | translate }}</div>
         <div class="cp-date-input">
           <i class="bx bx-calendar"></i>
-          <input class="cp-input" type="text" placeholder="Select range date of project" [(ngModel)]="createForm.timeline" />
+          <input class="cp-input" type="text" [placeholder]="'PROJECTS.TIMELINE_PH' | translate" [(ngModel)]="createForm.timeline" />
         </div>
       </div>
 
       <!-- Service -->
-      <div class="cp-section-title">Service</div>
-      <div class="cp-sub">Select the project service to organize your project effectively.</div>
+      <div class="cp-section-title">{{ 'PROJECTS.SECTION_SERVICE' | translate }}</div>
+      <div class="cp-sub">{{ 'PROJECTS.SERVICE_DESC' | translate }}</div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Project Service</div>
+        <div class="cp-field-lbl">{{ 'PROJECTS.FIELD_PROJECT_SERVICE' | translate }}</div>
         <select class="cp-select" (change)="addService($any($event.target).value); $any($event.target).value=''">
-          <option value="">Select project service</option>
+          <option value="">{{ 'PROJECTS.SELECT_SERVICE' | translate }}</option>
           <option *ngFor="let s of availableServices" [value]="s">{{ s }}</option>
         </select>
         <div class="cp-chips">
@@ -302,21 +305,21 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       </div>
 
       <!-- Assignee -->
-      <div class="cp-section-title">Assignee</div>
-      <div class="cp-sub">Select employees to assign to this project. You can choose more than one.</div>
+      <div class="cp-section-title">{{ 'PROJECTS.SECTION_ASSIGNEE' | translate }}</div>
+      <div class="cp-sub">{{ 'PROJECTS.ASSIGNEE_DESC' | translate }}</div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Project Manager</div>
+        <div class="cp-field-lbl">{{ 'PROJECTS.FIELD_MANAGER' | translate }}</div>
         <select class="cp-select" [(ngModel)]="createForm.manager">
-          <option value="">Select project manager</option>
+          <option value="">{{ 'PROJECTS.SELECT_MANAGER' | translate }}</option>
           <option *ngFor="let m of managerOptions" [value]="m">{{ m }}</option>
         </select>
       </div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Assignee Employee</div>
+        <div class="cp-field-lbl">{{ 'PROJECTS.FIELD_ASSIGNEE_EMPLOYEE' | translate }}</div>
         <select class="cp-select" (change)="addEmployee($any($event.target).value); $any($event.target).value=''">
-          <option value="">Select employee</option>
+          <option value="">{{ 'PROJECTS.SELECT_EMPLOYEE' | translate }}</option>
           <option *ngFor="let e of employeeOptions" [value]="e.name">{{ e.name }}</option>
         </select>
         <div class="cp-chips" style="margin-top:10px;">
@@ -330,7 +333,7 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
     </div>
     <div class="cp-footer">
       <button class="cp-submit-btn" (click)="submitCreate()">
-        {{ isEditMode ? 'Save Changes' : 'Create Project' }}
+        {{ isEditMode ? ('PROJECTS.BTN_SAVE_CHANGES' | translate) : ('PROJECTS.BTN_CREATE_PROJECT' | translate) }}
       </button>
     </div>
   </div>
@@ -339,12 +342,14 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
   <div class="page">
 
     <!-- Header -->
-    <div class="page-header">
-      <h4 class="page-title">Projects</h4>
-      <div class="header-meta">
-        <span class="header-date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
-        <span class="header-lang"><i class="bx bx-flag"></i> English <i class="bx bx-chevron-down"></i></span>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="page-header" style="flex:1;margin-bottom:0;">
+        <h4 class="page-title">{{ 'PROJECTS.TITLE' | translate }}</h4>
+        <div class="header-meta">
+          <span class="header-lang"><i class="bx bx-flag"></i> English <i class="bx bx-chevron-down"></i></span>
+        </div>
       </div>
+      <app-wall-clock></app-wall-clock>
     </div>
 
     <!-- Top row -->
@@ -354,29 +359,29 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <div class="card total-card">
         <div class="total-card-head">
           <div>
-            <div class="total-label">TOTAL</div>
-            <div class="total-title">Project</div>
+            <div class="total-label">{{ 'PROJECTS.TOTAL_LABEL' | translate }}</div>
+            <div class="total-title">{{ 'PROJECTS.TOTAL_TITLE' | translate }}</div>
           </div>
-          <button class="period-btn">This year <i class="bx bx-chevron-down"></i></button>
+          <button class="period-btn">{{ 'PROJECTS.THIS_YEAR' | translate }} <i class="bx bx-chevron-down"></i></button>
         </div>
         <div class="kpi-row">
           <div class="kpi-box">
-            <div class="kpi-lbl">On Going</div>
+            <div class="kpi-lbl">{{ 'PROJECTS.ON_GOING' | translate }}</div>
             <div class="kpi-val">{{ onGoingCount }}</div>
           </div>
           <div class="kpi-box">
-            <div class="kpi-lbl">On Hold</div>
+            <div class="kpi-lbl">{{ 'PROJECTS.ON_HOLD' | translate }}</div>
             <div class="kpi-val">{{ onHoldCount }}</div>
           </div>
           <div class="kpi-box">
-            <div class="kpi-lbl">Completed</div>
+            <div class="kpi-lbl">{{ 'PROJECTS.COMPLETED' | translate }}</div>
             <div class="kpi-val">{{ completedCount }}</div>
           </div>
         </div>
         <div class="big-num-row">
           <span class="big-num">{{ totalProjects }}</span>
         </div>
-        <div class="big-sub">Total projects created.</div>
+        <div class="big-sub">{{ 'PROJECTS.TOTAL_PROJECTS_SUB' | translate }}</div>
         <apx-chart [series]="areaChart.series" [chart]="areaChart.chart" [colors]="areaChart.colors"
           [stroke]="areaChart.stroke" [fill]="areaChart.fill" [xaxis]="areaChart.xaxis"
           [grid]="areaChart.grid" [dataLabels]="areaChart.dataLabels" [tooltip]="areaChart.tooltip">
@@ -387,10 +392,10 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <div class="card time-card">
         <div class="time-card-head">
           <div>
-            <div class="time-label">Projects Overview</div>
+            <div class="time-label">{{ 'PROJECTS.OVERVIEW_LABEL' | translate }}</div>
             <div class="time-val">{{ totalProjects }}</div>
           </div>
-          <button class="time-filter">All project <i class="bx bx-chevron-down"></i></button>
+          <button class="time-filter">{{ 'PROJECTS.ALL_PROJECT' | translate }} <i class="bx bx-chevron-down"></i></button>
         </div>
         <apx-chart [series]="barChart.series" [chart]="barChart.chart" [colors]="barChart.colors"
           [plotOptions]="barChart.plotOptions" [xaxis]="barChart.xaxis" [yaxis]="barChart.yaxis"
@@ -400,17 +405,17 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
 
       <!-- Right column -->
       <div class="right-col">
-        <button class="add-btn" (click)="openCreate()"><i class="bx bx-plus"></i> Add New Project</button>
+        <button class="add-btn" (click)="openCreate()"><i class="bx bx-plus"></i> {{ 'PROJECTS.BTN_ADD' | translate }}</button>
 
         <div class="card deadline-card">
           <div class="deadline-head">
             <div class="deadline-icon-wrap"><i class="bx bx-alarm" style="font-size:18px;color:#4A6080;"></i></div>
-            <span class="deadline-head-title">Upcoming<br>Deadlines</span>
+            <span class="deadline-head-title">{{ 'PROJECTS.DEADLINES_TITLE' | translate }}</span>
           </div>
-          <div class="deadline-section-lbl">Today</div>
+          <div class="deadline-section-lbl">{{ 'PROJECTS.TODAY' | translate }}</div>
           <div *ngFor="let d of deadlines" class="deadline-item">
             <span class="deadline-name">{{ d.name }}</span>
-            <span class="view-link">View <i class="bx bx-right-arrow-alt"></i></span>
+            <span class="view-link">{{ 'PROJECTS.VIEW' | translate }} <i class="bx bx-right-arrow-alt"></i></span>
           </div>
         </div>
       </div>
@@ -420,27 +425,27 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
     <!-- Table -->
     <div class="table-card">
       <div class="tabs-bar">
-        <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ t }}</button>
+        <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ t | translate }}</button>
         <span class="tabs-right"><i class="bx bx-info-circle"></i>&nbsp;{{ totalProjects }} total</span>
       </div>
 
       <!-- Empty state -->
       <div style="padding:48px 0;text-align:center;color:#8FA3B8;font-size:14px;" *ngIf="filteredRows.length === 0">
         <i class="bx bx-folder-open" style="font-size:36px;display:block;margin-bottom:10px;"></i>
-        No projects yet. Click <strong>Add New Project</strong> to create one.
+        {{ 'PROJECTS.NO_PROJECTS' | translate }}
       </div>
 
       <div style="overflow-x:auto" *ngIf="filteredRows.length > 0">
         <table>
           <thead>
             <tr>
-              <th>Project ID</th>
-              <th>Project Name</th>
-              <th>Assignee</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>{{ 'PROJECTS.TABLE_PROJECT_ID' | translate }}</th>
+              <th>{{ 'PROJECTS.TABLE_PROJECT_NAME' | translate }}</th>
+              <th>{{ 'PROJECTS.TABLE_ASSIGNEE' | translate }}</th>
+              <th>{{ 'PROJECTS.TABLE_START_DATE' | translate }}</th>
+              <th>{{ 'PROJECTS.TABLE_END_DATE' | translate }}</th>
+              <th>{{ 'PROJECTS.TABLE_STATUS' | translate }}</th>
+              <th>{{ 'PROJECTS.TABLE_ACTION' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -470,8 +475,13 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
 })
 export class ProjectsHrComponent implements OnInit {
   today = new Date();
-  tabs = ['All', 'On Going', 'On Hold', 'Completed'];
-  activeTab = 'All';
+  tabs = ['PROJECTS.TAB_ALL', 'PROJECTS.ON_GOING', 'PROJECTS.ON_HOLD', 'PROJECTS.COMPLETED'];
+  activeTab = 'PROJECTS.TAB_ALL';
+  private readonly tabStatusMap: Record<string, string> = {
+    'PROJECTS.ON_GOING': 'On Going',
+    'PROJECTS.ON_HOLD': 'On Hold',
+    'PROJECTS.COMPLETED': 'Completed',
+  };
   detailTab = 'activity';
 
   showDetail = false;
@@ -514,7 +524,7 @@ export class ProjectsHrComponent implements OnInit {
   // Background colors for avatar chips
   private readonly BG_COLORS = ['#BFDBFE','#DDD6FE','#FDE68A','#BBF7D0','#FECACA','#E0F2FE','#FCE7F3'];
 
-  constructor(private collaborateurService: CollaborateurService) {}
+  constructor(private collaborateurService: CollaborateurService, private confirmSvc: ConfirmService, private translate: TranslateService) {}
 
   ngOnInit(): void {
     // Load real employees for assignee / manager dropdowns
@@ -539,8 +549,9 @@ export class ProjectsHrComponent implements OnInit {
   }
 
   get filteredRows(): any[] {
-    if (this.activeTab === 'All') return this.rows;
-    return this.rows.filter(r => r.status === this.activeTab);
+    if (this.activeTab === 'PROJECTS.TAB_ALL') return this.rows;
+    const status = this.tabStatusMap[this.activeTab];
+    return status ? this.rows.filter(r => r.status === status) : this.rows;
   }
 
   openDetail(row: any) {
@@ -644,8 +655,8 @@ export class ProjectsHrComponent implements OnInit {
     this.createForm.assignees = this.createForm.assignees.filter((a: any) => a.name !== name);
   }
 
-  deleteRow(row: any): void {
-    if (!confirm(`Delete project "${row.name}"?`)) return;
+  async deleteRow(row: any): Promise<void> {
+    if (!(await this.confirmSvc.confirm(this.translate.instant('PROJECTS.CONFIRM_DELETE_MSG', {name: row.name}), this.translate.instant('PROJECTS.CONFIRM_DELETE_BTN')))) return;
     this.rows = this.rows.filter(r => r !== row);
     this.buildCharts(this.employeeOptions.length);
   }

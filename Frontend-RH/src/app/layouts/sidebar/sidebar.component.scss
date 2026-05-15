@@ -71,6 +71,7 @@ $sb-hover-bg:    #F5F8FA;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+  height: auto !important;
   font-family: 'Inter', sans-serif !important;
   padding-top: 0 !important;
   border-right: 1px solid $sb-border !important;
@@ -95,6 +96,7 @@ $sb-hover-bg:    #F5F8FA;
   i { font-size:15px; }
 }
 
+
 /* ── Search ── */
 .wiko-sb-search-wrap { padding:12px 12px 8px; flex-shrink:0; }
 .wiko-sb-search-box {
@@ -113,7 +115,21 @@ $sb-hover-bg:    #F5F8FA;
 }
 
 /* ── Scroll Area ── */
-.wiko-sb-scroll { flex:1 !important; overflow:hidden !important; min-height:0; }
+.wiko-sb-scroll {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  /* scrollbar fin custom */
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E0 transparent;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+}
 
 /* ── Section Labels ── */
 .wiko-sb-section-label {
@@ -200,4 +216,108 @@ $sb-hover-bg:    #F5F8FA;
   padding: 3px; display:flex; align-items:center; flex-shrink:0;
   &:hover { color: $sb-text-bright; }
   i { font-size:15px; }
+}
+
+/* ══════════════════════════════════════════
+   FLOATING COLLAPSE TAB
+   ══════════════════════════════════════════ */
+.wiko-sb-toggle-tab {
+  position: fixed;
+  left: 250px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  z-index: 1100;
+  width: 20px;
+  height: 48px;
+  background: #fff;
+  border: 1px solid #CBD5E0;
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 3px 0 8px rgba(22,34,51,0.12);
+  transition: left 0.22s ease, background 0.15s;
+  color: #4A6080;
+  padding: 0;
+
+  &:hover {
+    background: #F0FEF8;
+    color: #1B7872;
+  }
+
+  i { font-size: 13px; }
+
+  &--collapsed {
+    left: 70px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   COLLAPSED STATE
+   ══════════════════════════════════════════ */
+:host-context(.vertical-collpsed) {
+  .wiko-sidebar-host {
+    transition: width 0.22s ease;
+  }
+
+  /* Hide text-only elements */
+  .wiko-sb-brand,
+  .wiko-sb-search-wrap,
+  .wiko-sb-section-label,
+  .wiko-sb-user-info,
+  .wiko-sb-user-chevron,
+  .wiko-sb-kbd,
+  .wiko-sb-kbd-badge,
+  .wiko-sb-count-badge {
+    display: none !important;
+  }
+
+  /* Logo row: center the star + collapse btn */
+  .wiko-sb-logo-row {
+    justify-content: center;
+    padding: 16px 8px 12px;
+    gap: 0;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .wiko-sb-logo-wrap {
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .wiko-sb-collapse-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* Nav items: icon only, centered */
+  .wiko-sb-nav-list {
+    padding: 0 6px;
+  }
+
+  .wiko-sb-nav-item {
+    justify-content: center;
+    padding: 10px 0;
+    gap: 0;
+    border-radius: 8px;
+    position: relative;
+
+    i {
+      width: auto;
+      font-size: 18px;
+    }
+
+    > span:not(.wiko-sb-kbd-badge):not(.wiko-sb-count-badge) {
+      display: none !important;
+    }
+  }
+
+  /* User footer: just avatar centered */
+  .wiko-sb-user-footer {
+    justify-content: center;
+    padding: 12px 8px;
+  }
 }

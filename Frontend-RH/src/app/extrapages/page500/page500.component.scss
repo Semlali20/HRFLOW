@@ -1,0 +1,107 @@
+.err-page {
+  min-height: 100vh;
+  background: #F4F6F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+}
+
+/* Ambient background blobs */
+.err-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .18;
+  pointer-events: none;
+  &--1 { width: 400px; height: 400px; background: #2FA8A0; top: -100px; left: -100px; }
+  &--2 { width: 320px; height: 320px; background: #4ECDC4; bottom: -80px; right: -60px; }
+}
+
+/* Card */
+.err-card {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(22,34,51,.10), 0 4px 16px rgba(22,34,51,.06);
+  padding: 40px 36px 36px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: err-in .4s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes err-in {
+  from { opacity: 0; transform: translateY(24px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Illustration */
+.err-illustration {
+  width: 100%;
+  max-width: 280px;
+  margin-bottom: 8px;
+  svg { width: 100%; height: auto; }
+}
+
+/* Text */
+.err-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1A2B3C;
+  margin: 0 0 10px;
+  font-family: 'Inter', 'Archivo', sans-serif;
+}
+
+.err-sub {
+  font-size: 15px;
+  color: #8FA3B8;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+/* Buttons */
+.err-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.err-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 24px;
+  border-radius: 50px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: all .18s;
+  font-family: 'Inter', 'Archivo', sans-serif;
+  letter-spacing: .3px;
+
+  i { font-size: 16px; }
+
+  &--primary {
+    background: #2FA8A0;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(47,168,160,.35);
+    &:hover { background: #259992; color: #fff; transform: translateY(-1px); }
+  }
+
+  &--ghost {
+    background: #F4F6F9;
+    color: #4A6080;
+    border: 1.5px solid #E8EDF2;
+    &:hover { background: #E8F7F6; color: #2FA8A0; border-color: #B2E4E0; }
+  }
+}

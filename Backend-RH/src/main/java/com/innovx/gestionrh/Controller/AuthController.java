@@ -18,6 +18,7 @@ import com.innovx.gestionrh.payload.request.SignupRequest;
 import com.innovx.gestionrh.payload.request.TokenRefreshRequest;
 import com.innovx.gestionrh.payload.response.JwtResponse;
 import com.innovx.gestionrh.payload.response.MessageResponse;
+import com.innovx.gestionrh.payload.response.TokenRefreshResponse;
 import com.innovx.gestionrh.security.jwt.JwtUtils;
 import com.innovx.gestionrh.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
@@ -36,7 +37,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,6 +48,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    // ── OTP store: email → (code, expiry) ────────────────────────────────────
+    private record OtpEntry(String code, LocalDateTime expiresAt) {}
+    private final Map<String, OtpEntry> otpStore = new ConcurrentHashMap<>();
+    private static final int OTP_TTL_MINUTES = 2;
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -136,14 +145,16 @@ public class AuthController {
     // ── REFRESH ───────────────────────────────────────────────────────────────
 
     @PostMapping("/refresh")
-    public ResponseEntity<MessageResponse> refresh(@Valid @RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<TokenRefreshResponse> refresh(@Valid @RequestBody TokenRefreshRequest request) {
         RefreshToken verified = refreshTokenService.findByToken(request.getRefreshToken())
                 .map(refreshTokenService::verifyExpiration)
                 .orElseThrow(() -> new BusinessException("INVALID_REFRESH_TOKEN",
                         "Refresh token is invalid or not found. Please log in again."));
 
-        String newAccessToken = jwtUtils.generateAccessTokenForEmail(verified.getUser().getEmail());
-        return ResponseEntity.ok(new MessageResponse(newAccessToken));
+        String newAccessToken  = jwtUtils.generateAccessTokenForEmail(verified.getUser().getEmail());
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(verified.getUser().getId());
+
+        return ResponseEntity.ok(new TokenRefreshResponse(newAccessToken, newRefreshToken.getToken()));
     }
 
     // ── LOGOUT ────────────────────────────────────────────────────────────────
@@ -169,6 +180,77 @@ public class AuthController {
 
         passwordService.modifyPassword(user, request.getCurrentPassword(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.ok("Password changed successfully."));
+    }
+
+    // ── FORGOT PASSWORD — step 1: send OTP ───────────────────────────────────
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            throw new BusinessException("MISSING_EMAIL", "Email is required.");
+        }
+        userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+        String code = String.format("%06d", new Random().nextInt(1_000_000));
+        otpStore.put(email, new OtpEntry(code, LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES)));
+
+        emailService.sendEmail(email, "Your WIKOHR password reset code",
+                "Your verification code is: " + code + "\n\nThis code expires in " + OTP_TTL_MINUTES + " minutes.");
+
+        log.info("OTP sent to '{}'.", email);
+        return ResponseEntity.ok(ApiResponse.ok("Verification code sent to " + email));
+    }
+
+    // ── FORGOT PASSWORD — step 2: verify OTP ─────────────────────────────────
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse<Void>> verifyOtp(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String code  = body.get("otp");
+        OtpEntry entry = otpStore.get(email);
+
+        if (entry == null || !entry.code().equals(code)) {
+            throw new BusinessException("INVALID_OTP", "The code you entered is incorrect.");
+        }
+        if (LocalDateTime.now().isAfter(entry.expiresAt())) {
+            otpStore.remove(email);
+            throw new BusinessException("EXPIRED_OTP", "This code has expired. Please request a new one.");
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Code verified."));
+    }
+
+    // ── FORGOT PASSWORD — step 3: reset password ──────────────────────────────
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody Map<String, String> body) {
+        String email       = body.get("email");
+        String code        = body.get("otp");
+        String newPassword = body.get("newPassword");
+
+        OtpEntry entry = otpStore.get(email);
+        if (entry == null || !entry.code().equals(code)) {
+            throw new BusinessException("INVALID_OTP", "Invalid or expired code.");
+        }
+        if (LocalDateTime.now().isAfter(entry.expiresAt())) {
+            otpStore.remove(email);
+            throw new BusinessException("EXPIRED_OTP", "This code has expired. Please request a new one.");
+        }
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new BusinessException("WEAK_PASSWORD", "Password must be at least 8 characters.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setMustChangePassword(false);
+        user.setLastPasswordChange(LocalDateTime.now());
+        userRepository.save(user);
+        otpStore.remove(email);
+
+        log.info("Password reset for '{}'.", email);
+        return ResponseEntity.ok(ApiResponse.ok("Password reset successfully."));
     }
 
     // ── HELPERS ───────────────────────────────────────────────────────────────

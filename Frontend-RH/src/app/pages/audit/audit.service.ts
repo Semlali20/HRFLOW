@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 export interface AuditLog {
@@ -44,6 +44,14 @@ export class AuditService {
     getByModule(module: string): Observable<AuditLog[]> {
         if (!module) return throwError(() => new Error('module is required'));
         return this.http.get<AuditLog[]>(`${this.BASE}/module/${module}`).pipe(catchError(this.handleError));
+    }
+
+    getByAction(action: string): Observable<AuditLog[]> {
+        if (!action) return throwError(() => new Error('action is required'));
+        return this.http.get<any>(`${this.BASE}/action/${action}`).pipe(
+            map(res => res?.content ?? res?.data ?? (Array.isArray(res) ? res : [])),
+            catchError(this.handleError)
+        );
     }
 
     getByDateRange(from: string, to: string): Observable<AuditLog[]> {

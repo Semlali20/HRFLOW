@@ -1,50 +1,57 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import {
-    JobOffer, JobOfferCreateDto, Candidate, CandidateUpdateDto, RecruitmentStats
-} from 'src/app/core/models/hr.models';
 
 @Injectable({ providedIn: 'root' })
 export class RecruitmentService {
 
-    private readonly OFFERS_BASE = `${environment.apiUrl}/recruitment/offers`;
-    private readonly CANDIDATES_BASE = `${environment.apiUrl}/recruitment/candidates`;
+    private readonly OFFERS_BASE = `${environment.apiUrl}/offers`;
+    private readonly CV_BASE = `${environment.apiUrl}/cvs`;
 
     constructor(private http: HttpClient) {}
 
-    // ── Offers ───────────────────────────────────────────────────────────────
+    // ── Stage Offers ─────────────────────────────────────────────────────────
 
-    getAllOffers(): Observable<JobOffer[]> {
-        return this.http.get<JobOffer[]>(this.OFFERS_BASE).pipe(catchError(this.handleError));
+    getAllOffers(status?: string): Observable<any[]> {
+        let params = new HttpParams().set('size', '200');
+        if (status) params = params.set('status', status);
+        return this.http.get<any>(this.OFFERS_BASE, { params }).pipe(
+            map(res => res?.content ?? res?.data ?? (Array.isArray(res) ? res : [])),
+            catchError(this.handleError)
+        );
     }
 
-    getOpenOffers(): Observable<JobOffer[]> {
-        return this.http.get<JobOffer[]>(`${this.OFFERS_BASE}/open`).pipe(catchError(this.handleError));
-    }
-
-    getOfferById(id: number): Observable<JobOffer> {
+    getOfferById(id: number): Observable<any> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.get<JobOffer>(`${this.OFFERS_BASE}/${id}`).pipe(catchError(this.handleError));
+        return this.http.get<any>(`${this.OFFERS_BASE}/${id}`).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
-    createOffer(dto: JobOfferCreateDto): Observable<JobOffer> {
-        if (!dto.title || !dto.department) {
-            return throwError(() => new Error('title and department are required'));
-        }
-        return this.http.post<JobOffer>(this.OFFERS_BASE, dto).pipe(catchError(this.handleError));
+    createOffer(dto: any): Observable<any> {
+        return this.http.post<any>(this.OFFERS_BASE, dto).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
-    updateOffer(id: number, dto: Partial<JobOfferCreateDto>): Observable<JobOffer> {
+    updateOffer(id: number, dto: any): Observable<any> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.put<JobOffer>(`${this.OFFERS_BASE}/${id}`, dto).pipe(catchError(this.handleError));
+        return this.http.put<any>(`${this.OFFERS_BASE}/${id}`, dto).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
-    closeOffer(id: number): Observable<JobOffer> {
+    updateOfferStatus(id: number, status: string): Observable<any> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.put<JobOffer>(`${this.OFFERS_BASE}/${id}/close`, {}).pipe(catchError(this.handleError));
+        return this.http.patch<any>(`${this.OFFERS_BASE}/${id}/status`, null, { params: { status } }).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
     deleteOffer(id: number): Observable<void> {
@@ -52,57 +59,62 @@ export class RecruitmentService {
         return this.http.delete<void>(`${this.OFFERS_BASE}/${id}`).pipe(catchError(this.handleError));
     }
 
-    // ── Candidates ───────────────────────────────────────────────────────────
+    // ── CV Applications ───────────────────────────────────────────────────────
 
-    getAllCandidates(): Observable<Candidate[]> {
-        return this.http.get<Candidate[]>(this.CANDIDATES_BASE).pipe(catchError(this.handleError));
+    getAllApplications(page = 0, size = 200): Observable<any[]> {
+        const params = new HttpParams().set('page', String(page)).set('size', String(size));
+        return this.http.get<any>(`${this.CV_BASE}/applications`, { params }).pipe(
+            map(res => res?.content ?? res?.data ?? (Array.isArray(res) ? res : [])),
+            catchError(this.handleError)
+        );
     }
 
-    getCandidatesByOffer(offerId: number): Observable<Candidate[]> {
+    getApplicationsByOffer(offerId: number): Observable<any[]> {
         if (!offerId) return throwError(() => new Error('offerId is required'));
-        return this.http.get<Candidate[]>(`${this.CANDIDATES_BASE}/offer/${offerId}`).pipe(catchError(this.handleError));
+        return this.http.get<any>(`${this.CV_BASE}/applications/offer/${offerId}`).pipe(
+            map(res => res?.content ?? res?.data ?? (Array.isArray(res) ? res : [])),
+            catchError(this.handleError)
+        );
     }
 
-    getCandidateById(id: number): Observable<Candidate> {
+    getApplicationsByStage(stage: string): Observable<any[]> {
+        return this.http.get<any>(`${this.CV_BASE}/applications/stage/${stage}`).pipe(
+            map(res => res?.content ?? res?.data ?? (Array.isArray(res) ? res : [])),
+            catchError(this.handleError)
+        );
+    }
+
+    uploadCv(file: File, candidateName: string, candidateEmail: string, offerId?: number): Observable<any> {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('candidateName', candidateName);
+        form.append('candidateEmail', candidateEmail);
+        if (offerId != null) form.append('offerId', String(offerId));
+        return this.http.post<any>(`${this.CV_BASE}/upload`, form).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
+    }
+
+    updateStage(id: number, stage: string, notes?: string): Observable<any> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.get<Candidate>(`${this.CANDIDATES_BASE}/${id}`).pipe(catchError(this.handleError));
+        return this.http.patch<any>(`${this.CV_BASE}/applications/${id}/stage`, { stage, notes }).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
-    updateCandidateStatus(id: number, dto: CandidateUpdateDto): Observable<Candidate> {
+    scoreApplication(id: number, score: number, notes?: string): Observable<any> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.put<Candidate>(`${this.CANDIDATES_BASE}/${id}`, dto).pipe(catchError(this.handleError));
+        return this.http.patch<any>(`${this.CV_BASE}/applications/${id}/score`, { score, notes }).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
-    scheduleInterview(id: number, interviewDate: string, notes?: string): Observable<Candidate> {
-        return this.updateCandidateStatus(id, { status: 'INTERVIEW_SCHEDULED', interviewDate, notes });
-    }
-
-    shortlist(id: number, notes?: string): Observable<Candidate> {
-        return this.updateCandidateStatus(id, { status: 'SHORTLISTED', notes });
-    }
-
-    rejectApplication(id: number, notes?: string): Observable<Candidate> {
-        return this.updateCandidateStatus(id, { status: 'REJECTED', notes });
-    }
-
-    makeOffer(id: number, notes?: string): Observable<Candidate> {
-        return this.updateCandidateStatus(id, { status: 'OFFERED', notes });
-    }
-
-    deleteCandidate(id: number): Observable<void> {
+    deleteApplication(id: number): Observable<void> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.delete<void>(`${this.CANDIDATES_BASE}/${id}`).pipe(catchError(this.handleError));
-    }
-
-    downloadCv(id: number): Observable<ArrayBuffer> {
-        if (!id) return throwError(() => new Error('id is required'));
-        return this.http.get(`${this.CANDIDATES_BASE}/${id}/cv`, { responseType: 'arraybuffer' }).pipe(catchError(this.handleError));
-    }
-
-    // ── Stats ────────────────────────────────────────────────────────────────
-
-    getStats(): Observable<RecruitmentStats> {
-        return this.http.get<RecruitmentStats>(`${this.CANDIDATES_BASE}/stats`).pipe(catchError(this.handleError));
+        return this.http.delete<void>(`${this.CV_BASE}/applications/${id}`).pipe(catchError(this.handleError));
     }
 
     private handleError(err: any): Observable<never> {

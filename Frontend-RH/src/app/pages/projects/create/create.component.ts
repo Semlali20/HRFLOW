@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
 import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 import { StagiaireCreateDto } from 'src/app/core/models/hr.models';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-create',
@@ -43,7 +44,9 @@ export class CreateComponent implements OnInit {
   constructor(
     private router: Router,
     private collaborateurService: CollaborateurService,
-    private stagiaireService: StagiaireService
+    private stagiaireService: StagiaireService,
+    private confirmSvc: ConfirmService,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit() {
@@ -115,8 +118,10 @@ export class CreateComponent implements OnInit {
       attestationStage: this.documents.find(d => d.id === 'attestationStage')?.isValid || false
     };
     this.stagiaireService.create(jsonData as StagiaireCreateDto).subscribe({
-      next: () => Swal.fire({ title: 'Success!', text: 'Stagiaire created successfully', icon: 'success', confirmButtonText: 'OK' })
-        .then(result => { if (result.value) this.router.navigate(['/stagiaires/list']); }),
+      next: async () => {
+        await this.confirmSvc.alert(this.translate.instant('INTERNS.CREATE_SUCCESS'), this.translate.instant('INTERNS.SUCCESS_TITLE'), 'success');
+        this.router.navigate(['/stagiaires/list']);
+      },
       error: err => console.error('Error creating stagiaire', err)
     });
   }

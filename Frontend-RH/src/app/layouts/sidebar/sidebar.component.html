@@ -6,30 +6,30 @@
   <div class="wsm-header">
     <div class="wsm-search-row">
       <i class="bx bx-search wsm-search-icon"></i>
-      <input #searchInput type="text" [(ngModel)]="searchQuery" placeholder="Search or jump to..." class="wsm-input" autofocus />
+      <input #searchInput type="text" [(ngModel)]="searchQuery" [placeholder]="'SIDEBAR.SEARCH_MODAL_PLACEHOLDER' | translate" class="wsm-input" autofocus />
     </div>
     <button class="wsm-close-btn" (click)="showSearchModal=false"><i class="bx bx-x"></i></button>
   </div>
   <div class="wsm-divider"></div>
   <div class="wsm-chips-row">
-    <button class="wsm-chip"><i class="bx bxs-user"></i> Employee</button>
-    <button class="wsm-chip"><i class="bx bxs-folder"></i> Project</button>
-    <button class="wsm-chip"><i class="bx bxs-time"></i> Attendance</button>
-    <button class="wsm-chip"><i class="bx bxs-calendar-check"></i> Day-Off Request</button>
-    <button class="wsm-chip"><i class="bx bxs-wallet"></i> Salary</button>
+    <button class="wsm-chip"><i class="bx bxs-user"></i> {{ 'SIDEBAR.CHIP_EMPLOYEE' | translate }}</button>
+    <button class="wsm-chip"><i class="bx bxs-folder"></i> {{ 'SIDEBAR.CHIP_PROJECT' | translate }}</button>
+    <button class="wsm-chip"><i class="bx bxs-time"></i> {{ 'SIDEBAR.CHIP_ATTENDANCE' | translate }}</button>
+    <button class="wsm-chip"><i class="bx bxs-calendar-check"></i> {{ 'SIDEBAR.CHIP_DAYOFF' | translate }}</button>
+    <button class="wsm-chip"><i class="bx bxs-wallet"></i> {{ 'SIDEBAR.CHIP_SALARY' | translate }}</button>
   </div>
   <div class="wsm-chips-row wsm-chips-row--2">
-    <button class="wsm-chip"><i class="bx bxs-door-open"></i> Leave Management</button>
-    <button class="wsm-chip"><i class="bx bxs-user-plus"></i> Recruitment & Hiring</button>
+    <button class="wsm-chip"><i class="bx bxs-door-open"></i> {{ 'SIDEBAR.CHIP_LEAVE' | translate }}</button>
+    <button class="wsm-chip"><i class="bx bxs-user-plus"></i> {{ 'SIDEBAR.CHIP_RECRUITMENT' | translate }}</button>
   </div>
-  <div class="wsm-section-title">Quick Actions</div>
+  <div class="wsm-section-title">{{ 'SIDEBAR.QUICK_ACTIONS' | translate }}</div>
   <ul class="wsm-action-list">
-    <li><a routerLink="/settings" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bxs-cog"></i> Open Setting</a></li>
-    <li><a routerLink="/collaborateur" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> Create New Employee</a></li>
-    <li><a routerLink="/projects-hr" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> Create Projects</a></li>
-    <li><a routerLink="/recruitment" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> Create Hiring</a></li>
+    <li><a routerLink="/settings" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bxs-cog"></i> {{ 'SIDEBAR.ACTION_SETTINGS' | translate }}</a></li>
+    <li><a routerLink="/collaborateur" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> {{ 'SIDEBAR.ACTION_NEW_EMPLOYEE' | translate }}</a></li>
+    <li><a routerLink="/projects-hr" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> {{ 'SIDEBAR.ACTION_NEW_PROJECT' | translate }}</a></li>
+    <li><a routerLink="/recruitment" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> {{ 'SIDEBAR.ACTION_NEW_HIRING' | translate }}</a></li>
   </ul>
-  <div class="wsm-section-title">Recent Searches</div>
+  <div class="wsm-section-title">{{ 'SIDEBAR.RECENT_SEARCHES' | translate }}</div>
   <ul class="wsm-recent-list">
     <li class="wsm-recent-item"><i class="bx bx-time-five"></i> Marleen Queen</li>
     <li class="wsm-recent-item"><i class="bx bx-time-five"></i> Project on</li>
@@ -42,24 +42,29 @@
 <!-- ── Profile Menu popup ── -->
 <div class="wiko-profile-menu" *ngIf="showProfileMenu">
   <div class="wpm-profile-row">
-    <div class="wpm-avatar">HR</div>
+    <div class="wpm-avatar">{{ currentUser.initials }}</div>
     <div class="wpm-info">
-      <div class="wpm-name">Role Name</div>
-      <div class="wpm-role">Roles</div>
+      <div class="wpm-name">{{ currentUser.name }}</div>
+      <div class="wpm-role">{{ currentUser.role }}</div>
     </div>
   </div>
   <div class="wpm-divider"></div>
   <a class="wpm-item" routerLink="/help" (click)="showProfileMenu=false">
-    <i class="bx bx-info-circle"></i> Help & Support
+    <i class="bx bx-info-circle"></i> {{ 'SIDEBAR.PROFILE_HELP' | translate }}
   </a>
   <a class="wpm-item" routerLink="/settings" (click)="showProfileMenu=false">
-    <i class="bx bxs-cog"></i> Setting
+    <i class="bx bxs-cog"></i> {{ 'SIDEBAR.PROFILE_SETTING' | translate }}
   </a>
   <div class="wpm-divider"></div>
   <a class="wpm-item wpm-item--logout" (click)="doLogout()">
-    <i class="bx bx-log-out-circle"></i> Logout
+    <i class="bx bx-log-out-circle"></i> {{ 'SIDEBAR.PROFILE_LOGOUT' | translate }}
   </a>
 </div>
+
+<!-- ── Collapse/Expand floating tab ── -->
+<button class="wiko-sb-toggle-tab" [class.wiko-sb-toggle-tab--collapsed]="isCollapsed" (click)="toggleCollapse()">
+  <i class="bx" [ngClass]="isCollapsed ? 'bx-chevron-right' : 'bx-chevron-left'"></i>
+</button>
 
 <!-- ── Sidebar Shell ── -->
 <div class="vertical-menu wiko-sidebar-host">
@@ -73,118 +78,192 @@
             fill="#2FA8A0" stroke="#2FA8A0" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
       </div>
-      <span class="wiko-sb-brand">Wiko</span>
+      <span class="wiko-sb-brand">HRFLOW</span>
     </div>
-    <button class="wiko-sb-collapse-btn">
-      <i class="bx bx-chevron-left"></i>
-    </button>
   </div>
 
   <!-- Search Bar -->
   <div class="wiko-sb-search-wrap">
     <div class="wiko-sb-search-box" (click)="openSearch()">
       <i class="bx bx-search wiko-sb-search-icon"></i>
-      <span class="wiko-sb-search-placeholder">Quick search...</span>
+      <span class="wiko-sb-search-placeholder">{{ 'SIDEBAR.SEARCH_PLACEHOLDER' | translate }}</span>
       <span class="wiko-sb-kbd">⌘1</span>
     </div>
   </div>
 
   <!-- Scrollable Menu -->
-  <ngx-simplebar class="wiko-sb-scroll" #componentRef>
+  <div class="wiko-sb-scroll" #componentRef>
 
     <!-- MAIN -->
-    <div class="wiko-sb-section-label">MAIN</div>
+    <div class="wiko-sb-section-label">{{ 'SIDEBAR.SECTION_MAIN' | translate }}</div>
     <ul class="wiko-sb-nav-list">
       <li>
         <a routerLink="/dashboard" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
           <i class="bx bxs-dashboard"></i>
-          <span>Dashboard</span>
+          <span>{{ 'SIDEBAR.DASHBOARD' | translate }}</span>
           <span class="wiko-sb-kbd-badge">⌘2</span>
         </a>
       </li>
       <li>
         <a routerLink="/chat" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
           <i class="bx bxs-bell"></i>
-          <span>Notifications</span>
-          <span class="wiko-sb-count-badge">99+</span>
+          <span>{{ 'SIDEBAR.NOTIFICATIONS' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/dayoff" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
           <i class="bx bxs-calendar-check"></i>
-          <span>Day-off Request</span>
-          <span class="wiko-sb-count-badge">12</span>
+          <span>{{ 'SIDEBAR.DAYOFF_REQUEST' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/planning" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
           <i class="bx bxs-calendar-alt"></i>
-          <span>Planning</span>
+          <span>{{ 'SIDEBAR.PLANNING' | translate }}</span>
         </a>
       </li>
     </ul>
 
     <!-- EMPLOYEE MANAGER -->
     <div class="wiko-sb-section-label wiko-sb-collapsible" (click)="toggleEmployeeManager()">
-      <span>Employee Manager</span>
+      <span>{{ 'SIDEBAR.EMPLOYEE_MANAGER' | translate }}</span>
       <i class="bx" [ngClass]="employeeManagerOpen ? 'bx-chevron-up' : 'bx-chevron-down'"></i>
     </div>
-    <ul class="wiko-sb-nav-list" *ngIf="employeeManagerOpen">
+    <ul class="wiko-sb-nav-list" *ngIf="employeeManagerOpen || isCollapsed">
       <li>
         <a routerLink="/collaborateur" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-group"></i><span>Employees</span>
+          <i class="bx bxs-group"></i><span>{{ 'SIDEBAR.EMPLOYEES' | translate }}</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/stagiaires" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-graduation"></i><span>{{ 'SIDEBAR.INTERNS' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/projects-hr" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-briefcase"></i><span>Projects</span>
+          <i class="bx bxs-briefcase"></i><span>{{ 'SIDEBAR.PROJECTS' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/attendance" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-time"></i><span>Attendances</span>
+          <i class="bx bxs-time"></i><span>{{ 'SIDEBAR.ATTENDANCES' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/leave" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-door-open"></i><span>Leave Management</span>
+          <i class="bx bxs-door-open"></i><span>{{ 'SIDEBAR.LEAVE_REQUESTS' | translate }}</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/leave/balance" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-calendar-heart"></i><span>{{ 'SIDEBAR.LEAVE_BALANCES' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/recruitment" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-user-plus"></i><span>Recruitment & Hiring</span>
+          <i class="bx bxs-user-plus"></i><span>{{ 'SIDEBAR.RECRUITMENT' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/salary" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-wallet"></i><span>Salary</span>
+          <i class="bx bxs-wallet"></i><span>{{ 'SIDEBAR.SALARY' | translate }}</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/documents" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-folder-open"></i><span>{{ 'SIDEBAR.DOCUMENTS' | translate }}</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/meetings" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-conversation"></i><span>{{ 'SIDEBAR.MEETINGS' | translate }}</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/org" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-building-house"></i><span>{{ 'SIDEBAR.DEPARTMENTS' | translate }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- ORGANISATION -->
+    <div class="wiko-sb-section-label wiko-sb-collapsible" (click)="orgOpen = !orgOpen">
+      <span>{{ 'SIDEBAR.ORGANISATION' | translate }}</span>
+      <i class="bx" [ngClass]="orgOpen ? 'bx-chevron-up' : 'bx-chevron-down'"></i>
+    </div>
+    <ul class="wiko-sb-nav-list" *ngIf="orgOpen || isCollapsed">
+      <li>
+        <a routerLink="/org" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-building-house"></i><span>{{ 'SIDEBAR.DEPARTMENTS' | translate }}</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/public-holidays" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-party"></i><span>{{ 'SIDEBAR.PUBLIC_HOLIDAYS' | translate }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- ANALYTICS -->
+    <div class="wiko-sb-section-label wiko-sb-collapsible" (click)="analyticsOpen = !analyticsOpen">
+      <span>{{ 'SIDEBAR.ANALYTICS' | translate }}</span>
+      <i class="bx" [ngClass]="analyticsOpen ? 'bx-chevron-up' : 'bx-chevron-down'"></i>
+    </div>
+    <ul class="wiko-sb-nav-list" *ngIf="analyticsOpen || isCollapsed">
+      <li>
+        <a routerLink="/statistics" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-chart"></i><span>Statistics</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/audit" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bx-history"></i><span>{{ 'SIDEBAR.AUDIT_LOG' | translate }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- ADMINISTRATION -->
+    <div class="wiko-sb-section-label wiko-sb-collapsible" (click)="adminOpen = !adminOpen">
+      <span>{{ 'SIDEBAR.ADMINISTRATION' | translate }}</span>
+      <i class="bx" [ngClass]="adminOpen ? 'bx-chevron-up' : 'bx-chevron-down'"></i>
+    </div>
+    <ul class="wiko-sb-nav-list" *ngIf="adminOpen || isCollapsed">
+      <li>
+        <a routerLink="/admin/users" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-user-badge"></i><span>{{ 'SIDEBAR.USER_MANAGEMENT' | translate }}</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/admin/roles" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+          <i class="bx bxs-shield"></i><span>{{ 'SIDEBAR.ROLES_PERMISSIONS' | translate }}</span>
         </a>
       </li>
     </ul>
 
     <!-- GENERAL -->
-    <div class="wiko-sb-section-label">GENERAL</div>
+    <div class="wiko-sb-section-label">{{ 'SIDEBAR.SECTION_GENERAL' | translate }}</div>
     <ul class="wiko-sb-nav-list">
       <li>
         <a routerLink="/settings" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-cog"></i><span>Settings</span>
+          <i class="bx bxs-cog"></i><span>{{ 'SIDEBAR.SETTINGS' | translate }}</span>
         </a>
       </li>
       <li>
         <a routerLink="/filemanager" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-          <i class="bx bxs-folder"></i><span>File Manager</span>
+          <i class="bx bxs-folder"></i><span>{{ 'SIDEBAR.FILE_MANAGER' | translate }}</span>
         </a>
       </li>
     </ul>
 
-  </ngx-simplebar>
+  </div>
 
   <!-- User Profile Footer -->
   <div class="wiko-sb-user-footer" (click)="toggleProfileMenu()">
-    <div class="wiko-sb-user-avatar">MK</div>
+    <div class="wiko-sb-user-avatar">{{ currentUser.initials }}</div>
     <div class="wiko-sb-user-info">
-      <div class="wiko-sb-user-name">Maria Karl</div>
-      <div class="wiko-sb-user-email">mariakrl&#64;example.com</div>
+      <div class="wiko-sb-user-name">{{ currentUser.name }}</div>
+      <div class="wiko-sb-user-email">{{ currentUser.email }}</div>
     </div>
     <button class="wiko-sb-user-chevron">
       <i class="bx" [ngClass]="showProfileMenu ? 'bx-chevron-down' : 'bx-chevron-up'"></i>

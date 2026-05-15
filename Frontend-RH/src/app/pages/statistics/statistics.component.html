@@ -1,0 +1,263 @@
+<div class="stat-page">
+
+  <!-- ── Header + Clock row ─────────────────────────────────────────────── -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+    <div class="stat-header" style="flex:1;margin-bottom:0;">
+      <div>
+        <h1 class="stat-title">{{ 'STATISTICS.TITLE' | translate }}</h1>
+        <p class="stat-sub">{{ 'STATISTICS.SUBTITLE' | translate }}</p>
+      </div>
+    </div>
+    <app-wall-clock></app-wall-clock>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────────── -->
+  <div class="stat-loading" *ngIf="isLoading">
+    <div class="stat-spinner"></div>
+    <span>{{ 'STATISTICS.LOADING' | translate }}</span>
+  </div>
+
+  <!-- ── Error ─────────────────────────────────────────────────────────── -->
+  <div class="stat-error" *ngIf="!isLoading && hasError">
+    <i class="bx bx-error-circle"></i>
+    {{ 'STATISTICS.ERROR' | translate }}
+  </div>
+
+  <ng-container *ngIf="!isLoading && !hasError">
+
+    <!-- ── KPI Cards ────────────────────────────────────────────────────── -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-card--teal">
+        <div class="kpi-icon"><i class="bx bxs-group"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-label">{{ 'STATISTICS.KPI_EMPLOYEES' | translate }}</div>
+          <div class="kpi-value">{{ totalEmployees }}</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--purple">
+        <div class="kpi-icon"><i class="bx bxs-graduation"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-label">{{ 'STATISTICS.KPI_INTERNS' | translate }}</div>
+          <div class="kpi-value">{{ totalInterns }}</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--amber">
+        <div class="kpi-icon"><i class="bx bx-calendar-x"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-label">{{ 'STATISTICS.KPI_PENDING_LEAVES' | translate }}</div>
+          <div class="kpi-value">{{ pendingLeaves }}</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--green">
+        <div class="kpi-icon"><i class="bx bxs-wallet"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-label">{{ 'STATISTICS.KPI_PAYROLL' | translate }}</div>
+          <div class="kpi-value">{{ totalPayroll | number:'1.0-0' }} MAD</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--blue">
+        <div class="kpi-icon"><i class="bx bxs-briefcase-alt-2"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-label">{{ 'STATISTICS.KPI_OPEN_OFFERS' | translate }}</div>
+          <div class="kpi-value">{{ openOffers }}</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--pink">
+        <div class="kpi-icon"><i class="bx bxs-user-plus"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-label">{{ 'STATISTICS.KPI_NEW_APPS' | translate }}</div>
+          <div class="kpi-value">{{ newApplications }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section: Employés ─────────────────────────────────────────────── -->
+    <div class="stat-section">
+      <div class="stat-section-title">
+        <i class="bx bxs-group"></i>
+        {{ 'STATISTICS.SECTION_EMPLOYEES' | translate }}
+      </div>
+      <div class="charts-grid charts-grid--2">
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_GENDER' | translate }}</div>
+          <apx-chart
+            [series]="genderChart.series"
+            [chart]="genderChart.chart"
+            [labels]="genderChart.labels"
+            [colors]="genderChart.colors"
+            [legend]="genderChart.legend"
+            [dataLabels]="genderChart.dataLabels"
+            [plotOptions]="genderChart.plotOptions"
+            [tooltip]="genderChart.tooltip">
+          </apx-chart>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_CONTRACT' | translate }}</div>
+          <apx-chart
+            [series]="contractChart.series"
+            [chart]="contractChart.chart"
+            [labels]="contractChart.labels"
+            [colors]="contractChart.colors"
+            [legend]="contractChart.legend"
+            [dataLabels]="contractChart.dataLabels"
+            [plotOptions]="contractChart.plotOptions"
+            [tooltip]="contractChart.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+      <div class="charts-grid charts-grid--2">
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_DEPARTMENT' | translate }}</div>
+          <apx-chart
+            [series]="departmentChart.series"
+            [chart]="departmentChart.chart"
+            [xaxis]="departmentChart.xaxis"
+            [yaxis]="departmentChart.yaxis"
+            [colors]="departmentChart.colors"
+            [dataLabels]="departmentChart.dataLabels"
+            [plotOptions]="departmentChart.plotOptions"
+            [grid]="departmentChart.grid"
+            [tooltip]="departmentChart.tooltip">
+          </apx-chart>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_SENIORITY' | translate }}</div>
+          <apx-chart
+            [series]="seniorityChart.series"
+            [chart]="seniorityChart.chart"
+            [xaxis]="seniorityChart.xaxis"
+            [yaxis]="seniorityChart.yaxis"
+            [colors]="seniorityChart.colors"
+            [dataLabels]="seniorityChart.dataLabels"
+            [plotOptions]="seniorityChart.plotOptions"
+            [grid]="seniorityChart.grid"
+            [tooltip]="seniorityChart.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section: Congés ──────────────────────────────────────────────── -->
+    <div class="stat-section">
+      <div class="stat-section-title">
+        <i class="bx bxs-door-open"></i>
+        {{ 'STATISTICS.SECTION_LEAVES' | translate }}
+      </div>
+      <div class="charts-grid charts-grid--2">
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_LEAVE_STATUS' | translate }}</div>
+          <apx-chart
+            [series]="leaveStatusChart.series"
+            [chart]="leaveStatusChart.chart"
+            [labels]="leaveStatusChart.labels"
+            [colors]="leaveStatusChart.colors"
+            [legend]="leaveStatusChart.legend"
+            [dataLabels]="leaveStatusChart.dataLabels"
+            [plotOptions]="leaveStatusChart.plotOptions"
+            [tooltip]="leaveStatusChart.tooltip">
+          </apx-chart>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_LEAVE_TYPE' | translate }}</div>
+          <apx-chart
+            [series]="leaveTypeChart.series"
+            [chart]="leaveTypeChart.chart"
+            [xaxis]="leaveTypeChart.xaxis"
+            [yaxis]="leaveTypeChart.yaxis"
+            [colors]="leaveTypeChart.colors"
+            [dataLabels]="leaveTypeChart.dataLabels"
+            [plotOptions]="leaveTypeChart.plotOptions"
+            [grid]="leaveTypeChart.grid"
+            [tooltip]="leaveTypeChart.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section: Salaires ─────────────────────────────────────────────── -->
+    <div class="stat-section">
+      <div class="stat-section-title">
+        <i class="bx bxs-wallet"></i>
+        {{ 'STATISTICS.SECTION_SALARY' | translate }}
+      </div>
+      <div class="charts-grid charts-grid--1">
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_SALARY_STATUS' | translate }}</div>
+          <apx-chart
+            [series]="salaryStatusChart.series"
+            [chart]="salaryStatusChart.chart"
+            [xaxis]="salaryStatusChart.xaxis"
+            [yaxis]="salaryStatusChart.yaxis"
+            [colors]="salaryStatusChart.colors"
+            [dataLabels]="salaryStatusChart.dataLabels"
+            [plotOptions]="salaryStatusChart.plotOptions"
+            [grid]="salaryStatusChart.grid"
+            [tooltip]="salaryStatusChart.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section: Stagiaires ───────────────────────────────────────────── -->
+    <div class="stat-section">
+      <div class="stat-section-title">
+        <i class="bx bxs-graduation"></i>
+        {{ 'STATISTICS.SECTION_INTERNS' | translate }}
+      </div>
+      <div class="charts-grid charts-grid--2">
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_INTERN_TYPE' | translate }}</div>
+          <apx-chart
+            [series]="internTypeChart.series"
+            [chart]="internTypeChart.chart"
+            [labels]="internTypeChart.labels"
+            [colors]="internTypeChart.colors"
+            [legend]="internTypeChart.legend"
+            [dataLabels]="internTypeChart.dataLabels"
+            [plotOptions]="internTypeChart.plotOptions"
+            [tooltip]="internTypeChart.tooltip">
+          </apx-chart>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_INTERN_STATUS' | translate }}</div>
+          <apx-chart
+            [series]="internStatusChart.series"
+            [chart]="internStatusChart.chart"
+            [labels]="internStatusChart.labels"
+            [colors]="internStatusChart.colors"
+            [legend]="internStatusChart.legend"
+            [dataLabels]="internStatusChart.dataLabels"
+            [plotOptions]="internStatusChart.plotOptions"
+            [tooltip]="internStatusChart.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section: Recrutement ──────────────────────────────────────────── -->
+    <div class="stat-section">
+      <div class="stat-section-title">
+        <i class="bx bxs-user-plus"></i>
+        {{ 'STATISTICS.SECTION_RECRUITMENT' | translate }}
+      </div>
+      <div class="charts-grid charts-grid--1">
+        <div class="chart-card">
+          <div class="chart-title">{{ 'STATISTICS.CHART_RECRUITMENT' | translate }}</div>
+          <apx-chart
+            [series]="recruitmentChart.series"
+            [chart]="recruitmentChart.chart"
+            [xaxis]="recruitmentChart.xaxis"
+            [yaxis]="recruitmentChart.yaxis"
+            [colors]="recruitmentChart.colors"
+            [dataLabels]="recruitmentChart.dataLabels"
+            [plotOptions]="recruitmentChart.plotOptions"
+            [grid]="recruitmentChart.grid"
+            [tooltip]="recruitmentChart.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { WallClockComponent } from './wall-clock/wall-clock.component';
 
 import { UIModule } from './ui/ui.module';
 import { FullCalendarModule } from '@fullcalendar/angular';  // step 1
@@ -14,6 +15,7 @@ import { ModalModule } from 'ngx-bootstrap/modal';
 
   ],
   imports: [
+    WallClockComponent,
     CommonModule,
     FullCalendarModule, // step 3
     UIModule,
@@ -23,6 +25,7 @@ import { ModalModule } from 'ngx-bootstrap/modal';
   ],
   exports: [
    CalendarComponent,
+   WallClockComponent,
     // step 4
   ]
 })

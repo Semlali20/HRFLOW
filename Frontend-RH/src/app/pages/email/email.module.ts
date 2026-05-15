@@ -15,6 +15,7 @@ import { UIModule } from '../../shared/ui/ui.module';
 import { BasicComponent } from './basic/basic.component';
 import { BillingComponent } from './billing/billing.component';
 import { AlertComponent } from './alert/alert.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [InboxComponent, EmailreadComponent, BasicComponent, BillingComponent, AlertComponent],
@@ -27,6 +28,7 @@ import { AlertComponent } from './alert/alert.component';
     PaginationModule.forRoot(),
     CKEditorModule,
     FormsModule,
+    TranslateModule,
   ]
 })
 export class EmailModule { }

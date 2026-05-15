@@ -36,6 +36,9 @@ $skote-theme: mat.define-light-theme((
 /* Importing Bootstrap SCSS file. */
 // @import '~bootstrap/scss/bootstrap';
 
+/* InnovX HR global design system */
+@import 'styles/design-system';
+
 /* You can add global styles to this file, and also import other style files */
 .modal-holder {
   animation-name: example;
@@ -280,6 +283,25 @@ h1, h2, h3, h4, h5, h6,
   font-family: var(--hr-font-body) !important;
   font-weight: 600 !important;
   border-radius: var(--hr-radius-sm) !important;
+}
+
+/* ── Page header box (shared across all pages) ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(22, 34, 51, .07);
+  border-left: 4px solid #2FA8A0;
+}
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1A2B3C;
+  margin: 0;
+  font-family: 'Inter', 'Archivo', sans-serif;
 }
 
 /* Page title */

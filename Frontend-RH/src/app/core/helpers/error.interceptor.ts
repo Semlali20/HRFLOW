@@ -12,10 +12,6 @@ export class ErrorInterceptor implements HttpInterceptor {
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         return next.handle(request).pipe(
             catchError((err: HttpErrorResponse) => {
-                if (err.status === 401 && !request.url.includes('/auth/')) {
-                    // Token refresh is handled by TokenInterceptor; logout only if not refreshing
-                    this.authenticationService.logout();
-                }
                 if (err.status === 403) {
                     console.warn('Access forbidden:', request.url);
                 }

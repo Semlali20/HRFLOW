@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, NgApexchartsModule, TranslateModule, WallClockComponent],
   styles: [`
     .page { padding:0 24px 40px; animation:fadeIn .4s ease both; }
     @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -20,7 +22,12 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
     .btn-solid{background:#1B7872;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
     .btn-ghost{background:#fff;color:#2FA8A0;border:1.5px solid #2FA8A0;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
 
-    .top-row{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:20px;}
+    .top-row{display:grid;grid-template-columns:1fr 340px 290px;gap:18px;margin-bottom:20px;}
+    .right-col{display:flex;flex-direction:column;gap:14px;}
+    .add-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;}
+    .add-btn:hover{background:#155f5a;}
+    .add-btn--ghost{background:#fff;color:#1B7872;border:2px solid #1B7872;}
+    .add-btn--ghost:hover{background:#f0fdf9;}
 
     .analytics-card{background:#fff;border-radius:12px;padding:22px;box-shadow:0 4px 20px rgba(22,34,51,.08);}
     .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
@@ -135,10 +142,10 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
   <!-- ══ Attendance Detail Panel ══ -->
   <div class="rp" *ngIf="showDetail && selected">
     <div class="rp-header">
-      <span class="rp-title">Attendance Detail</span>
+      <span class="rp-title">{{ 'ATTENDANCE.DETAIL_TITLE' | translate }}</span>
       <div class="rp-head-right">
         <button class="edit-att-btn" (click)="openEdit()">
-          <i class="bx bx-edit-alt"></i> Edit Attendance
+          <i class="bx bx-edit-alt"></i> {{ 'ATTENDANCE.BTN_EDIT' | translate }}
         </button>
         <button class="rp-close" (click)="closeAll()"><i class="bx bx-x"></i></button>
       </div>
@@ -147,54 +154,54 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
 
       <!-- Employee info block -->
       <div class="dp-emp-block">
-        <div class="dp-photo">Image here</div>
+        <div class="dp-photo">{{ 'ATTENDANCE.IMAGE_PLACEHOLDER' | translate }}</div>
         <div style="flex:1;">
-          <div class="dp-emp-info-title">Employee Information</div>
+          <div class="dp-emp-info-title">{{ 'ATTENDANCE.SECTION_EMPLOYEE_INFO' | translate }}</div>
           <div class="dp-field">
-            <span class="dp-field-lbl"><i class="bx bx-id-card"></i> Employee ID</span>
+            <span class="dp-field-lbl"><i class="bx bx-id-card"></i> {{ 'ATTENDANCE.EMPLOYEE_ID' | translate }}</span>
             <span class="dp-field-val">12345678901234</span>
           </div>
           <div class="dp-field">
-            <span class="dp-field-lbl"><i class="bx bx-user"></i> Full Name</span>
+            <span class="dp-field-lbl"><i class="bx bx-user"></i> {{ 'ATTENDANCE.FULL_NAME' | translate }}</span>
             <span class="dp-field-val">{{ selected.name }}</span>
           </div>
           <div class="dp-field">
-            <span class="dp-field-lbl"><i class="bx bx-briefcase"></i> Role</span>
-            <span class="dp-field-val">Web Developer</span>
+            <span class="dp-field-lbl"><i class="bx bx-briefcase"></i> {{ 'ATTENDANCE.ROLE' | translate }}</span>
+            <span class="dp-field-val">{{ 'ATTENDANCE.WEB_DEVELOPER' | translate }}</span>
           </div>
         </div>
       </div>
 
       <!-- Summary -->
-      <div class="dp-section-title">Attendance Summary</div>
+      <div class="dp-section-title">{{ 'ATTENDANCE.SECTION_SUMMARY' | translate }}</div>
       <div class="dp-summary-grid">
         <div class="dp-summary-box">
           <div class="dp-summary-icon"><i class="bx bx-refresh"></i></div>
-          <div class="dp-summary-lbl">Total Attendance</div>
+          <div class="dp-summary-lbl">{{ 'ATTENDANCE.TOTAL_ATTENDANCE' | translate }}</div>
           <div class="dp-summary-val">289 Days</div>
         </div>
         <div class="dp-summary-box">
           <div class="dp-summary-icon"><i class="bx bx-log-in"></i></div>
-          <div class="dp-summary-lbl">Avarage Check In</div>
+          <div class="dp-summary-lbl">{{ 'ATTENDANCE.AVG_CHECK_IN' | translate }}</div>
           <div class="dp-summary-val">08:11</div>
         </div>
         <div class="dp-summary-box">
           <div class="dp-summary-icon"><i class="bx bx-log-out"></i></div>
-          <div class="dp-summary-lbl">Avarage Check Out</div>
+          <div class="dp-summary-lbl">{{ 'ATTENDANCE.AVG_CHECK_OUT' | translate }}</div>
           <div class="dp-summary-val">17:30</div>
         </div>
       </div>
 
       <!-- History -->
-      <div class="dp-section-title">Attendance History</div>
+      <div class="dp-section-title">{{ 'ATTENDANCE.SECTION_HISTORY' | translate }}</div>
       <table class="dp-hist-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Check In</th>
-            <th>Check Out</th>
-            <th>Total Hour</th>
-            <th>Action</th>
+            <th>{{ 'ATTENDANCE.DATE' | translate }}</th>
+            <th>{{ 'ATTENDANCE.CHECK_IN' | translate }}</th>
+            <th>{{ 'ATTENDANCE.CHECK_OUT' | translate }}</th>
+            <th>{{ 'ATTENDANCE.TOTAL_HOUR' | translate }}</th>
+            <th>{{ 'ATTENDANCE.ACTION' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -216,108 +223,103 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
   <!-- ══ Create / Edit Attendance Panel ══ -->
   <div class="rp" *ngIf="showCreate">
     <div class="rp-header">
-      <span class="rp-title">{{ isEditMode ? 'Edit Attendance' : 'Create Attendance' }}</span>
+      <span class="rp-title">{{ isEditMode ? ('ATTENDANCE.FORM_TITLE_EDIT' | translate) : ('ATTENDANCE.FORM_TITLE_CREATE' | translate) }}</span>
       <div class="rp-head-right">
         <button class="rp-close" (click)="closeAll()"><i class="bx bx-x"></i></button>
       </div>
     </div>
     <div class="rp-body" style="padding-bottom:0;">
 
-      <div class="cp-section-title">Attendance Information</div>
+      <div class="cp-section-title">{{ 'ATTENDANCE.SECTION_ATTENDANCE_INFO' | translate }}</div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Employee</div>
+        <div class="cp-field-lbl">{{ 'ATTENDANCE.EMPLOYEE_LABEL' | translate }}</div>
         <select class="cp-select" [(ngModel)]="form.employee">
-          <option value="">Select employee</option>
+          <option value="">{{ 'ATTENDANCE.SELECT_EMPLOYEE' | translate }}</option>
           <option *ngFor="let r of rows" [value]="r.name">{{ r.name }}</option>
         </select>
       </div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Date</div>
+        <div class="cp-field-lbl">{{ 'ATTENDANCE.DATE' | translate }}</div>
         <input class="cp-input" type="date" [(ngModel)]="form.date" />
       </div>
 
       <div class="cp-row">
         <div class="cp-field">
-          <div class="cp-field-lbl">Check In</div>
+          <div class="cp-field-lbl">{{ 'ATTENDANCE.CHECK_IN' | translate }}</div>
           <input class="cp-input" type="time" [(ngModel)]="form.checkIn" />
         </div>
         <div class="cp-field">
-          <div class="cp-field-lbl">Check Out</div>
+          <div class="cp-field-lbl">{{ 'ATTENDANCE.CHECK_OUT' | translate }}</div>
           <input class="cp-input" type="time" [(ngModel)]="form.checkOut" />
         </div>
       </div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Status</div>
+        <div class="cp-field-lbl">{{ 'ATTENDANCE.STATUS' | translate }}</div>
         <select class="cp-select" [(ngModel)]="form.status">
-          <option value="">Select status</option>
-          <option value="Attendance">Attendance</option>
-          <option value="Absence">Absence</option>
-          <option value="Day Off">Day Off</option>
-          <option value="Sick Leave">Sick Leave</option>
+          <option value="">{{ 'ATTENDANCE.SELECT_STATUS' | translate }}</option>
+          <option value="Attendance">{{ 'ATTENDANCE.STATUS_ATTENDANCE' | translate }}</option>
+          <option value="Absence">{{ 'ATTENDANCE.STATUS_ABSENCE' | translate }}</option>
+          <option value="Day Off">{{ 'ATTENDANCE.STATUS_DAYOFF' | translate }}</option>
+          <option value="Sick Leave">{{ 'ATTENDANCE.STATUS_SICK_LEAVE' | translate }}</option>
         </select>
       </div>
 
       <div class="cp-field">
-        <div class="cp-field-lbl">Note</div>
-        <input class="cp-input" type="text" placeholder="Optional note..." [(ngModel)]="form.note" />
+        <div class="cp-field-lbl">{{ 'ATTENDANCE.NOTE' | translate }}</div>
+        <input class="cp-input" type="text" [placeholder]="'ATTENDANCE.NOTE_PLACEHOLDER' | translate" [(ngModel)]="form.note" />
       </div>
 
     </div>
     <div class="cp-footer">
-      <button class="cp-cancel-btn" (click)="closeAll()">Cancel</button>
+      <button class="cp-cancel-btn" (click)="closeAll()">{{ 'ATTENDANCE.CANCEL' | translate }}</button>
       <button class="cp-submit-btn" (click)="submitForm()">
-        {{ isEditMode ? 'Save Changes' : 'Create Attendance' }}
+        {{ isEditMode ? ('ATTENDANCE.SAVE_CHANGES' | translate) : ('ATTENDANCE.BTN_CREATE' | translate) }}
       </button>
     </div>
   </div>
 
   <!-- ══════════ Page ══════════ -->
   <div class="page">
-    <div class="page-header">
-      <h4 class="page-title">Attendances</h4>
-      <div class="header-right">
-        <button class="btn-ghost" (click)="openCreateDayOff()"><i class="bx bx-calendar-check"></i> Create Day-Off</button>
-        <button class="btn-solid" (click)="openCreateSickLeave()"><i class="bx bx-plus"></i> Create Sick-Leave</button>
-        <div class="header-meta">
-          <span class="header-date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
-          <span class="header-lang"><i class="bx bx-flag"></i> English <i class="bx bx-chevron-down"></i></span>
-        </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="page-header" style="flex:1;margin-bottom:0;">
+        <h4 class="page-title">{{ 'ATTENDANCE.TITLE' | translate }}</h4>
       </div>
+      <app-wall-clock></app-wall-clock>
     </div>
 
     <div class="top-row">
       <!-- Analytics -->
       <div class="analytics-card">
         <div class="card-head">
-          <span class="card-title">Attendance Analytics</span>
-          <span class="period-badge">Today &#x2304;</span>
+          <span class="card-title">{{ 'ATTENDANCE.SECTION_ANALYTICS' | translate }}</span>
+          <span class="period-badge">{{ 'ATTENDANCE.PERIOD_TODAY' | translate }} &#x2304;</span>
         </div>
-        <div class="analytics-label">Total Employees</div>
+        <div class="analytics-label">{{ 'ATTENDANCE.TOTAL_EMPLOYEES' | translate }}</div>
         <div class="analytics-total">
           <span class="analytics-num">{{ totalEmployees }}</span>
         </div>
-        <div class="analytics-sub" style="margin-bottom:14px;">Registered employees</div>
-        <div class="insight-lbl">Insight</div>
+        <div class="analytics-sub" style="margin-bottom:14px;">{{ 'ATTENDANCE.REGISTERED_EMPLOYEES' | translate }}</div>
+        <div class="insight-lbl">{{ 'ATTENDANCE.INSIGHT' | translate }}</div>
         <div class="kpi-row">
           <div class="kpi-item">
-            <div class="kpi-lbl">Total Employees</div>
+            <div class="kpi-lbl">{{ 'ATTENDANCE.TOTAL_EMPLOYEES' | translate }}</div>
             <div class="kpi-val">{{ totalEmployees }}</div>
           </div>
           <div class="kpi-item">
-            <div class="kpi-lbl">Overtime Hours</div>
+            <div class="kpi-lbl">{{ 'ATTENDANCE.OVERTIME_HOURS' | translate }}</div>
             <div class="kpi-val">—</div>
             <span class="kpi-pct pct-blue">N/A</span>
           </div>
           <div class="kpi-item">
-            <div class="kpi-lbl">Absences</div>
+            <div class="kpi-lbl">{{ 'ATTENDANCE.ABSENCES' | translate }}</div>
             <div class="kpi-val">—</div>
             <span class="kpi-pct pct-amber">N/A</span>
           </div>
           <div class="kpi-item">
-            <div class="kpi-lbl">Check-Ins Today</div>
+            <div class="kpi-lbl">{{ 'ATTENDANCE.CHECKINS_TODAY' | translate }}</div>
             <div class="kpi-val">—</div>
             <span class="kpi-pct pct-red">N/A</span>
           </div>
@@ -331,10 +333,10 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <!-- Employee of Month -->
       <div class="emp-month-card">
         <div class="card-head">
-          <span class="card-title">Employee of the Month</span>
+          <span class="card-title">{{ 'ATTENDANCE.EMPLOYEE_OF_MONTH' | translate }}</span>
           <span class="period-badge">{{ today | date:'MMMM' }} &#x2304;</span>
         </div>
-        <div class="emp-month-label">Top performers this month</div>
+        <div class="emp-month-label">{{ 'ATTENDANCE.TOP_PERFORMERS' | translate }}</div>
         <div *ngFor="let e of topEmployees" class="emp-month-item">
           <div class="emp-avatar-box">{{ e.initials }}</div>
           <div>
@@ -344,19 +346,27 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
           <span class="emp-att-pct">{{ e.pct }}%</span>
         </div>
       </div>
+
+      <!-- Action column -->
+      <div class="right-col">
+        <button class="add-btn" (click)="openCreateSickLeave()">
+          <i class="bx bx-plus"></i> {{ 'ATTENDANCE.BTN_CREATE_SICK_LEAVE' | translate }}
+        </button>
+      </div>
+
     </div>
 
     <!-- Table -->
     <div class="table-card">
       <div class="tabs-bar">
-        <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ t }}</button>
-        <span class="tabs-right"><i class="bx bx-refresh"></i> {{ totalEmployees }} employees</span>
+        <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ tabLabelKey(t) | translate }}</button>
+        <span class="tabs-right"><i class="bx bx-refresh"></i> {{ totalEmployees }} {{ 'ATTENDANCE.EMPLOYEES_COUNT' | translate }}</span>
       </div>
 
       <!-- Loading -->
       <div style="padding:48px 0;text-align:center;color:#8FA3B8;font-size:14px;" *ngIf="loading">
         <div style="width:32px;height:32px;border:3px solid #E2E8F0;border-top-color:#2FA8A0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;"></div>
-        Loading employees…
+        {{ 'ATTENDANCE.LOADING_EMPLOYEES' | translate }}
       </div>
 
       <!-- Error -->
@@ -368,21 +378,21 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <!-- Empty -->
       <div style="padding:48px 0;text-align:center;color:#8FA3B8;font-size:14px;" *ngIf="!loading && !error && filteredRows.length === 0">
         <i class="bx bx-user-x" style="font-size:36px;display:block;margin-bottom:10px;"></i>
-        No records found.
+        {{ 'ATTENDANCE.NO_RECORDS' | translate }}
       </div>
 
       <div style="overflow-x:auto" *ngIf="!loading && !error && filteredRows.length > 0">
         <table>
           <thead>
             <tr>
-              <th>Employee ID</th>
-              <th>Employee Name</th>
-              <th>Department</th>
-              <th>Date</th>
-              <th>Check-In</th>
-              <th>Check-Out</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>{{ 'ATTENDANCE.EMPLOYEE_ID' | translate }}</th>
+              <th>{{ 'ATTENDANCE.EMPLOYEE_NAME' | translate }}</th>
+              <th>{{ 'ATTENDANCE.DEPARTMENT' | translate }}</th>
+              <th>{{ 'ATTENDANCE.DATE' | translate }}</th>
+              <th>{{ 'ATTENDANCE.CHECK_IN' | translate }}</th>
+              <th>{{ 'ATTENDANCE.CHECK_OUT' | translate }}</th>
+              <th>{{ 'ATTENDANCE.STATUS' | translate }}</th>
+              <th>{{ 'ATTENDANCE.ACTION' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -430,11 +440,27 @@ export class AttendanceComponent implements OnInit {
 
   chart: any = {};
 
-  constructor(private collaborateurService: CollaborateurService) {}
+  private readonly tabKeyMap: Record<string, string> = {
+    'All':        'ATTENDANCE.TAB_ALL',
+    'Attendance': 'ATTENDANCE.TAB_ATTENDANCE',
+    'Absence':    'ATTENDANCE.TAB_ABSENCE',
+    'Day-Off':    'ATTENDANCE.TAB_DAYOFF',
+    'Sick-Leave': 'ATTENDANCE.TAB_SICK_LEAVE',
+  };
+
+  constructor(private collaborateurService: CollaborateurService, private translate: TranslateService) {}
+
+  tabLabelKey(tab: string): string {
+    return this.tabKeyMap[tab] ?? tab;
+  }
 
   get filteredRows(): any[] {
     if (this.activeTab === 'All') return this.rows;
-    return this.rows.filter(r => r.status === this.activeTab);
+    return this.rows.filter(r => this.normalizeStatus(r.status) === this.normalizeStatus(this.activeTab));
+  }
+
+  private normalizeStatus(s: string): string {
+    return (s ?? '').toLowerCase().replace(/[\s-]/g, '');
   }
 
   openDetail(row: any) {
@@ -455,7 +481,7 @@ export class AttendanceComponent implements OnInit {
     this.showCreate = true;
     this.showDetail = false;
     this.isEditMode = false;
-    this.form = { ...this.emptyForm(), status: 'Day-Off' };
+    this.form = { ...this.emptyForm(), status: 'Day Off' };
   }
 
   openCreateSickLeave() {
@@ -472,11 +498,13 @@ export class AttendanceComponent implements OnInit {
     if (this.selected) {
       this.form = {
         employee: this.selected.name,
-        date: new Date().toISOString().substring(0, 10),
-        checkIn: this.selected.checkIn ?? '',
-        checkOut: this.selected.checkOut ?? '',
-        status: this.selected.status,
-        note: '',
+        date:     this.selected.date
+                    ? (() => { const d = new Date(this.selected.date); return isNaN(d.getTime()) ? new Date().toISOString().substring(0, 10) : d.toISOString().substring(0, 10); })()
+                    : new Date().toISOString().substring(0, 10),
+        checkIn:  (this.selected.checkIn  === '—' ? '' : this.selected.checkIn)  ?? '',
+        checkOut: (this.selected.checkOut === '—' ? '' : this.selected.checkOut) ?? '',
+        status:   this.selected.status,
+        note:     '',
       };
     }
   }
@@ -488,14 +516,50 @@ export class AttendanceComponent implements OnInit {
     this.isEditMode = false;
   }
 
-  submitForm() { this.closeAll(); }
+  submitForm() {
+    if (!this.form.employee || !this.form.date || !this.form.status) return;
+
+    if (this.isEditMode && this.selected) {
+      const idx = this.rows.indexOf(this.selected);
+      if (idx !== -1) {
+        this.rows[idx] = {
+          ...this.rows[idx],
+          date:     this.form.date,
+          checkIn:  this.form.checkIn  || '—',
+          checkOut: this.form.checkOut || '—',
+          status:   this.form.status,
+        };
+      }
+    } else {
+      const existing = this.rows.find(r => r.name === this.form.employee);
+      if (existing) {
+        existing.date     = this.form.date;
+        existing.checkIn  = this.form.checkIn  || '—';
+        existing.checkOut = this.form.checkOut || '—';
+        existing.status   = this.form.status;
+      } else {
+        this.rows.push({
+          id:         '—',
+          name:       this.form.employee,
+          date:       this.form.date,
+          checkIn:    this.form.checkIn  || '—',
+          checkOut:   this.form.checkOut || '—',
+          status:     this.form.status,
+          department: '—',
+        });
+      }
+    }
+
+    this.closeAll();
+  }
 
   chipClass(s: string) {
+    const n = this.normalizeStatus(s);
     return {
-      'chip-attend': s === 'Attendance',
-      'chip-absent': s === 'Absence',
-      'chip-dayoff': s === 'Day Off' || s === 'Day-Off',
-      'chip-sick':   s === 'Sick Leave' || s === 'Sick-Leave',
+      'chip-attend': n === 'attendance',
+      'chip-absent': n === 'absence',
+      'chip-dayoff': n === 'dayoff',
+      'chip-sick':   n === 'sickleave',
     };
   }
 
@@ -538,7 +602,7 @@ export class AttendanceComponent implements OnInit {
         this.loading = false;
       },
       error: err => {
-        this.error = err?.error?.message || 'Failed to load employees.';
+        this.error = err?.error?.message || this.translate.instant('ATTENDANCE.NO_RECORDS');
         this.loading = false;
       }
     });
@@ -548,7 +612,7 @@ export class AttendanceComponent implements OnInit {
     // Show employee count as a single reference data point — no timeseries without backend
     const pts = Array.from({ length: 12 }, (_, i) => total);
     this.chart = {
-      series: [{ name: 'Employees', data: pts }],
+      series: [{ name: this.translate.instant('ATTENDANCE.TOTAL_EMPLOYEES'), data: pts }],
       chart: { type: 'area', height: 100, toolbar: { show: false }, sparkline: { enabled: true }, fontFamily: 'Inter,sans-serif' },
       colors: ['#F59E0B'],
       stroke: { curve: 'smooth', width: 2 },

@@ -205,16 +205,18 @@
      ══════════════════════════════════════════ -->
 <div class="container-fluid emp-container">
 
-  <!-- ── Header ── -->
-  <div class="emp-header">
-    <h4 class="emp-header__title">Employee</h4>
-    <div class="emp-header__right">
-      <span class="emp-header__date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
-      <span class="emp-lang-badge"><i class="bx bx-flag"></i> English</span>
-      <button class="emp-add-btn" (click)="openCreate()">
-        <i class="bx bx-plus"></i> Add New Employee
-      </button>
+  <!-- ── Header + Clock row ── -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+    <div class="emp-header" style="flex:1;margin-bottom:0;">
+      <h4 class="emp-header__title">Employee</h4>
+      <div class="emp-header__right">
+        <span class="emp-lang-badge"><i class="bx bx-flag"></i> English</span>
+        <button class="emp-add-btn" (click)="openCreate()">
+          <i class="bx bx-plus"></i> Add New Employee
+        </button>
+      </div>
     </div>
+    <app-wall-clock></app-wall-clock>
   </div>
 
   <!-- ── Top row: Stats + Chart ── -->

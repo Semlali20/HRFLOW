@@ -7,10 +7,13 @@ import com.innovx.gestionrh.dto.response.ApiResponse;
 import com.innovx.gestionrh.dto.response.DocumentResponse;
 import com.innovx.gestionrh.dto.response.PagedResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -42,10 +45,38 @@ public class DocumentController {
                 .body(ApiResponse.ok(documentService.upload(file, request)));
     }
 
+    /** List ALL documents across all employees — used by the admin file manager. */
+    @GetMapping
+    @PreAuthorize("hasAuthority('DOCUMENT_READ')")
+    public ResponseEntity<PagedResponse<DocumentResponse>> findAll(
+            @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(PagedResponse.of(documentService.findAll(pageable)));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('DOCUMENT_READ')")
     public ResponseEntity<ApiResponse<DocumentResponse>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(documentService.findById(id)));
+    }
+
+    /** Stream the physical file back to the client (inline for viewing, attachment for download). */
+    @GetMapping("/{id}/download")
+    @PreAuthorize("hasAuthority('DOCUMENT_READ')")
+    public ResponseEntity<Resource> download(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean attachment) {
+        DocumentResponse meta = documentService.findById(id);
+        Resource resource     = documentService.download(id);
+        String disposition = (attachment ? "attachment" : "inline")
+                + "; filename=\"" + meta.getOriginalFilename() + "\"";
+        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        try {
+            if (meta.getMimeType() != null) mediaType = MediaType.parseMediaType(meta.getMimeType());
+        } catch (Exception ignored) {}
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .contentType(mediaType)
+                .body(resource);
     }
 
     @GetMapping("/employee/{employeeId}")

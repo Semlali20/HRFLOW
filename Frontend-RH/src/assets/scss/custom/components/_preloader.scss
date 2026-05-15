@@ -1,106 +1,111 @@
-// 
-// preloader.scss
-//
+// preloader.scss — redesigned
 
 #preloader {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--#{$prefix}secondary-bg);
+    inset: 0;
+    background: rgba(248, 250, 252, 0.97);
+    backdrop-filter: blur(6px);
     z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pl-in .25s ease both;
+
+    &.pl--fading {
+        animation: pl-out .4s ease forwards;
+        pointer-events: none;
+    }
 }
 
-#status {
-    width: 40px;
-    height: 40px;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    margin: -20px 0 0 -20px;
+.pl-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
 }
 
-.spinner-chase {
-    margin: 0 auto;
-    width: 40px;
-    height: 40px;
+/* Spinning ring */
+.pl-ring {
     position: relative;
-    animation: spinner-chase 2.5s infinite linear both;
+    width: 76px;
+    height: 76px;
+
+    svg {
+        width: 100%;
+        height: 100%;
+        animation: pl-rotate 1.4s linear infinite;
+    }
 }
 
-.chase-dot {
-    width: 100%;
-    height: 100%;
+.pl-arc {
+    animation: pl-dash 1.4s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.pl-ring-center {
     position: absolute;
-    left: 0;
-    top: 0; 
-    animation: chase-dot 2.0s infinite ease-in-out both; 
-    &:before {
-        content: '';
-        display: block;
-        width: 25%;
-        height: 25%;
-        background-color: $primary;
-        border-radius: 100%;
-        animation: chase-dot-before 2.0s infinite ease-in-out both; 
-    }
-
-    &:nth-child(1) { 
-        animation-delay: -1.1s; 
-        &:before{
-            animation-delay: -1.1s;
-        }
-    }
-    &:nth-child(2) { 
-        animation-delay: -1.0s;
-        &:before{
-            animation-delay: -1.0s;
-        }
-    }
-    &:nth-child(3) { 
-        animation-delay: -0.9s;
-        &:before{
-            animation-delay: -0.9s;
-        } 
-    }
-    &:nth-child(4) { 
-        animation-delay: -0.8s; 
-        &:before{
-            animation-delay: -0.8s;
-        } 
-    }
-    &:nth-child(5) { 
-        animation-delay: -0.7s; 
-        &:before{
-            animation-delay: -0.7s;
-        } 
-    }
-    &:nth-child(6) { 
-        animation-delay: -0.6s; 
-        &:before{
-            animation-delay: -0.6s;
-        }
-    }
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: #2FA8A0;
+    font-family: 'Inter', 'Archivo', sans-serif;
+    letter-spacing: -1px;
 }
 
-@keyframes spinner-chase {
-    100% { 
-        transform: rotate(360deg); 
-    } 
+/* Brand name */
+.pl-brand {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1A2B3C;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: 'Inter', 'Archivo', sans-serif;
+
+    span { color: #2FA8A0; }
 }
 
-@keyframes chase-dot {
-    80%, 100% { 
-        transform: rotate(360deg); 
-    } 
+/* Progress bar */
+.pl-track {
+    width: 130px;
+    height: 3px;
+    background: #E8EDF2;
+    border-radius: 99px;
+    overflow: hidden;
 }
 
-@keyframes chase-dot-before {
-    50% {
-        transform: scale(0.4); 
-    } 
-    100%, 0% {
-        transform: scale(1.0); 
-    } 
+.pl-fill {
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, #2FA8A0, #4ECDC4);
+    border-radius: 99px;
+    animation: pl-progress 1.6s ease-in-out infinite;
+}
+
+/* Keyframes */
+@keyframes pl-rotate {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pl-dash {
+    0%   { stroke-dashoffset: 176; }
+    50%  { stroke-dashoffset: 44; }
+    100% { stroke-dashoffset: 176; }
+}
+
+@keyframes pl-progress {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(350%); }
+}
+
+@keyframes pl-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes pl-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
 }

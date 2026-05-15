@@ -153,11 +153,16 @@ public class JwtUtils {
     // Request helpers
     // -----------------------------------------------------------------------
 
-    /** Extracts the Bearer token from the Authorization header; returns null if absent. */
+    /** Extracts the Bearer token from the Authorization header or the access_token query param (SSE). */
     public String extractTokenFromRequest(HttpServletRequest request) {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             return header.substring(7);
+        }
+        // EventSource cannot set headers — SSE endpoints pass the token as a query param
+        String param = request.getParameter("access_token");
+        if (StringUtils.hasText(param)) {
+            return param;
         }
         return null;
     }

@@ -4,28 +4,33 @@
 <!-- ── Today Devices Modal ── -->
 <div class="wiko-modal" *ngIf="showDevicesModal">
   <div class="wiko-modal__header">
-    <h5 class="wiko-modal__title">Today Devices Used</h5>
+    <h5 class="wiko-modal__title">{{ 'DASHBOARD.TODAY_DEVICES' | translate }}</h5>
     <button class="wiko-modal__close" (click)="showDevicesModal=false"><i class="bx bx-x"></i></button>
   </div>
   <div class="wdm-total-row">
     <div class="wdm-total-icon"><i class="bx bx-refresh"></i></div>
-    <div class="wdm-total-label">Total Device Used</div>
-    <div class="wdm-total-num">{{ totalDeviceUsers }} User</div>
+    <div class="wdm-total-label">{{ 'DASHBOARD.TOTAL_DEVICE_USED' | translate }}</div>
+    <div class="wdm-total-num">{{ totalDeviceUsers }} {{ 'DASHBOARD.USER' | translate }}</div>
   </div>
   <div class="wdm-breakdown-row">
     <div class="wdm-breakdown-item" *ngFor="let d of deviceBreakdown">
       <div class="wdm-breakdown-icon"><i class="bx {{ d.icon }}"></i></div>
-      <div class="wdm-breakdown-label">{{ d.label }}</div>
-      <div class="wdm-breakdown-num">{{ d.users }} User</div>
+      <div class="wdm-breakdown-label">{{ d.label | translate }}</div>
+      <div class="wdm-breakdown-num">{{ d.users }} {{ 'DASHBOARD.USER' | translate }}</div>
     </div>
   </div>
   <div class="wdm-tabs">
-    <button class="wdm-tab" [class.wdm-tab--active]="devicesTab==='activity'" (click)="devicesTab='activity'">Today's Activity</button>
-    <button class="wdm-tab" [class.wdm-tab--active]="devicesTab==='history'" (click)="devicesTab='history'">History</button>
+    <button class="wdm-tab" [class.wdm-tab--active]="devicesTab==='activity'" (click)="devicesTab='activity'">{{ 'DASHBOARD.TODAYS_ACTIVITY' | translate }}</button>
+    <button class="wdm-tab" [class.wdm-tab--active]="devicesTab==='history'" (click)="devicesTab='history'">{{ 'DASHBOARD.HISTORY' | translate }}</button>
   </div>
   <div class="wdm-table-wrap">
     <table class="wdm-table">
-      <thead><tr><th>Employee ID</th><th>Employee Name</th><th>Check In Time</th><th>Status</th></tr></thead>
+      <thead><tr>
+        <th>{{ 'DASHBOARD.EMPLOYEE_ID' | translate }}</th>
+        <th>{{ 'DASHBOARD.EMPLOYEE_NAME' | translate }}</th>
+        <th>{{ 'DASHBOARD.CHECK_IN_TIME' | translate }}</th>
+        <th>{{ 'DASHBOARD.STATUS' | translate }}</th>
+      </tr></thead>
       <tbody>
         <tr *ngFor="let r of deviceActivity">
           <td class="wdm-id">{{ r.id }}</td>
@@ -41,13 +46,12 @@
 <div class="container-fluid dash-container">
   <app-loader></app-loader>
 
-  <!-- ── Page Header ── -->
-  <div class="dash-header">
-    <h4 class="dash-header__title">Dashboard</h4>
-    <div class="dash-header__right">
-      <span class="dash-header__date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, yyyy' }}</span>
-      <span class="dash-header__lang"><i class="bx bx-globe"></i> English <i class="bx bx-chevron-down"></i></span>
+  <!-- ── Page Header + Clock row ── -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+    <div class="page-header" style="flex:1;margin-bottom:0;">
+      <h4 class="page-title">{{ 'DASHBOARD.TITLE' | translate }}</h4>
     </div>
+    <app-wall-clock></app-wall-clock>
   </div>
 
   <!-- ── 3-Column Main Grid ── -->
@@ -59,49 +63,45 @@
       <!-- KPI Card -->
       <div class="card wiko-card">
         <div class="wiko-card__head">
-          <span class="wiko-card__title">Avarage KPI</span>
+          <span class="wiko-card__title">{{ 'DASHBOARD.AVG_KPI' | translate }}</span>
           <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
         </div>
         <div class="kpi-score-row">
           <span class="kpi-score-num">{{ kpiScore }}</span>
-          <span class="kpi-score-den">/10 Company Employee Standard</span>
+          <span class="kpi-score-den">{{ 'DASHBOARD.KPI_STANDARD' | translate }}</span>
         </div>
-        <p class="kpi-improve-text">Yeay! it's an improvement 20% from last month!</p>
+        <p class="kpi-improve-text">{{ 'DASHBOARD.KPI_IMPROVEMENT' | translate }}</p>
         <apx-chart [series]="kpiBarChart.series" [chart]="kpiBarChart.chart" [colors]="kpiBarChart.colors"
           [plotOptions]="kpiBarChart.plotOptions" [dataLabels]="kpiBarChart.dataLabels"
           [xaxis]="kpiBarChart.xaxis" [grid]="kpiBarChart.grid" [yaxis]="kpiBarChart.yaxis">
         </apx-chart>
-        <p class="kpi-based-text">Based on all employee data</p>
+        <p class="kpi-based-text">{{ 'DASHBOARD.KPI_BASED' | translate }}</p>
       </div>
 
-      <!-- Today Devices Card -->
-      <div class="card wiko-card wiko-devices-card" (click)="showDevicesModal=true" style="cursor:pointer;">
+      <!-- Gender Distribution Card -->
+      <div class="card wiko-card">
         <div class="wiko-card__head">
-          <span class="wiko-card__title">Today Used Devices</span>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <i class="bx bx-refresh" style="color:#8FA3B8;font-size:16px;"></i>
-            <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
+          <span class="wiko-card__title">{{ 'DASHBOARD.GENDER_DISTRIBUTION' | translate }}</span>
+          <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
+        </div>
+        <apx-chart *ngIf="genderDonutChart.series"
+          [series]="genderDonutChart.series" [chart]="genderDonutChart.chart"
+          [labels]="genderDonutChart.labels" [colors]="genderDonutChart.colors"
+          [dataLabels]="genderDonutChart.dataLabels" [legend]="genderDonutChart.legend"
+          [plotOptions]="genderDonutChart.plotOptions" [stroke]="genderDonutChart.stroke"
+          [tooltip]="genderDonutChart.tooltip">
+        </apx-chart>
+        <div class="gender-legend">
+          <div class="gender-legend-item">
+            <span class="gender-dot" style="background:#2FA8A0"></span>
+            <span class="gender-legend-label">{{ 'DASHBOARD.GENDER_MALE' | translate }}</span>
+            <span class="gender-legend-val">{{ maleCount }} <small>({{ malePct }}%)</small></span>
           </div>
-        </div>
-        <div class="wdv-count-row">
-          <span class="wdv-count-num">{{ totalDeviceUsers }}</span>
-          <span class="wdv-count-label">Employees</span>
-        </div>
-        <p class="wdv-sub">Checked In Today</p>
-        <div class="wdv-two-col">
-          <div class="wdv-device-col" *ngFor="let d of [deviceBreakdown[0], deviceBreakdown[1]]">
-            <div class="wdv-device-top">
-              <span class="wdv-dot wdv-dot--{{ d.label.toLowerCase() }}"></span>
-              <span class="wdv-device-name">{{ d.label }}</span>
-            </div>
-            <div class="wdv-device-pct">{{ (d.users / totalDeviceUsers * 100).toFixed(0) }}%</div>
-            <div class="wdv-device-emp">{{ d.users }} Employees</div>
+          <div class="gender-legend-item">
+            <span class="gender-dot" style="background:#F472B6"></span>
+            <span class="gender-legend-label">{{ 'DASHBOARD.GENDER_FEMALE' | translate }}</span>
+            <span class="gender-legend-val">{{ femaleCount }} <small>({{ femalePct }}%)</small></span>
           </div>
-        </div>
-        <div class="wdv-progress-bar">
-          <div class="wdv-progress-fill wdv-progress-fill--mobile"  [style.width.%]="(deviceBreakdown[0].users / totalDeviceUsers * 100)"></div>
-          <div class="wdv-progress-fill wdv-progress-fill--desktop" [style.width.%]="(deviceBreakdown[1].users / totalDeviceUsers * 100)"></div>
-          <div class="wdv-progress-fill wdv-progress-fill--nfc"     [style.width.%]="(deviceBreakdown[2].users / totalDeviceUsers * 100)"></div>
         </div>
       </div>
 
@@ -112,12 +112,12 @@
 
       <!-- Employee Section -->
       <div class="wiko-card__head">
-        <span class="wiko-card__title">Employee</span>
+        <span class="wiko-card__title">{{ 'DASHBOARD.EMPLOYEE' | translate }}</span>
         <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
       </div>
       <div class="emp-total-row">
         <div>
-          <p class="emp-total-label">Total Employee</p>
+          <p class="emp-total-label">{{ 'DASHBOARD.TOTAL_EMPLOYEE' | translate }}</p>
           <span class="emp-total-num">{{ totalCollaborateurs | number }}</span>
         </div>
         <button class="emp-add-btn" (click)="goAddEmployee()"><i class="bx bx-plus"></i></button>
@@ -128,67 +128,86 @@
             <span class="emp-gender-count">{{ maleCount }}</span>
             <span class="emp-gender-pct emp-gender-pct--blue">{{ malePct }}%</span>
           </div>
-          <span class="emp-gender-label">Male Employee</span>
+          <span class="emp-gender-label">{{ 'DASHBOARD.MALE_EMPLOYEE' | translate }}</span>
         </div>
         <div class="emp-gender-item">
           <div class="emp-gender-top">
             <span class="emp-gender-count">{{ femaleCount }}</span>
             <span class="emp-gender-pct emp-gender-pct--rose">{{ femalePct }}%</span>
           </div>
-          <span class="emp-gender-label">Female Employee</span>
+          <span class="emp-gender-label">{{ 'DASHBOARD.FEMALE_EMPLOYEE' | translate }}</span>
         </div>
       </div>
 
       <!-- Projects Section -->
       <div class="emp-projects-section">
         <div class="wiko-card__head" style="margin-bottom:10px;">
-          <span class="wiko-card__title">Projects</span>
+          <span class="wiko-card__title">{{ 'DASHBOARD.PROJECTS' | translate }}</span>
           <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
         </div>
         <div class="emp-proj-stats">
           <div>
             <span class="emp-proj-num">{{ projectsOnProgress }}</span>
-            <span class="emp-proj-label">On Progress</span>
+            <span class="emp-proj-label">{{ 'DASHBOARD.ON_PROGRESS' | translate }}</span>
           </div>
           <div>
             <span class="emp-proj-num">{{ projectsDone | number }}</span>
-            <span class="emp-proj-label">Done</span>
+            <span class="emp-proj-label">{{ 'DASHBOARD.DONE' | translate }}</span>
           </div>
         </div>
         <apx-chart [series]="projBarChart.series" [chart]="projBarChart.chart" [colors]="projBarChart.colors"
           [plotOptions]="projBarChart.plotOptions" [dataLabels]="projBarChart.dataLabels"
           [xaxis]="projBarChart.xaxis" [grid]="projBarChart.grid" [yaxis]="projBarChart.yaxis">
         </apx-chart>
-        <p class="emp-proj-note">We've been handle {{ projectsDone | number }} projects so far!</p>
       </div>
     </div>
 
     <!-- Right Column: Attendance Overview -->
     <div class="card wiko-card wiko-att-card">
       <div class="wiko-card__head">
-        <span class="wiko-card__title">Attendance Overview</span>
-        <button class="att-period-badge">Monthly <i class="bx bx-chevron-down"></i></button>
+        <span class="wiko-card__title">{{ 'DASHBOARD.ATTENDANCE_OVERVIEW' | translate }}</span>
+
+        <!-- Period selector -->
+        <div class="att-period-wrap" (click)="$event.stopPropagation()">
+          <button class="att-period-badge" (click)="showPeriodDropdown = !showPeriodDropdown">
+            {{ periodLabel | translate }} <i class="bx bx-chevron-down" [class.rotated]="showPeriodDropdown"></i>
+          </button>
+          <div class="att-period-dropdown" *ngIf="showPeriodDropdown">
+            <button (click)="setPeriod('hourly')"  [class.active]="selectedPeriod === 'hourly'">{{ 'DASHBOARD.HOURLY'  | translate }}</button>
+            <button (click)="setPeriod('daily')"   [class.active]="selectedPeriod === 'daily'">{{ 'DASHBOARD.DAILY'   | translate }}</button>
+            <button (click)="setPeriod('weekly')"  [class.active]="selectedPeriod === 'weekly'">{{ 'DASHBOARD.WEEKLY' | translate }}</button>
+            <button (click)="setPeriod('monthly')" [class.active]="selectedPeriod === 'monthly'">{{ 'DASHBOARD.MONTHLY'| translate }}</button>
+          </div>
+        </div>
       </div>
+
       <div class="att-pct-row">
         <span class="att-pct-num">{{ attendancePct }}%</span>
-        <span class="att-pct-trend"><i class="bx bx-up-arrow-alt"></i> {{ attendanceTrend }}%</span>
+        <span class="att-pct-trend" [class.att-pct-trend--down]="attendanceTrend < 0">
+          <i class="bx" [class.bx-up-arrow-alt]="attendanceTrend >= 0" [class.bx-down-arrow-alt]="attendanceTrend < 0"></i>
+          {{ attendanceTrend >= 0 ? '+' : '' }}{{ attendanceTrend }}%
+        </span>
       </div>
-      <p class="att-desc">of employee is attend to work this month!</p>
+      <p class="att-desc">{{ attendanceLabel | translate }}</p>
 
       <!-- Heatmap -->
       <div class="att-heatmap">
         <div class="att-heatmap__body">
           <div class="att-heatmap__hour-labels">
-            <span *ngFor="let h of heatmapHours">{{ h }}</span>
+            <span *ngFor="let w of heatmapWeekLabels">{{ w }}</span>
           </div>
           <div class="att-heatmap__grid">
             <div *ngFor="let row of heatmapData" class="att-heatmap__row">
-              <div *ngFor="let val of row" class="att-heatmap__cell" [style.background]="getHeatColor(val)"></div>
+              <div *ngFor="let val of row" class="att-heatmap__cell"
+                   [style.background]="getHeatColor(val)"
+                   [title]="val > 0 ? (val * 10) + '% present' : ''"></div>
             </div>
           </div>
         </div>
         <div class="att-heatmap__day-labels">
-          <span *ngFor="let d of dayLabels">{{ d }}</span>
+          <ng-container *ngFor="let col of heatmapColLabels">
+            <span>{{ heatmapColIsI18n ? (col | translate) : col }}</span>
+          </ng-container>
         </div>
       </div>
     </div>
@@ -198,15 +217,20 @@
   <!-- ── Bottom: Tabbed Table ── -->
   <div class="card dash-table-card">
     <div class="dash-tabs-bar">
-      <button *ngFor="let tab of tableTabs" class="dash-tab" [class.dash-tab--active]="activeTab===tab" (click)="setTab(tab)">{{ tab }}</button>
-      <span class="dash-tabs__updated"><i class="bx bx-refresh"></i> Updated a second ago &nbsp;•••</span>
+      <button *ngFor="let tab of tableTabs" class="dash-tab" [class.dash-tab--active]="activeTab===tab" (click)="setTab(tab)">{{ tab | translate }}</button>
+      <span class="dash-tabs__updated"><i class="bx bx-refresh"></i> {{ 'DASHBOARD.UPDATED_RECENTLY' | translate }}</span>
     </div>
     <div class="table-responsive">
       <table class="wiko-table">
         <thead>
           <tr>
-            <th>Employee ID</th><th>Name</th><th>Department</th>
-            <th>Status</th><th>Check-In Time</th><th>Check-Out Time</th><th>Action</th>
+            <th>{{ 'DASHBOARD.EMPLOYEE_ID' | translate }}</th>
+            <th>{{ 'DASHBOARD.NAME' | translate }}</th>
+            <th>{{ 'DASHBOARD.DEPARTMENT' | translate }}</th>
+            <th>{{ 'DASHBOARD.STATUS' | translate }}</th>
+            <th>{{ 'DASHBOARD.CHECK_IN_TIME' | translate }}</th>
+            <th>{{ 'DASHBOARD.CHECK_OUT_TIME' | translate }}</th>
+            <th>{{ 'DASHBOARD.ACTION' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -225,7 +249,7 @@
             </td>
           </tr>
           <tr *ngIf="tableRows.length === 0">
-            <td colspan="7" class="wiko-table__empty">No data available</td>
+            <td colspan="7" class="wiko-table__empty">{{ 'DASHBOARD.NO_DATA' | translate }}</td>
           </tr>
         </tbody>
       </table>

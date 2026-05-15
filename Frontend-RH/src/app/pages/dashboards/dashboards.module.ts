@@ -17,6 +17,7 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
 import { ModalModule } from 'ngx-bootstrap/modal';
 
 import { SimplebarAngularModule } from 'simplebar-angular';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { DefaultComponent } from './default/default.component';
 import { SharedModule } from 'src/app/shared/shared.module';
@@ -41,6 +42,7 @@ import { SharedModule } from 'src/app/shared/shared.module';
     SimplebarAngularModule,
     ModalModule.forRoot(),
     RouterModule,
+    TranslateModule,
   ],
   providers: [BsDropdownConfig, DatePipe],
 })

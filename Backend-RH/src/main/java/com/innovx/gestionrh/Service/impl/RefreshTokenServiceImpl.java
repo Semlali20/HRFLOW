@@ -48,16 +48,16 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        // Revoke any previously issued refresh token (one-token-per-user rotation policy)
-        refreshTokenRepository.deleteByUser(user);
+        // Reuse the existing row if present (update-or-insert avoids unique-key races)
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
+                .orElseGet(RefreshToken::new);
 
-        RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
         refreshToken.setToken(UUID.randomUUID().toString());
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
 
         RefreshToken saved = refreshTokenRepository.save(refreshToken);
-        log.debug("Refresh token created for user id={}.", userId);
+        log.debug("Refresh token {} for user id={}.", refreshToken.getId() == null ? "created" : "rotated", userId);
         return saved;
     }
 

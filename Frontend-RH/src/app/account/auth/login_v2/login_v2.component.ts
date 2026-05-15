@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
 import { AuthenticationService } from '../../../core/services/auth.service';
+import { ConfirmService } from '../../../shared/confirm.service';
 
 @Component({
   selector: 'app-login-v2',
@@ -17,17 +17,16 @@ export class LoginComponent1 implements OnInit {
 
   constructor(
     private authService: AuthenticationService,
+    private confirmSvc: ConfirmService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    // Redirect to dashboard if already logged in
     if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/dashboard']);
       return;
     }
 
-    // Load saved credentials if "Remember Me" was checked
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedPassword = localStorage.getItem('rememberedPassword');
     if (savedEmail && savedPassword) {
@@ -37,23 +36,22 @@ export class LoginComponent1 implements OnInit {
     }
   }
 
-  login(): void {
+  async login(): Promise<void> {
     if (!this.email || !this.password) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Fields',
-        text: 'Please enter your email and password.'
-      });
+      await this.confirmSvc.alert(
+        'Please enter your email and password.',
+        'Missing Fields',
+        'info'
+      );
       return;
     }
 
     this.isLoading = true;
 
     this.authService.loginUser(this.email, this.password).subscribe({
-      next: (user) => {
+      next: async (user) => {
         this.isLoading = false;
 
-        // Save or clear remember-me credentials
         if (this.rememberMe) {
           localStorage.setItem('rememberedEmail', this.email);
           localStorage.setItem('rememberedPassword', this.password);
@@ -62,32 +60,22 @@ export class LoginComponent1 implements OnInit {
           localStorage.removeItem('rememberedPassword');
         }
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Login Successful',
-          text: `Welcome back, ${user.firstname ?? ''} ${user.lastname ?? ''}!`,
-          timer: 1500,
-          showConfirmButton: false
-        }).then(() => {
-          this.router.navigate(['/']);
-        });
+        const name = [user.firstname, user.lastname].filter(Boolean).join(' ');
+        await this.confirmSvc.alert(
+          name ? `Welcome back, ${name}. Redirecting you to your dashboard...` : 'Login successful. Redirecting you to your dashboard...',
+          'Login Successful',
+          'success',
+          1500
+        );
+        this.router.navigate(['/dashboard']);
       },
-      error: (error) => {
+      error: async (error) => {
         this.isLoading = false;
         const status = error?.status;
-        if (status === 401 || status === 403) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Login Failed',
-            text: 'Invalid email or password. Please try again.'
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Login Failed',
-            text: 'An error occurred. Please check your connection and try again.'
-          });
-        }
+        const msg = (status === 401 || status === 403)
+          ? 'Invalid email or password. Please try again.'
+          : 'An error occurred. Please check your connection and try again.';
+        await this.confirmSvc.alert(msg, 'Login Failed', 'error');
       }
     });
   }

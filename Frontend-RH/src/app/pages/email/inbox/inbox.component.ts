@@ -3,7 +3,8 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { Email } from './inbox.model';
 import { emailData } from './data';
-import Swal from 'sweetalert2';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-inbox',
@@ -37,8 +38,11 @@ export class InboxComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 15;
 
-  constructor(private modalService: BsModalService) {
-  }
+  constructor(
+    private modalService: BsModalService,
+    private confirmSvc: ConfirmService,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit() {
     this.breadCrumbItems = [{ label: 'Email' }, { label: 'Inbox', active: true }];
@@ -81,21 +85,11 @@ export class InboxComponent implements OnInit {
     this.emailIds = [];
   }
 
-  confirm() {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'You won\'t be able to revert this!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#34c38f',
-      cancelButtonColor: '#f46a6a',
-      confirmButtonText: 'Yes, delete it!'
-    }).then(result => {
-      if (result.value) {
-        this.deleteMail();
-        Swal.fire('Deleted!', 'Mail has been deleted.', 'success');
-      }
-    });
+  async confirm(): Promise<void> {
+    const confirmed = await this.confirmSvc.confirm(this.translate.instant('EMAIL.DELETE_CONFIRM_MSG'), this.translate.instant('EMAIL.DELETE_CONFIRM_TITLE'));
+    if (!confirmed) return;
+    this.deleteMail();
+    await this.confirmSvc.alert(this.translate.instant('EMAIL.DELETE_SUCCESS'), this.translate.instant('EMAIL.DELETED_TITLE'), 'success');
   }
 
   /**

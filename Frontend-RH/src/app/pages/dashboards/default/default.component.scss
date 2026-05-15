@@ -3,7 +3,7 @@
    ================================================================ */
 
 .dash-container {
-  padding: 0 24px 40px;
+  padding: 0 20px 20px;
   animation: fadeInUp .4s ease both;
 }
 @keyframes fadeInUp {
@@ -103,11 +103,31 @@
 .emp-proj-note  { font-size:11.5px; color:#8FA3B8; margin:4px 0 0; }
 
 /* ── Attendance Card ── */
+.att-period-wrap {
+  position: relative;
+}
 .att-period-badge {
-  display:flex; align-items:center; gap:4px;
-  font-size:12.5px; font-weight:600; color:#2FA8A0;
-  background:none; border:none; cursor:pointer;
-  i { font-size:13px; }
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12.5px; font-weight: 600; color: #2FA8A0;
+  background: #E8F7F6; border: none; cursor: pointer;
+  padding: 4px 10px; border-radius: 20px;
+  transition: background .15s;
+  &:hover { background: #D0F0EE; }
+  i { font-size: 13px; transition: transform .2s; &.rotated { transform: rotate(180deg); } }
+}
+.att-period-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 100;
+  background: #fff; border-radius: 10px; min-width: 130px;
+  box-shadow: 0 8px 24px rgba(22,34,51,.12), 0 2px 6px rgba(22,34,51,.07);
+  overflow: hidden;
+  button {
+    display: block; width: 100%; text-align: left;
+    padding: 9px 14px; font-size: 13px; font-weight: 500;
+    color: #4A6080; background: none; border: none; cursor: pointer;
+    transition: background .13s, color .13s;
+    &:hover  { background: #F4F6F9; color: #1A2B3C; }
+    &.active { color: #2FA8A0; font-weight: 700; background: #E8F7F6; }
+  }
 }
 .att-pct-row { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
 .att-pct-num {
@@ -117,6 +137,7 @@
   display:flex; align-items:center; gap:3px;
   font-size:12.5px; font-weight:700; color:#22C55E;
   background:#DCFCE7; padding:3px 9px; border-radius:999px;
+  &--down { color:#EF4444; background:#FEE2E2; }
 }
 .att-desc { font-size:12.5px; color:#8FA3B8; margin:0 0 16px; }
 
@@ -140,36 +161,23 @@
 }
 
 /* ── Today Used Devices Card ── */
-.wiko-devices-card {
-  &:hover { box-shadow:0 8px 28px rgba(22,34,51,.12) !important; }
+/* ── Gender Distribution legend ── */
+.gender-legend {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 0 4px 4px;
 }
-.wdv-count-row { display:flex; align-items:baseline; gap:6px; margin-bottom:2px; }
-.wdv-count-num  { font-family:'Inter',sans-serif; font-size:36px; font-weight:700; color:#1A2B3C; line-height:1; }
-.wdv-count-label { font-size:13px; color:#8FA3B8; }
-.wdv-sub { font-size:12.5px; color:#8FA3B8; margin-bottom:16px; }
-
-/* 2-column device layout */
-.wdv-two-col {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;
+.gender-legend-item {
+  display: flex; align-items: center; gap: 8px;
 }
-.wdv-device-col { display:flex; flex-direction:column; gap:3px; }
-.wdv-device-top { display:flex; align-items:center; gap:7px; }
-.wdv-dot {
-  width:10px; height:10px; border-radius:50%; flex-shrink:0;
-  &--mobile  { background:#3B82F6; }
-  &--desktop { background:#F59E0B; }
-  &--nfc     { background:#8B5CF6; }
+.gender-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
 }
-.wdv-device-name { font-size:12.5px; color:#4A6080; font-weight:500; }
-.wdv-device-pct  { font-family:'Inter',sans-serif; font-size:20px; font-weight:700; color:#1A2B3C; }
-.wdv-device-emp  { font-size:11.5px; color:#8FA3B8; }
-
-.wdv-progress-bar { display:flex; border-radius:6px; overflow:hidden; height:8px; background:#F0F3F6; }
-.wdv-progress-fill {
-  height:100%; transition:width .4s ease;
-  &--mobile  { background:#3B82F6; }
-  &--desktop { background:#F59E0B; }
-  &--nfc     { background:#8B5CF6; }
+.gender-legend-label {
+  flex: 1; font-size: 12.5px; color: #4A6080; font-weight: 500;
+}
+.gender-legend-val {
+  font-size: 13px; font-weight: 700; color: #1A2B3C;
+  small { font-size: 11px; color: #8FA3B8; font-weight: 400; margin-left: 3px; }
 }
 
 /* ── Bottom Table Card ── */

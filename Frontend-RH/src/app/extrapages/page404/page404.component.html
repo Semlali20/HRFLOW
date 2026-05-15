@@ -1,22 +1,101 @@
-<div class="account-pages my-5 pt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="text-center mb-5">
-                    <h1 class="display-2 fw-medium">4<i class="bx bx-buoy bx-spin text-primary display-3"></i>4</h1>
-                    <h4 class="text-uppercase">Sorry, page not found</h4>
-                    <div class="mt-5 text-center">
-                        <a class="btn btn-primary" routerLink="/">Back to Dashboard</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-xl-6">
-                <div>
-                    <img src="assets/images/error-img.png" alt="" class="img-fluid">
-                </div>
-            </div>
-        </div>
+<div class="err-page">
+
+  <div class="err-blob err-blob--1"></div>
+  <div class="err-blob err-blob--2"></div>
+
+  <div class="err-card">
+
+    <!-- Illustration -->
+    <div class="err-illustration">
+      <svg viewBox="0 0 320 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- 404 behind scene -->
+        <text x="160" y="112" text-anchor="middle" font-size="96" font-weight="900"
+              font-family="Inter,sans-serif" fill="#2FA8A0" opacity=".28">404</text>
+
+        <!-- desk shadow -->
+        <ellipse cx="168" cy="226" rx="148" ry="10" fill="#CBD5E0" opacity=".3"/>
+        <!-- desk surface -->
+        <ellipse cx="168" cy="220" rx="150" ry="12" fill="#E2E8F0" opacity=".5"/>
+
+        <!-- coffee puddle (two layers for depth) -->
+        <ellipse cx="100" cy="215" rx="86" ry="10" fill="#C4A882" opacity=".55"/>
+        <ellipse cx="84"  cy="215" rx="60" ry="7"  fill="#8B6340" opacity=".3"/>
+
+        <!-- coffee stream from rim to puddle -->
+        <path d="M128 192 Q112 202 94 210 Q76 216 58 214"
+              stroke="#A07850" stroke-width="9" stroke-linecap="round" opacity=".5"/>
+
+        <!-- coffee drops on desk -->
+        <circle cx="120" cy="202" r="3.5" fill="#A07850" opacity=".4"/>
+        <circle cx="110" cy="195" r="2.5" fill="#A07850" opacity=".35"/>
+        <circle cx="134" cy="198" r="2"   fill="#A07850" opacity=".3"/>
+
+        <!-- base end-cap (drawn before body so body clips over it) -->
+        <ellipse cx="268" cy="176" rx="7" ry="24" fill="#F0F4F8" stroke="#DDE5EE" stroke-width="2"/>
+
+        <!-- cup body — trapezoid: wider at rim (left), narrower at base (right) -->
+        <!-- rim height = 64px (ry 32), base height = 48px (ry 24), both centered at y=176 -->
+        <path d="M128 144 L268 152 L268 200 L128 208 Z"
+              fill="white" stroke="#DDE5EE" stroke-width="2.5"/>
+
+        <!-- subtle bottom inner shadow -->
+        <path d="M132 205 Q200 209 266 199" stroke="#EEF2F7" stroke-width="4" stroke-linecap="round"/>
+
+        <!-- teal brand band (computed to match cup slope exactly) -->
+        <!-- at x=184: top=147, bot=205 | at x=222: top=149, bot=203 -->
+        <path d="M184 147 L222 149 L222 203 L184 205 Z" fill="#2FA8A0"/>
+
+        <!-- band top highlight strip -->
+        <path d="M186 148 L220 150" stroke="#4ECDC4" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+
+        <!-- coffee bean on teal band -->
+        <ellipse cx="203" cy="176" rx="10" ry="6" fill="white" opacity=".38"
+                 transform="rotate(-90 203 176)"/>
+        <path d="M203 168 Q205.5 176 203 184"
+              stroke="white" stroke-width="1.8" stroke-linecap="round" opacity=".45"/>
+
+        <!-- rim opening (drawn after body, appears in front) -->
+        <ellipse cx="128" cy="176" rx="10" ry="32" fill="#E4ECF3" stroke="#C8D4E0" stroke-width="2"/>
+        <!-- coffee liquid visible inside rim -->
+        <ellipse cx="126" cy="176" rx="7" ry="24" fill="#7A5530" opacity=".72"/>
+        <!-- rim shine -->
+        <ellipse cx="122" cy="165" rx="2.5" ry="5" fill="white" opacity=".22"/>
+
+        <!-- cup body shine at top edge -->
+        <path d="M136 145 Q200 142 256 152" stroke="white" stroke-width="3"
+              stroke-linecap="round" opacity=".55"/>
+
+        <!-- handle -->
+        <path d="M248 152 Q283 137 285 164 Q287 190 257 197"
+              stroke="#D4DDE8" stroke-width="6" stroke-linecap="round" fill="none"/>
+
+        <!-- lid fallen on desk -->
+        <ellipse cx="292" cy="216" rx="20" ry="6"   fill="#F0F4F8" stroke="#DDE5EE"
+                 stroke-width="1.5" transform="rotate(-14 292 216)"/>
+        <ellipse cx="292" cy="215" rx="12" ry="3.5" fill="#DDE5EE" opacity=".6"
+                 transform="rotate(-14 292 215)"/>
+
+        <!-- plant pot (left) -->
+        <rect x="12" y="158" width="38" height="50" rx="6"
+              fill="white" stroke="#E2E8F0" stroke-width="1.5"/>
+        <ellipse cx="31" cy="158" rx="19" ry="5" fill="#F0F4F8" stroke="#E2E8F0" stroke-width="1.5"/>
+        <!-- leaves -->
+        <path d="M31 158 Q13 126  5 100" stroke="#7CB98F" stroke-width="9" stroke-linecap="round"/>
+        <path d="M31 158 Q49 128 57 102" stroke="#5DAA72" stroke-width="9" stroke-linecap="round"/>
+        <path d="M31 158 Q31 126 31 104" stroke="#6DB882" stroke-width="7" stroke-linecap="round"/>
+
+      </svg>
     </div>
+
+    <h2 class="err-title">Not Found!</h2>
+    <p class="err-sub">The page you're looking for<br>doesn't exist or has been moved.</p>
+
+    <div class="err-actions">
+      <a routerLink="/" class="err-btn err-btn--primary">
+        <i class="bx bx-home-alt-2"></i> Back to Dashboard
+      </a>
+    </div>
+
+  </div>
 </div>

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
-import Swal from 'sweetalert2';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
 import { Collaborateur } from 'src/app/core/models/hr.models';
+import { ConfirmService } from 'src/app/shared/confirm.service';
 
 @Component({
   selector: 'app-collaborateur-modal',
@@ -11,7 +11,10 @@ import { Collaborateur } from 'src/app/core/models/hr.models';
 export class CollaborateurModalComponent {
   @Input() detailedCollaborateur: any;
 
-  constructor(private collaborateurService: CollaborateurService) {}
+  constructor(
+    private collaborateurService: CollaborateurService,
+    private confirmSvc: ConfirmService,
+  ) {}
 
   viewCollaborateur(collaborateur: Collaborateur) {
     this.collaborateurService.getById(collaborateur.matricule).subscribe({
@@ -20,20 +23,18 @@ export class CollaborateurModalComponent {
     });
   }
 
-  showCollaborateurModal(c: Collaborateur) {
-    Swal.fire({
-      title: 'Détails du Collaborateur',
-      html: `
-        <div style="text-align:left">
-          <p><strong>Nom :</strong> ${c.nom || ''}</p>
-          <p><strong>Prénom :</strong> ${c.prenom || ''}</p>
-          <p><strong>Email :</strong> ${c.email || ''}</p>
-          <p><strong>Département :</strong> ${c.Département || ''}</p>
-          <p><strong>Fonction :</strong> ${c.Fonction || ''}</p>
-          <p><strong>Date de naissance :</strong> ${c.date_naissance || ''}</p>
-        </div>`,
-      showCloseButton: true,
-      showConfirmButton: false
-    });
+  async showCollaborateurModal(c: Collaborateur): Promise<void> {
+    await this.confirmSvc.alert(
+      `<div style="text-align:left">
+        <p><strong>Nom :</strong> ${c.nom || ''}</p>
+        <p><strong>Prénom :</strong> ${c.prenom || ''}</p>
+        <p><strong>Email :</strong> ${c.email || ''}</p>
+        <p><strong>Département :</strong> ${(c as any).Département || ''}</p>
+        <p><strong>Fonction :</strong> ${(c as any).Fonction || ''}</p>
+        <p><strong>Date de naissance :</strong> ${c.date_naissance || ''}</p>
+      </div>`,
+      'Détails du Collaborateur',
+      'info'
+    );
   }
 }

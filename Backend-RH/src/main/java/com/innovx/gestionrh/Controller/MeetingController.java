@@ -35,7 +35,7 @@ public class MeetingController {
     @GetMapping
     @PreAuthorize("hasAuthority('MEETING_READ')")
     public ResponseEntity<PagedResponse<MeetingResponse>> findAll(
-            @PageableDefault(size = 20, sort = "scheduledDate", direction = Sort.Direction.ASC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "scheduledAt", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(PagedResponse.of(meetingService.findAll(pageable)));
     }
 

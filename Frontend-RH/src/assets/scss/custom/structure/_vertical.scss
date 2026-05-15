@@ -42,11 +42,13 @@
     position: fixed;
     top: $header-height;
     box-shadow: $box-shadow;
+    transition: width 0.22s ease;
 }
 
 .main-content {
     margin-left: $sidebar-width;
     overflow: hidden;
+    transition: margin-left 0.22s ease;
 
     .content {
         padding: 0 15px 10px 15px;
@@ -214,7 +216,7 @@
 
     // Side menu
     .vertical-menu {
-        position: absolute;
+        position: fixed;
         width: $sidebar-collapsed-width !important;
         z-index: 5;
 
@@ -405,7 +407,7 @@ body[data-sidebar="dark"] {
     }
     // Enlarge menu
     &.vertical-collpsed {
-        min-height: 1760px;
+        min-height: 0;
         // Side menu
         .vertical-menu {
 

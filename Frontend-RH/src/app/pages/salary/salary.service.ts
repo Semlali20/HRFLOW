@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Payslip, PayslipCreateDto, SalarySummary } from 'src/app/core/models/hr.models';
 
@@ -13,7 +13,13 @@ export class SalaryService {
     constructor(private http: HttpClient) {}
 
     getAll(): Observable<Payslip[]> {
-        return this.http.get<Payslip[]>(this.BASE).pipe(catchError(this.handleError));
+        return this.http.get<any>(this.BASE, { params: new HttpParams().set('size', '500') }).pipe(
+            map(res => {
+                const items: any[] = Array.isArray(res) ? res : (res?.content ?? res?.data ?? []);
+                return items;
+            }),
+            catchError(this.handleError)
+        );
     }
 
     getById(id: number): Observable<Payslip> {

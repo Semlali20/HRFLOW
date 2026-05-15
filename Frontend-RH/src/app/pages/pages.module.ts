@@ -26,6 +26,7 @@ import { PickerModule } from '@ctrl/ngx-emoji-mart';
 
 import { PagesRoutingModule } from './pages-routing.module';
 import { DashboardsModule } from './dashboards/dashboards.module';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -52,13 +53,19 @@ import { ProjectsHrComponent } from './projects-hr/projects-hr.component';
 import { SettingComponent } from './setting/setting.component';
 import { PlanningComponent } from './planning/planning.component';
 import { AuditLogComponent } from './audit/audit-log.component';
-import { ReportsComponent } from './reports/reports.component';
 import { UserManagementComponent } from './admin/user-management/user-management.component';
 import { RoleManagementComponent } from './admin/role-management/role-management.component';
+import { OrgComponent } from './org/org.component';
+import { PublicHolidaysComponent } from './public-holidays/public-holidays.component';
+import { DocumentsComponent } from './documents/documents.component';
+import { MeetingsComponent } from './meetings/meetings.component';
+import { StagiairesComponent } from './stagiaires/stagiaires.component';
+import { StatisticsComponent } from './statistics/statistics.component';
 
 @NgModule({
-  declarations: [ChatComponent, FilemanagerComponent, UploadsComponent],
+  declarations: [FilemanagerComponent, UploadsComponent],
   imports: [
+    ChatComponent,
     CollaborateurComponent,
     DayoffComponent,
     AttendanceComponent,
@@ -68,9 +75,14 @@ import { RoleManagementComponent } from './admin/role-management/role-management
     SettingComponent,
     PlanningComponent,
     AuditLogComponent,
-    ReportsComponent,
     UserManagementComponent,
     RoleManagementComponent,
+    OrgComponent,
+    PublicHolidaysComponent,
+    DocumentsComponent,
+    MeetingsComponent,
+    StagiairesComponent,
+    StatisticsComponent,
 
     SharedModule  , // import the SharedModule to use the CalendarComponent
     CommonModule,
@@ -102,7 +114,8 @@ import { RoleManagementComponent } from './admin/role-management/role-management
     CollapseModule.forRoot(),
     SimplebarAngularModule,
     LightboxModule,
-    PickerModule
+    PickerModule,
+    TranslateModule
   ],
 
 })

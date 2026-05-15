@@ -8,17 +8,23 @@ import { LoaderService } from 'src/app/core/services/loader.service';
 })
 export class LoaderComponent implements OnInit {
 
-  loading: boolean = true;
+  visible = true;
+  fading  = false;
 
   constructor(private loaderService: LoaderService) {
-
     this.loaderService.isLoading.subscribe((v) => {
-      setTimeout(() => {
-        this.loading = v;
-      }, 1500);
+      if (v) {
+        this.fading  = false;
+        this.visible = true;
+      } else {
+        this.fading = true;
+        setTimeout(() => {
+          this.visible = false;
+          this.fading  = false;
+        }, 400);
+      }
     });
   }
-  ngOnInit(): void {
-  }
 
+  ngOnInit(): void {}
 }

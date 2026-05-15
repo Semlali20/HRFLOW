@@ -19,9 +19,13 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
   menu: any;
   menuItems: MenuItem[] = [];
   employeeManagerOpen = true;
+  orgOpen = true;
+  analyticsOpen = true;
+  adminOpen = true;
   showProfileMenu = false;
   showSearchModal = false;
   searchQuery = '';
+  currentUser: { name: string; email: string; role: string; initials: string } = { name: '—', email: '—', role: '—', initials: '?' };
   @ViewChild('sideMenu') sideMenu: ElementRef;
 
   constructor(private router: Router, public translate: TranslateService, private http: HttpClient, private authService: AuthenticationService) {
@@ -43,6 +47,19 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
     this.menuItems = this.filterMenuItemsByRole(MENU, this.userRole); // Initialisez les éléments du menu après avoir récupéré le rôle
     console.log('Éléments du menu pour ce rôle:', this.menuItems);
     this._scrollElement();
+
+    const u = this.authService.getAuthenticatedUser();
+    if (u) {
+      const first = u.firstname ?? '';
+      const last  = u.lastname  ?? '';
+      const name  = `${first} ${last}`.trim() || u.email || '—';
+      this.currentUser = {
+        name,
+        email:    u.email ?? '—',
+        role:     u.userRole ?? u.title ?? '—',
+        initials: ((first[0] ?? '') + (last[0] ?? '')).toUpperCase() || '?'
+      };
+    }
   }
 
   ngAfterViewInit() {
@@ -118,6 +135,14 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
       default:
         return menuItems;
     }
+  }
+
+  isCollapsed = false;
+
+  toggleCollapse() {
+    this.isCollapsed = !this.isCollapsed;
+    document.body.classList.toggle('vertical-collpsed', this.isCollapsed);
+    if (this.isCollapsed) this.showProfileMenu = false;
   }
 
   toggleEmployeeManager() {

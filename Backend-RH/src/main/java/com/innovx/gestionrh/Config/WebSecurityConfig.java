@@ -75,6 +75,9 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/auth/refresh").permitAll()
                         .requestMatchers("/api/v1/auth/register").permitAll()
+                        .requestMatchers("/api/v1/auth/forgot-password").permitAll()
+                        .requestMatchers("/api/v1/auth/verify-otp").permitAll()
+                        .requestMatchers("/api/v1/auth/reset-password").permitAll()
                         // SSE streams require authentication via token in request
                         .requestMatchers("/api/v1/notifications/stream").authenticated()
                         // Actuator health check (for load balancers)

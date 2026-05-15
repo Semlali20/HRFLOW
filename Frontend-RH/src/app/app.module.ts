@@ -27,7 +27,9 @@ import { AuthGuard } from './core/guards/auth.guard';
 
 import { registerLocaleData } from '@angular/common';
 import en from '@angular/common/locales/en';
+import fr from '@angular/common/locales/fr';
 registerLocaleData(en);
+registerLocaleData(fr);
 
 export function createTranslateLoader(http: HttpClient): TranslateLoader {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');

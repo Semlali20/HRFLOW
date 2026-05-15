@@ -1,16 +1,17 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AuthenticationService } from './auth.service';
 import { environment } from 'src/environments/environment';
 
 export interface HrNotification {
     id: number;
-    recipientEmail: string;
     title: string;
     message: string;
     type: string;
     read: boolean;
+    actionUrl?: string;
     createdAt: string;
 }
 
@@ -34,10 +35,8 @@ export class NotificationService implements OnDestroy {
         const token = this.authService.getToken();
         if (!token) return;
 
-        // Load initial unread notifications
         this.loadUnread();
 
-        // Open SSE connection to backend — use apiUrl directly (absolute URL)
         const sseUrl = `${this.BASE_URL}/stream?access_token=${encodeURIComponent(token)}`;
         this.eventSource = new EventSource(sseUrl);
 
@@ -65,12 +64,15 @@ export class NotificationService implements OnDestroy {
         }
     }
 
-    /** GET /notifications/unread */
+    /** GET /notifications — load all then filter unread into the BehaviorSubject */
     loadUnread(): void {
-        this.http.get<HrNotification[]>(`${this.BASE_URL}/unread`).subscribe({
-            next: notifications => {
-                this._notifications.next(notifications);
-                this._unreadCount.next(notifications.length);
+        const params = new HttpParams().set('size', '50');
+        this.http.get<any>(this.BASE_URL, { params }).subscribe({
+            next: res => {
+                const items: HrNotification[] = Array.isArray(res) ? res : (res?.content ?? []);
+                const unread = items.filter(n => !n.read);
+                this._notifications.next(unread);
+                this._unreadCount.next(unread.length);
             },
             error: () => {}
         });
@@ -78,12 +80,16 @@ export class NotificationService implements OnDestroy {
 
     /** GET /notifications */
     getAll(): Observable<HrNotification[]> {
-        return this.http.get<HrNotification[]>(this.BASE_URL);
+        return this.http.get<any>(this.BASE_URL, { params: new HttpParams().set('size', '100') }).pipe(
+            map(res => Array.isArray(res) ? res : (res?.content ?? []))
+        );
     }
 
     /** GET /notifications/unread-count */
-    getUnreadCount(): Observable<{ count: number }> {
-        return this.http.get<{ count: number }>(`${this.BASE_URL}/unread-count`);
+    getUnreadCount(): Observable<number> {
+        return this.http.get<any>(`${this.BASE_URL}/unread-count`).pipe(
+            map(res => res?.data ?? res ?? 0)
+        );
     }
 
     /** PATCH /notifications/{id}/read */
@@ -91,10 +97,10 @@ export class NotificationService implements OnDestroy {
         return this.http.patch<void>(`${this.BASE_URL}/${id}/read`, {});
     }
 
-    /** PUT /notifications/read-all */
+    /** PATCH /notifications/read-all */
     markAllRead(): Observable<void> {
         return new Observable(observer => {
-            this.http.put<void>(`${this.BASE_URL}/read-all`, {}).subscribe({
+            this.http.patch<void>(`${this.BASE_URL}/read-all`, {}).subscribe({
                 next: () => {
                     const marked = this._notifications.getValue().map(n => ({ ...n, read: true }));
                     this._notifications.next(marked);
@@ -105,6 +111,11 @@ export class NotificationService implements OnDestroy {
                 error: err => observer.error(err)
             });
         });
+    }
+
+    /** DELETE /notifications/{id} */
+    deleteNotification(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.BASE_URL}/${id}`);
     }
 
     ngOnDestroy(): void {

@@ -1,15 +1,13 @@
 <div class="fm-page">
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="ph-left">
-      <h4 class="page-title">File Manager</h4>
+  <!-- Page Header + Clock row -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+    <div class="page-header" style="flex:1;margin-bottom:0;">
+      <div class="ph-left">
+        <h4 class="page-title">{{ 'FILEMANAGER.TITLE' | translate }}</h4>
+      </div>
     </div>
-    <div class="ph-right">
-      <span class="ph-meta"><i class="bx bx-calendar"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
-      <span class="ph-divider"></span>
-      <span class="ph-meta"><i class="bx bx-globe"></i> English <i class="bx bx-chevron-down"></i></span>
-    </div>
+    <app-wall-clock></app-wall-clock>
   </div>
 
   <!-- Layout -->
@@ -17,14 +15,20 @@
 
     <!-- Sidebar -->
     <div class="fm-sidebar">
-      <a href="/UploadsCv" class="btn-upload"><i class="bx bx-upload"></i> Upload File</a>
-      <button class="btn-delete-all" (click)="deleteAllFiles()"><i class="bx bx-trash"></i> Delete All</button>
+      <a href="/UploadsCv" class="btn-upload"><i class="bx bx-upload"></i> {{ 'FILEMANAGER.BTN_UPLOAD' | translate }}</a>
+      <button class="btn-delete-all" (click)="deleteAllFiles()"><i class="bx bx-trash"></i> {{ 'FILEMANAGER.BTN_DELETE_ALL' | translate }}</button>
 
-
-<div class="fm-nav">
-        <div class="fm-nav-item active"><i class="bx bx-folder"></i> My CV's</div>
-        <div class="fm-nav-item"><i class="bx bx-file"></i> Documents</div>
-        <div class="fm-nav-item"><i class="bx bx-trash-alt"></i> Trash</div>
+      <div class="fm-nav">
+        <div class="fm-nav-item" [class.active]="activeTab === 'cvs'" (click)="setTab('cvs')">
+          <i class="bx bx-folder"></i> {{ 'FILEMANAGER.NAV_MY_CVS' | translate }}
+        </div>
+        <div class="fm-nav-item" (click)="setTab('documents')">
+          <i class="bx bx-file"></i> {{ 'FILEMANAGER.NAV_DOCUMENTS' | translate }}
+        </div>
+        <div class="fm-nav-item" [class.active]="activeTab === 'trash'" (click)="setTab('trash')">
+          <i class="bx bx-trash-alt"></i> {{ 'FILEMANAGER.NAV_TRASH' | translate }}
+          <span *ngIf="trashedFiles.length > 0" class="trash-badge">{{ trashedFiles.length }}</span>
+        </div>
       </div>
     </div>
 
@@ -36,60 +40,324 @@
         <div class="loading-spinner"></div>
       </div>
 
-      <!-- Toolbar -->
-      <div class="fm-toolbar">
-        <h5 class="fm-title">My CV's</h5>
-        <div class="fm-toolbar-right">
-          <div class="search-wrap">
-            <i class="bx bx-search"></i>
-            <input type="text" placeholder="Search files..." [(ngModel)]="searchKeyword"
-              (keyup)="searchFiles()" name="searchKeyword">
+      <!-- ── CVs Tab ─────────────────────────────────────────────────── -->
+      <ng-container *ngIf="activeTab === 'cvs'">
+
+        <!-- Toolbar -->
+        <div class="fm-toolbar">
+          <h5 class="fm-title">{{ 'FILEMANAGER.NAV_MY_CVS' | translate }}</h5>
+          <div class="fm-toolbar-right">
+
+            <!-- Search -->
+            <div class="search-wrap">
+              <i class="bx bx-search"></i>
+              <input type="text" [placeholder]="'FILEMANAGER.SEARCH_PH' | translate" [(ngModel)]="searchKeyword"
+                (ngModelChange)="onSearchChange($event)" name="searchKeyword">
+              <button *ngIf="searchKeyword" class="search-clear" (click)="clearSearch()" title="Clear">
+                <i class="bx bx-x"></i>
+              </button>
+            </div>
+
+            <!-- Filter button -->
+            <div class="filter-wrap">
+              <button #filterBtn class="btn-filter" [class.btn-filter--active]="activeFiltersCount > 0" (click)="toggleFilter()" title="Advanced filters">
+                <i class="bx bx-slider-alt"></i>
+                <span *ngIf="activeFiltersCount > 0" class="filter-badge">{{ activeFiltersCount }}</span>
+              </button>
+            </div>
+
           </div>
-          <button class="btn-icon" title="More options"><i class="bx bx-dots-vertical-rounded"></i></button>
         </div>
-      </div>
 
-      <!-- Table -->
-      <div class="fm-table-wrap">
-        <table class="fm-table">
-          <thead>
-            <tr>
-              <th>NAME</th>
-              <th>DATE MODIFIED</th>
-              <th>SIZE</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let file of files" (dblclick)="openFile(file.name)">
-              <td>
-                <div class="file-name">
-                  <div class="file-icon">
-                    <i [class]="getFileIcon(file.name)"></i>
+        <!-- Active filter chips -->
+        <div class="fm-active-filters" *ngIf="activeFiltersCount > 0">
+          <span class="af-label">Filters:</span>
+          <div class="af-chip" *ngIf="filterType !== 'all'">
+            <i class="bx bx-file-blank"></i> {{ filterType | titlecase }}
+            <button (click)="filterType='all'; applyFilters()"><i class="bx bx-x"></i></button>
+          </div>
+          <div class="af-chip" *ngIf="filterDate !== 'all'">
+            <i class="bx bx-calendar-event"></i> {{ filterDateLabel }}
+            <button (click)="filterDate='all'; filterDateFrom=''; filterDateTo=''; applyFilters()"><i class="bx bx-x"></i></button>
+          </div>
+          <div class="af-chip" *ngIf="filterYear !== 'all'">
+            <i class="bx bx-calendar-check"></i> {{ filterYear }}
+            <button (click)="filterYear='all'; applyFilters()"><i class="bx bx-x"></i></button>
+          </div>
+          <div class="af-chip" *ngIf="filterName.trim()">
+            <i class="bx bx-user-search"></i> "{{ filterName }}"
+            <button (click)="filterName=''; applyFilters()"><i class="bx bx-x"></i></button>
+          </div>
+          <div class="af-chip" *ngIf="sortBy !== 'date-newest'">
+            <i class="bx bx-sort-alt-2"></i> {{ sortLabel }}
+            <button (click)="sortBy='date-newest'; applyFilters()"><i class="bx bx-x"></i></button>
+          </div>
+          <button class="af-clear-all" (click)="clearFilters()">Clear all</button>
+        </div>
+
+        <!-- Table -->
+        <div class="fm-table-wrap">
+          <table class="fm-table">
+            <thead>
+              <tr>
+                <th>{{ 'FILEMANAGER.TABLE_NAME' | translate }}</th>
+                <th>{{ 'FILEMANAGER.TABLE_DATE_MODIFIED' | translate }}</th>
+                <th>{{ 'FILEMANAGER.TABLE_SIZE' | translate }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let file of files" (dblclick)="openFile(file.name)">
+                <td>
+                  <div class="file-name">
+                    <div class="file-icon">
+                      <i [class]="getFileIcon(file.name)"></i>
+                    </div>
+                    <span>{{ file.name }}</span>
                   </div>
-                  <span>{{ file.name }}</span>
-                </div>
-              </td>
-              <td class="td-muted">{{ file.dateModified }}</td>
-              <td class="td-muted">{{ file.size }}</td>
-              <td>
-                <div class="row-actions">
-                  <button class="act-btn" (click)="openFile(file.name)" title="Open"><i class="bx bx-show"></i></button>
-                  <button class="act-btn act-btn--del" (click)="deleteFile(file.name)" title="Delete"><i class="bx bx-trash"></i></button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td class="td-muted">{{ file.dateModified }}</td>
+                <td class="td-muted">{{ file.size }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="act-btn" (click)="openFile(file.name)"
+                            [title]="'FILEMANAGER.BTN_OPEN' | translate">
+                      <i class="bx bx-show"></i>
+                    </button>
+                    <button class="act-btn act-btn--forward" (click)="forwardToRecruitment(file)"
+                            [title]="'FILEMANAGER.BTN_FORWARD' | translate">
+                      <i class="bx bx-send"></i>
+                    </button>
+                    <button class="act-btn act-btn--del" (click)="moveToTrash(file)"
+                            [title]="'FILEMANAGER.BTN_DELETE' | translate">
+                      <i class="bx bx-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        <!-- Empty state -->
-        <div *ngIf="!isLoading && files.length === 0" class="empty-state">
-          <i class="bx bx-folder-open"></i>
-          <p>No files found</p>
-          <span>Upload a file to get started</span>
+          <!-- Empty state -->
+          <div *ngIf="!isLoading && files.length === 0" class="empty-state">
+            <i class="bx bx-folder-open"></i>
+            <p>{{ 'FILEMANAGER.NO_FILES' | translate }}</p>
+            <span>{{ 'FILEMANAGER.NO_FILES_DESC' | translate }}</span>
+          </div>
         </div>
-      </div>
+
+      </ng-container>
+
+      <!-- ── Trash Tab ───────────────────────────────────────────────── -->
+      <ng-container *ngIf="activeTab === 'trash'">
+
+        <!-- Toolbar -->
+        <div class="fm-toolbar">
+          <h5 class="fm-title">{{ 'FILEMANAGER.NAV_TRASH' | translate }}</h5>
+          <div class="fm-toolbar-right">
+            <button *ngIf="trashedFiles.length > 0" class="btn-empty-trash" (click)="emptyTrash()">
+              <i class="bx bx-trash"></i> {{ 'FILEMANAGER.BTN_EMPTY_TRASH' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="fm-table-wrap">
+          <table class="fm-table" *ngIf="trashedFiles.length > 0">
+            <thead>
+              <tr>
+                <th>{{ 'FILEMANAGER.TABLE_NAME' | translate }}</th>
+                <th>{{ 'FILEMANAGER.TABLE_DATE_MODIFIED' | translate }}</th>
+                <th>{{ 'FILEMANAGER.TABLE_SIZE' | translate }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let file of trashedFiles">
+                <td>
+                  <div class="file-name">
+                    <div class="file-icon">
+                      <i [class]="getFileIcon(file.name)"></i>
+                    </div>
+                    <span>{{ file.name }}</span>
+                  </div>
+                </td>
+                <td class="td-muted">{{ file.dateModified }}</td>
+                <td class="td-muted">{{ file.size }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="act-btn act-btn--restore" (click)="restoreFile(file)"
+                            [title]="'FILEMANAGER.BTN_RESTORE' | translate">
+                      <i class="bx bx-undo"></i>
+                    </button>
+                    <button class="act-btn act-btn--del" (click)="permanentlyDelete(file)"
+                            [title]="'FILEMANAGER.BTN_PERMANENT_DELETE' | translate">
+                      <i class="bx bx-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Empty trash state -->
+          <div *ngIf="trashedFiles.length === 0" class="empty-state">
+            <i class="bx bx-trash-alt"></i>
+            <p>{{ 'FILEMANAGER.TRASH_EMPTY_STATE' | translate }}</p>
+          </div>
+        </div>
+
+      </ng-container>
 
     </div>
   </div>
+</div>
+
+<!-- ══ Filter backdrop & panel — outside fm-page to escape overflow/transform ancestors ══ -->
+<div class="filter-backdrop" *ngIf="filterOpen" (click)="filterOpen=false"></div>
+
+<div class="filter-panel" *ngIf="filterOpen" (click)="$event.stopPropagation()"
+  [style.top.px]="filterPanelTop" [style.left.px]="filterPanelLeft">
+
+  <!-- Header -->
+  <div class="fp-header">
+    <div class="fp-header-left">
+      <i class="bx bx-slider-alt"></i>
+      <span>{{ 'FILEMANAGER.FILTER_TITLE' | translate }}</span>
+      <span class="fp-header-count" *ngIf="activeFiltersCount > 0">{{ activeFiltersCount }} {{ 'FILEMANAGER.FILTER_ACTIVE' | translate }}</span>
+    </div>
+    <button class="fp-close" (click)="filterOpen=false"><i class="bx bx-x"></i></button>
+  </div>
+
+  <!-- Body -->
+  <div class="fp-body">
+
+    <!-- 1. File Type -->
+    <div class="fp-section">
+      <div class="fp-label">
+        <i class="bx bx-file-blank"></i> {{ 'FILEMANAGER.FILTER_TYPE_LABEL' | translate }}
+        <span class="fp-label-active" *ngIf="filterType !== 'all'">{{ filterTypeLabel }}</span>
+      </div>
+      <div class="fp-chips">
+        <button class="fp-chip" [class.fp-chip--active]="filterType==='all'"
+          (click)="filterType='all'; applyFilters()">
+          <i class="bx bx-grid-alt"></i> {{ 'FILEMANAGER.FILTER_TYPE_ALL' | translate }}
+        </button>
+        <button class="fp-chip fp-chip--pdf" [class.fp-chip--active]="filterType==='pdf'"
+          (click)="filterType='pdf'; applyFilters()">
+          <i class="bx bxs-file-pdf"></i> PDF
+        </button>
+        <button class="fp-chip fp-chip--word" [class.fp-chip--active]="filterType==='word'"
+          (click)="filterType='word'; applyFilters()">
+          <i class="bx bxs-file-doc"></i> Word
+        </button>
+        <button class="fp-chip fp-chip--image" [class.fp-chip--active]="filterType==='image'"
+          (click)="filterType='image'; applyFilters()">
+          <i class="bx bxs-image"></i> Image
+        </button>
+        <button class="fp-chip" [class.fp-chip--active]="filterType==='other'"
+          (click)="filterType='other'; applyFilters()">
+          <i class="bx bx-file"></i> {{ 'FILEMANAGER.FILTER_TYPE_OTHER' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Date Modified -->
+    <div class="fp-section">
+      <div class="fp-label">
+        <i class="bx bx-calendar-event"></i> {{ 'FILEMANAGER.FILTER_DATE_LABEL' | translate }}
+        <span class="fp-label-active" *ngIf="filterDate !== 'all'">{{ filterDateLabel }}</span>
+      </div>
+      <div class="fp-chips">
+        <button class="fp-chip" [class.fp-chip--active]="filterDate==='all'"
+          (click)="filterDate='all'; filterDateFrom=''; filterDateTo=''; applyFilters()">{{ 'FILEMANAGER.FILTER_DATE_ANY' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="filterDate==='today'"
+          (click)="filterDate='today'; applyFilters()">{{ 'FILEMANAGER.FILTER_DATE_TODAY' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="filterDate==='week'"
+          (click)="filterDate='week'; applyFilters()">{{ 'FILEMANAGER.FILTER_DATE_WEEK' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="filterDate==='month'"
+          (click)="filterDate='month'; applyFilters()">{{ 'FILEMANAGER.FILTER_DATE_MONTH' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="filterDate==='year'"
+          (click)="filterDate='year'; applyFilters()">{{ 'FILEMANAGER.FILTER_DATE_YEAR' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="filterDate==='custom'"
+          (click)="filterDate='custom'; applyFilters()"><i class="bx bx-calendar-range"></i> {{ 'FILEMANAGER.FILTER_DATE_CUSTOM' | translate }}</button>
+      </div>
+      <div class="fp-date-range" *ngIf="filterDate==='custom'">
+        <div class="fp-date-field">
+          <label>{{ 'FILEMANAGER.FILTER_DATE_FROM' | translate }}</label>
+          <input type="date" [(ngModel)]="filterDateFrom" (ngModelChange)="applyFilters()" class="fp-date-input">
+        </div>
+        <i class="bx bx-right-arrow-alt fp-date-arrow"></i>
+        <div class="fp-date-field">
+          <label>{{ 'FILEMANAGER.FILTER_DATE_TO' | translate }}</label>
+          <input type="date" [(ngModel)]="filterDateTo" (ngModelChange)="applyFilters()" class="fp-date-input">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Upload Year -->
+    <div class="fp-section">
+      <div class="fp-label">
+        <i class="bx bx-calendar-check"></i> {{ 'FILEMANAGER.FILTER_YEAR_LABEL' | translate }}
+        <span class="fp-label-active" *ngIf="filterYear !== 'all'">{{ filterYear }}</span>
+      </div>
+      <div class="fp-chips">
+        <button class="fp-chip" [class.fp-chip--active]="filterYear==='all'"
+          (click)="filterYear='all'; applyFilters()">{{ 'FILEMANAGER.FILTER_YEAR_ALL' | translate }}</button>
+        <button class="fp-chip" *ngFor="let y of availableYears"
+          [class.fp-chip--active]="filterYear===y"
+          (click)="filterYear=y; applyFilters()">{{ y }}</button>
+      </div>
+    </div>
+
+    <!-- 4. Candidate Name -->
+    <div class="fp-section">
+      <div class="fp-label">
+        <i class="bx bx-user-search"></i> {{ 'FILEMANAGER.FILTER_NAME_LABEL' | translate }}
+        <span class="fp-label-active" *ngIf="filterName.trim()">{{ filterName }}</span>
+      </div>
+      <div class="fp-search-input-wrap">
+        <i class="bx bx-search"></i>
+        <input type="text" class="fp-search-input" [(ngModel)]="filterName"
+          (ngModelChange)="applyFilters()" [placeholder]="'FILEMANAGER.FILTER_NAME_PH' | translate">
+        <button *ngIf="filterName" class="fp-search-clear" (click)="filterName=''; applyFilters()">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 5. Sort By -->
+    <div class="fp-section">
+      <div class="fp-label">
+        <i class="bx bx-sort-alt-2"></i> {{ 'FILEMANAGER.FILTER_SORT_LABEL' | translate }}
+        <span class="fp-label-active" *ngIf="sortBy !== 'date-newest'">{{ sortLabel }}</span>
+      </div>
+      <div class="fp-chips">
+        <button class="fp-chip" [class.fp-chip--active]="sortBy==='date-newest'"
+          (click)="sortBy='date-newest'; applyFilters()"><i class="bx bx-up-arrow-alt"></i> {{ 'FILEMANAGER.FILTER_SORT_NEWEST' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="sortBy==='date-oldest'"
+          (click)="sortBy='date-oldest'; applyFilters()"><i class="bx bx-down-arrow-alt"></i> {{ 'FILEMANAGER.FILTER_SORT_OLDEST' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="sortBy==='name-asc'"
+          (click)="sortBy='name-asc'; applyFilters()"><i class="bx bx-sort-a-z"></i> {{ 'FILEMANAGER.FILTER_SORT_AZ' | translate }}</button>
+        <button class="fp-chip" [class.fp-chip--active]="sortBy==='name-desc'"
+          (click)="sortBy='name-desc'; applyFilters()"><i class="bx bx-sort-z-a"></i> {{ 'FILEMANAGER.FILTER_SORT_ZA' | translate }}</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="fp-footer">
+    <div class="fp-result-count">
+      <i class="bx bx-file-find"></i>
+      {{ files.length }} {{ (files.length !== 1 ? 'FILEMANAGER.FILTER_RESULT_MANY' : 'FILEMANAGER.FILTER_RESULT_ONE') | translate }}
+    </div>
+    <div class="fp-footer-actions">
+      <button class="fp-btn-clear" (click)="clearFilters()" [disabled]="activeFiltersCount === 0">
+        <i class="bx bx-reset"></i> {{ 'FILEMANAGER.FILTER_RESET' | translate }}
+      </button>
+      <button class="fp-btn-apply" (click)="filterOpen=false">{{ 'FILEMANAGER.FILTER_DONE' | translate }}</button>
+    </div>
+  </div>
+
 </div>

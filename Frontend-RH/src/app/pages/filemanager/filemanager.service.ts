@@ -57,6 +57,19 @@ export class FileManagerService {
         return `${this.BASE}/view?filename=${encodeURIComponent(filename)}`;
     }
 
+    getFileBlob(filename: string): Observable<Blob> {
+        return this.http.get(
+            `${this.BASE}/view`,
+            { params: { filename }, responseType: 'blob', observe: 'response' }
+        ).pipe(
+            map(res => {
+                const ct = res.headers.get('Content-Type') ?? 'application/octet-stream';
+                return new Blob([res.body!], { type: ct });
+            }),
+            catchError(this.handleError)
+        );
+    }
+
     private handleError(err: any): Observable<never> {
         return throwError(() => err);
     }

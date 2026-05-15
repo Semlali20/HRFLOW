@@ -1,155 +1,130 @@
-<header id="page-topbar">
-  <div class="navbar-header">
-    <div class="d-flex" style="    display: flex !important;
-    flex-wrap: nowrap;
-    align-content: center;
-    justify-content: flex-start;
-    align-items: center;">
-      <!-- LOGO -->
-      <div class="navbar-brand-box">
-        <a routerLink="/" class="logo logo-dark" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-          <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-            <path d="M14 2L17.09 9.26L25 10.27L19.5 15.64L20.9 23.5L14 19.77L7.1 23.5L8.5 15.64L3 10.27L10.91 9.26L14 2Z"
-              fill="#2FA8A0" stroke="#2FA8A0" stroke-width="1.5" stroke-linejoin="round"/>
-          </svg>
-          <span style="font-size:18px;font-weight:700;color:#1A2B3C;letter-spacing:0.3px;">Wiko</span>
-        </a>
-        <a routerLink="/" class="logo logo-light" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-          <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-            <path d="M14 2L17.09 9.26L25 10.27L19.5 15.64L20.9 23.5L14 19.77L7.1 23.5L8.5 15.64L3 10.27L10.91 9.26L14 2Z"
-              fill="#2FA8A0" stroke="#2FA8A0" stroke-width="1.5" stroke-linejoin="round"/>
-          </svg>
-          <span style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.3px;">Wiko</span>
-        </a>
-      </div>
+<header id="page-topbar" class="tb-bar" (click)="onBarClick($event)">
 
-      <!-- <button type="button" class="btn btn-sm px-3 font-size-16 header-item" id="vertical-menu-btn"
-        (click)="toggleMobileMenu($event)">
-        <i class="fa fa-fw fa-bars"></i>
-      </button> -->
-<!-- App Search -->
-<!-- App Search -->
-<form class="app-search d-none d-xl-block" style="margin-left: 20px;">
-  <div class="position-relative" style="display: inline-block;">
-    <input type="text" class="form-control" placeholder="{{'HEADER.SEARCH' | translate}}">
-    <span class="bx bx-search-alt"></span>
-  </div>
-</form>
-
-    </div>
-
-    <div class="d-flex" style="align-items:center;">
-
-      <!-- ── Theme Switcher ── -->
-      <div class="theme-switcher">
-        <button class="ts-btn" [class.active]="currentTheme==='light'" (click)="setTheme('light')" title="Light">
-          <i class="bx bx-sun"></i>
-          <span class="ts-tooltip">Light</span>
-        </button>
-        <button class="ts-btn" [class.active]="currentTheme==='dark'" (click)="setTheme('dark')" title="Dark">
-          <i class="bx bx-moon"></i>
-          <span class="ts-tooltip">Dark</span>
-        </button>
-        <button class="ts-btn" [class.active]="currentTheme==='teal'" (click)="setTheme('teal')" title="Teal">
-          <i class="bx bxs-color-fill"></i>
-          <span class="ts-tooltip">Teal</span>
-        </button>
-      </div>
-
-      <div class="dropdown d-inline-block d-lg-none ms-2" dropdown>
-        <button type="button" class="btn header-item noti-icon" id="page-header-search-dropdown" data-toggle="dropdown"
-          aria-haspopup="true" dropdownToggle aria-expanded="false">
-          <i class="mdi mdi-magnify"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" *dropdownMenu
-          aria-labelledby="page-header-search-dropdown">
-          <form class="p-3">
-            <div class="m-0">
-              <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search ..." aria-label="Recipient's username">
-                <div class="input-group-append">
-                  <button class="btn btn-primary" type="submit"><i class="mdi mdi-magnify"></i></button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-<!-- topbar.component.html -->
-<div class="dropdown d-inline-block" dropdown>
-  <button type="button" class="btn header-item noti-icon position-relative" id="page-header-notifications-dropdown" dropdownToggle (click)="markAllRead()">
-    <i class="bx bx-bell bx-tada"></i>
-    <span *ngIf="unreadCount > 0" class="badge notification-badge">{{ unreadCount }}</span>
-  </button>
-  <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown" *dropdownMenu>
-    <div class="p-3">
-      <div class="row align-items-center">
-        <div class="col">
-          <h6 class="m-0">{{ 'HEADER.NOTIFICATIONS.TITLE' | translate }}</h6>
-        </div>
-        <div class="col-auto">
-          <a href="javascript: void(0);" class="small">{{ 'HEADER.NOTIFICATIONS.VIEW_ALL' | translate }}</a>
-        </div>
-      </div>
-    </div>
-    <ngx-simplebar style="position: relative; height: 230px;">
-      <a *ngFor="let notification of notifications" href="javascript: void(0);" class="text-reset notification-item">
-        <div class="d-flex">
-          <div class="avatar-xs me-3">
-            <span class="avatar-title bg-primary rounded-circle font-size-16">
-              <i [class]="notification.icon"></i>
-            </span>
-          </div>
-          <div class="flex-grow-1">
-            <h6 class="mb-1">{{ notification.title }}</h6>
-            <div class="font-size-12 text-muted">
-              <p class="mb-1">{{ notification.message }}</p>
-              <p class="mb-0"><i class="mdi mdi-clock-outline"></i> {{ notification.time }}</p>
-            </div>
-          </div>
-        </div>
-      </a>
-    </ngx-simplebar>
-    <div class="p-2 border-top d-grid">
-      <a class="btn btn-sm btn-link font-size-14 text-center" href="/chat">
-        <i class="mdi mdi-arrow-right-circle me-1"></i> <span key="t-view-more">{{ 'HEADER.NOTIFICATIONS.LOAD_MORE' | translate }}</span>
-      </a>
+  <!-- ── LEFT: Logo ───────────────────────────────────────────────────── -->
+  <div class="tb-left">
+    <div class="tb-logo">
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L17.09 9.26L25 10.27L19.5 15.64L20.9 23.5L14 19.77L7.1 23.5L8.5 15.64L3 10.27L10.91 9.26L14 2Z"
+          fill="#2FA8A0" stroke="#2FA8A0" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      <span class="tb-logo-name">HRFLOW</span>
     </div>
   </div>
-</div>
 
+  <!-- ── RIGHT: Actions ───────────────────────────────────────────────── -->
+  <div class="tb-right">
 
+    <!-- Language -->
+    <div class="tb-icon-btn tb-lang-btn" [class.tb-icon-btn--open]="langOpen" (click)="togglePanel('lang', $event)">
+      <img class="tb-flag-icon" [src]="flagvalue || 'assets/images/flags/us.jpg'" alt="lang">
 
-
-      <div class="dropdown d-inline-block" dropdown>
-        <button type="button" class="btn header-item" dropdownToggle id="page-header-user-dropdown">
-          <style>
-            .bx {
-              font-size: 24px; /* Adjust the size as needed */
-            }
-          </style>
-          <i class="bx bx-user-circle" ></i>
-          <span class="d-none d-xl-inline-block ms-1">{{username}} </span>
-          <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-end" *dropdownMenu>
-          <!-- item-->
-          <a class="dropdown-item" routerLink="/contacts/profile"><i class="bx bx-user font-size-16 align-middle me-1"></i>
-            {{ 'HEADER.LOGIN.PROFILE' | translate}}</a>
-
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item text-danger" href="javascript: void(0);" (click)="logout()"><i
-              class="bx bx-power-off font-size-16 align-middle me-1 text-danger"></i>
-            {{ 'HEADER.LOGIN.LOGOUT' | translate}}</a>
+      <div class="tb-dropdown tb-lang-bubbles" (click)="$event.stopPropagation()">
+        <div class="tb-bubbles-row">
+          <button *ngFor="let l of listLang"
+                  class="tb-bubble tb-bubble--lang"
+                  [class.tb-bubble--active]="cookieValue === l.lang"
+                  (click)="setLanguage(l.text, l.lang, l.flag); langOpen=false"
+                  [title]="l.text">
+            <img [src]="l.flag" [alt]="l.text">
+            <i *ngIf="cookieValue === l.lang" class="bx bx-check tb-bubble-check"></i>
+          </button>
         </div>
       </div>
-
-      <!-- <div class="dropdown d-inline-block">
-        <button type="button" class="btn header-item noti-icon right-bar-toggle" (click)="toggleRightSidebar()">
-          <i class="bx bx-cog bx-spin"></i>
-        </button>
-      </div> -->
-
     </div>
+
+    <!-- Theme -->
+    <div class="tb-icon-btn tb-theme-btn" [class.tb-icon-btn--open]="themeOpen" (click)="togglePanel('theme', $event)">
+      <i class="bx"
+         [class.bx-sun]="currentTheme==='light'"
+         [class.bx-moon]="currentTheme==='dark'"
+         [class.bxs-color-fill]="currentTheme==='teal'"></i>
+
+      <div class="tb-dropdown tb-theme-bubbles" (click)="$event.stopPropagation()">
+        <div class="tb-bubbles-row">
+          <button class="tb-bubble tb-bubble--light" [class.tb-bubble--active]="currentTheme==='light'"
+                  (click)="setTheme('light'); themeOpen=false" title="{{ 'TOPBAR.THEME_LIGHT' | translate }}">
+            <i class="bx bx-sun"></i>
+            <i *ngIf="currentTheme==='light'" class="bx bx-check tb-bubble-check"></i>
+          </button>
+          <button class="tb-bubble tb-bubble--dark" [class.tb-bubble--active]="currentTheme==='dark'"
+                  (click)="setTheme('dark'); themeOpen=false" title="{{ 'TOPBAR.THEME_DARK' | translate }}">
+            <i class="bx bx-moon"></i>
+            <i *ngIf="currentTheme==='dark'" class="bx bx-check tb-bubble-check"></i>
+          </button>
+          <button class="tb-bubble tb-bubble--teal" [class.tb-bubble--active]="currentTheme==='teal'"
+                  (click)="setTheme('teal'); themeOpen=false" title="{{ 'TOPBAR.THEME_TEAL' | translate }}">
+            <i class="bx bxs-color-fill"></i>
+            <i *ngIf="currentTheme==='teal'" class="bx bx-check tb-bubble-check"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="tb-icon-btn" [class.tb-icon-btn--open]="notifOpen" (click)="togglePanel('notif', $event)">
+      <i class="bx bx-bell"></i>
+      <span *ngIf="unreadCount > 0" class="tb-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+
+      <div class="tb-dropdown tb-notif-panel" (click)="$event.stopPropagation()">
+        <div class="tb-notif-head">
+          <span class="tb-notif-title">{{ 'TOPBAR.NOTIFICATIONS' | translate }}
+            <span *ngIf="unreadCount > 0" class="tb-notif-count">{{ unreadCount }}</span>
+          </span>
+          <button class="tb-notif-markall" (click)="markAllRead()">{{ 'TOPBAR.MARK_ALL_READ' | translate }}</button>
+        </div>
+        <div class="tb-notif-list">
+          <div *ngIf="notifications.length === 0" class="tb-notif-empty">
+            <i class="bx bx-bell-off"></i>
+            <span>{{ 'TOPBAR.NO_NOTIFICATIONS' | translate }}</span>
+          </div>
+          <a *ngFor="let n of notifications" class="tb-notif-item" [class.tb-notif-item--unread]="!n.read"
+             [href]="n.actionUrl || 'javascript:void(0)'">
+            <div class="tb-notif-dot" [ngClass]="notifTypeClass(n.type)"></div>
+            <div class="tb-notif-body">
+              <div class="tb-notif-msg">{{ n.title }}</div>
+              <div class="tb-notif-sub">{{ n.message }}</div>
+              <div class="tb-notif-time">{{ n.createdAt | date:'dd MMM, HH:mm' }}</div>
+            </div>
+          </a>
+        </div>
+        <div class="tb-notif-foot">
+          <a routerLink="/chat" (click)="notifOpen=false">{{ 'TOPBAR.VIEW_ALL_NOTIFS' | translate }}</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile -->
+    <div class="tb-profile" [class.tb-profile--open]="profileOpen" (click)="togglePanel('profile', $event)">
+      <div class="tb-avatar">{{ userInitials }}</div>
+      <div class="tb-profile-info">
+        <span class="tb-profile-name">{{ username }}</span>
+        <span class="tb-profile-role">{{ userRole }}</span>
+      </div>
+      <i class="bx bx-chevron-down tb-chevron"></i>
+
+      <div class="tb-dropdown tb-profile-panel" (click)="$event.stopPropagation()">
+        <div class="tb-profile-header">
+          <div class="tb-avatar tb-avatar--lg">{{ userInitials }}</div>
+          <div>
+            <div class="tb-profile-hname">{{ username }}</div>
+            <div class="tb-profile-hrole">{{ userRole }}</div>
+          </div>
+        </div>
+        <div class="tb-profile-menu">
+          <a class="tb-profile-item" routerLink="/contacts/profile" (click)="profileOpen=false">
+            <i class="bx bx-user"></i> {{ 'TOPBAR.MY_PROFILE' | translate }}
+          </a>
+          <a class="tb-profile-item" routerLink="/settings" (click)="profileOpen=false">
+            <i class="bx bx-cog"></i> {{ 'TOPBAR.SETTINGS' | translate }}
+          </a>
+        </div>
+        <div class="tb-profile-footer">
+          <button class="tb-logout-btn" (click)="logout()">
+            <i class="bx bx-log-out"></i> {{ 'TOPBAR.LOGOUT' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </header>

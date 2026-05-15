@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { AuthUser } from '../models/auth.models';
 import { environment } from 'src/environments/environment';
 
@@ -15,9 +15,21 @@ export class AuthenticationService {
     constructor(private http: HttpClient, private router: Router) {}
 
     loginUser(email: string, password: string): Observable<AuthUser> {
-        return this.http.post<AuthUser>(`${this.BASE_URL}/login`, { email, password }).pipe(
-            tap(response => {
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(response));
+        return this.http.post<any>(`${this.BASE_URL}/login`, { email, password }).pipe(
+            map(response => ({
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+                tokenType: response.tokenType ?? 'Bearer',
+                id: response.id,
+                firstname: response.firstName,
+                lastname: response.lastName,
+                email: response.email,
+                title: response.title,
+                userRole: Array.isArray(response.roles) ? (response.roles[0] ?? '') : (response.userRole ?? ''),
+                permissions: response.permissions ?? [],
+            } as AuthUser)),
+            tap(user => {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
             }),
             catchError(err => {
                 console.error('Login failed:', err);
@@ -60,16 +72,10 @@ export class AuthenticationService {
         this.router.navigate(['/account/auth/login']);
     }
 
-    editPassword(oldPassword: string, newPassword: string): Observable<string> {
-        const user = this.getAuthenticatedUser();
-        if (!user?.email) return throwError(() => new Error('Not authenticated'));
-        const params = new HttpParams()
-            .set('email', user.email)
-            .set('oldPassword', oldPassword)
-            .set('newPassword', newPassword);
-        return this.http.put(`${this.BASE_URL}/password`, null, {
-            params,
-            responseType: 'text'
+    editPassword(oldPassword: string, newPassword: string): Observable<any> {
+        return this.http.put(`${this.BASE_URL}/password`, {
+            currentPassword: oldPassword,
+            newPassword
         });
     }
 
@@ -111,11 +117,29 @@ export class AuthenticationService {
         localStorage.removeItem(this.STORAGE_KEY);
     }
 
+    forgotPassword(email: string): Observable<any> {
+        return this.http.post(`${this.BASE_URL}/forgot-password`, { email });
+    }
+
+    verifyOtp(email: string, otp: string): Observable<any> {
+        return this.http.post(`${this.BASE_URL}/verify-otp`, { email, otp });
+    }
+
+    resetPassword(email: string, otp: string, newPassword: string): Observable<any> {
+        return this.http.post(`${this.BASE_URL}/reset-password`, { email, otp, newPassword });
+    }
+
     registerUser(firstName: string, lastName: string, email: string, title: string, userRole: string): Observable<void> {
         if (!firstName || !lastName || !email || !userRole) {
             return throwError(() => new Error('firstName, lastName, email and userRole are required'));
         }
-        return this.http.post<void>(`${this.BASE_URL}/register`, { firstName, lastName, email, title, userRole }).pipe(
+        return this.http.post<void>(`${this.BASE_URL}/register`, {
+            firstName,
+            lastName,
+            email,
+            title,
+            roles: [userRole],
+        }).pipe(
             catchError(err => throwError(() => err))
         );
     }

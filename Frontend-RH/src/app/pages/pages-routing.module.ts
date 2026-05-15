@@ -8,6 +8,7 @@ import { FilemanagerComponent } from './filemanager/filemanager.component';
 import { CollaborateurComponent } from './Collaborateur/collaborateur.component';
 import { UploadsComponent } from './uploads/uploads.component';
 import { LeaveListComponent } from './leave/leave-list/leave-list.component';
+import { LeaveBalanceComponent } from './leave/leave-balance/leave-balance.component';
 import { DayoffComponent } from './dayoff/dayoff.component';
 import { AttendanceComponent } from './attendance/attendance.component';
 import { SalaryComponent } from './salary/salary.component';
@@ -16,13 +17,19 @@ import { ProjectsHrComponent } from './projects-hr/projects-hr.component';
 import { SettingComponent } from './setting/setting.component';
 import { PlanningComponent } from './planning/planning.component';
 import { AuditLogComponent } from './audit/audit-log.component';
-import { ReportsComponent } from './reports/reports.component';
 import { UserManagementComponent } from './admin/user-management/user-management.component';
 import { RoleManagementComponent } from './admin/role-management/role-management.component';
+import { OrgComponent } from './org/org.component';
+import { PublicHolidaysComponent } from './public-holidays/public-holidays.component';
+import { DocumentsComponent } from './documents/documents.component';
+import { MeetingsComponent } from './meetings/meetings.component';
+import { StagiairesComponent } from './stagiaires/stagiaires.component';
+import { StatisticsComponent } from './statistics/statistics.component';
 
 
 const routes: Routes = [
 
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard', component: DefaultComponent },
   { path: 'calendar', component: CalendarComponent },
   { path: 'chat', component: ChatComponent },
@@ -30,6 +37,7 @@ const routes: Routes = [
   { path: 'collaborateur', component: CollaborateurComponent },
   { path: 'UploadsCv', component: UploadsComponent },
   { path: 'leave', component: LeaveListComponent },
+  { path: 'leave/balance', component: LeaveBalanceComponent },
   { path: 'dayoff', component: DayoffComponent },
   { path: 'attendance', component: AttendanceComponent },
   { path: 'salary', component: SalaryComponent },
@@ -38,11 +46,15 @@ const routes: Routes = [
   { path: 'settings', component: SettingComponent },
   { path: 'planning', component: PlanningComponent },
   { path: 'audit', component: AuditLogComponent },
-  { path: 'reports', component: ReportsComponent },
   { path: 'admin/users', component: UserManagementComponent },
   { path: 'admin/roles', component: RoleManagementComponent },
+  { path: 'org', component: OrgComponent },
+  { path: 'public-holidays', component: PublicHolidaysComponent },
+  { path: 'documents', component: DocumentsComponent },
+  { path: 'meetings', component: MeetingsComponent },
   { path: 'dashboards', loadChildren: () => import('./dashboards/dashboards.module').then(m => m.DashboardsModule) },
-  { path: 'stagiaires', loadChildren: () => import('./projects/projects.module').then(m => m.ProjectsModule) },
+  { path: 'stagiaires', component: StagiairesComponent },
+  { path: 'statistics', component: StatisticsComponent },
   { path: 'tasks', loadChildren: () => import('./tasks/tasks.module').then(m => m.TasksModule) },
   { path: 'contacts', loadChildren: () => import('./contacts/contacts.module').then(m => m.ContactsModule) },
   { path: 'pages', loadChildren: () => import('./utility/utility.module').then(m => m.UtilityModule) },

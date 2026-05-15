@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-uploads',
@@ -12,13 +13,18 @@ export class UploadsComponent implements OnInit {
   breadCrumbItems: Array<{}>;
   files: File[] = [];
 
-  constructor(private router: Router, private collaborateurService: CollaborateurService) {}
+  constructor(
+    private router: Router,
+    private collaborateurService: CollaborateurService,
+    private confirmSvc: ConfirmService,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit() {
     this.breadCrumbItems = [{ label: 'Forms' }, { label: 'Form File Upload', active: true }];
   }
 
-  onSelect(event: any) {
+  async onSelect(event: any): Promise<void> {
     const file = event.addedFiles[0];
     const validTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -28,7 +34,7 @@ export class UploadsComponent implements OnInit {
     if (file && validTypes.includes(file.type)) {
       this.files.push(file);
     } else {
-      Swal.fire('Invalid file type', 'Please upload an Excel or CSV file.', 'error');
+      await this.confirmSvc.alert(this.translate.instant('FORM_IMPORT.INVALID_FILE_TYPE'), this.translate.instant('FORM_IMPORT.INVALID_FILE_TITLE'), 'error');
     }
   }
 
@@ -36,14 +42,17 @@ export class UploadsComponent implements OnInit {
     this.files.splice(this.files.indexOf(event), 1);
   }
 
-  onUpload() {
+  async onUpload(): Promise<void> {
     if (this.files.length === 0) {
-      Swal.fire('No files selected', 'Please select a file to upload.', 'error');
+      await this.confirmSvc.alert(this.translate.instant('FORM_IMPORT.NO_FILE'), this.translate.instant('FORM_IMPORT.NO_FILE_TITLE'), 'error');
       return;
     }
     this.collaborateurService.importFromExcel(this.files[0]).subscribe({
-      next: () => Swal.fire('Success', 'File uploaded successfully', 'success').then(() => this.router.navigate(['/collaborateur'])),
-      error: () => Swal.fire('Error', 'There was an error uploading the file', 'error')
+      next: async () => {
+        await this.confirmSvc.alert(this.translate.instant('FORM_IMPORT.SUCCESS'), this.translate.instant('FORM_IMPORT.SUCCESS_TITLE'), 'success');
+        this.router.navigate(['/collaborateur']);
+      },
+      error: async () => await this.confirmSvc.alert(this.translate.instant('FORM_IMPORT.ERROR'), this.translate.instant('FORM_IMPORT.ERROR_TITLE'), 'error'),
     });
   }
 }

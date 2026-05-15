@@ -1,13 +1,18 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { ThemeService, AppTheme } from '../../core/services/theme.service';
 import { AuthenticationService } from '../../core/services/auth.service';
+import { AdminService } from '../admin/admin.service';
+import { environment } from 'src/environments/environment';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
 @Component({
   selector: 'app-setting',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule, WallClockComponent],
   styles: [`
     :host { display:block; }
     .page { padding:0 24px 80px; animation:fadeIn .4s ease both; }
@@ -69,11 +74,72 @@ import { AuthenticationService } from '../../core/services/auth.service';
     .toggle input:checked + .toggle-slider { background:#1B7872; }
     .toggle input:checked + .toggle-slider:before { transform:translateX(20px); }
 
-    .theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:8px; }
-    .theme-box { border-radius:10px; overflow:hidden; cursor:pointer; border:2px solid transparent; transition:all .2s; }
-    .theme-box.selected { border-color:#2FA8A0; }
-    .theme-preview { height:72px; }
-    .theme-label { font-size:12px; font-weight:600; color:#4A6080; margin-top:8px; text-align:center; }
+    /* ── Theme Picker ── */
+    .theme-section-desc { font-size:13px; color:#8FA3B8; margin:-8px 0 28px; line-height:1.6; }
+    .theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+
+    .theme-card {
+      border-radius:14px; border:2px solid #F0F3F6; cursor:pointer;
+      background:#fff; transition:border-color .2s, box-shadow .2s;
+      overflow:hidden; position:relative;
+    }
+    .theme-card:hover { border-color:#CBD5E0; box-shadow:0 4px 16px rgba(22,34,51,.08); }
+    .theme-card.selected { border-color:#2FA8A0; box-shadow:0 0 0 4px rgba(47,168,160,.12); }
+
+    /* checkmark badge */
+    .theme-check {
+      position:absolute; top:10px; right:10px; width:22px; height:22px;
+      border-radius:50%; background:#2FA8A0; display:none;
+      align-items:center; justify-content:center; z-index:2;
+    }
+    .theme-check i { font-size:13px; color:#fff; }
+    .theme-card.selected .theme-check { display:flex; }
+
+    /* mini UI mockup */
+    .theme-mockup {
+      height:130px; overflow:hidden; display:flex; border-bottom:1px solid #F0F3F6;
+    }
+    .tm-sidebar { width:36px; height:100%; display:flex; flex-direction:column; gap:6px; padding:10px 6px; flex-shrink:0; }
+    .tm-sb-dot { width:20px; height:4px; border-radius:3px; opacity:.7; }
+    .tm-sb-dot.active { opacity:1; }
+    .tm-content { flex:1; padding:10px; display:flex; flex-direction:column; gap:7px; }
+    .tm-topbar { height:18px; border-radius:5px; width:100%; }
+    .tm-row { display:flex; gap:6px; }
+    .tm-card { border-radius:6px; height:28px; flex:1; }
+    .tm-card.wide { flex:2; }
+    .tm-line { height:6px; border-radius:3px; width:70%; }
+    .tm-line.short { width:40%; }
+
+    /* Light theme colors */
+    .tm-light .tm-sidebar { background:#F8FAFC; }
+    .tm-light .tm-sb-dot { background:#CBD5E0; }
+    .tm-light .tm-sb-dot.active { background:#2FA8A0; }
+    .tm-light .tm-content { background:#F1F5F9; }
+    .tm-light .tm-topbar { background:#fff; }
+    .tm-light .tm-card { background:#fff; }
+    .tm-light .tm-line { background:#E2E8F0; }
+
+    /* Dark theme colors */
+    .tm-dark .tm-sidebar { background:#0F172A; }
+    .tm-dark .tm-sb-dot { background:#334155; }
+    .tm-dark .tm-sb-dot.active { background:#2FA8A0; }
+    .tm-dark .tm-content { background:#1E293B; }
+    .tm-dark .tm-topbar { background:#0F172A; }
+    .tm-dark .tm-card { background:#0F172A; }
+    .tm-dark .tm-line { background:#334155; }
+
+    /* Teal theme colors */
+    .tm-teal .tm-sidebar { background:#1B7872; }
+    .tm-teal .tm-sb-dot { background:rgba(255,255,255,.35); }
+    .tm-teal .tm-sb-dot.active { background:#fff; }
+    .tm-teal .tm-content { background:#F0FDF9; }
+    .tm-teal .tm-topbar { background:#fff; }
+    .tm-teal .tm-card { background:#fff; }
+    .tm-teal .tm-line { background:#CCEDE9; }
+
+    .theme-card-body { padding:14px 16px; }
+    .theme-card-name { font-size:14px; font-weight:700; color:#1A2B3C; margin:0 0 3px; }
+    .theme-card-desc { font-size:12px; color:#8FA3B8; margin:0; }
 
     .integration-item { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid #F5F7FA; }
     .integration-item:last-child { border-bottom:none; }
@@ -96,9 +162,16 @@ import { AuthenticationService } from '../../core/services/auth.service';
   template: `
   <div class="page">
 
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div style="flex:1;display:flex;align-items:center;padding:14px 20px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(22,34,51,.08);">
+        <h4 style="font-size:22px;font-weight:700;color:#1A2B3C;margin:0;">Settings</h4>
+      </div>
+      <app-wall-clock></app-wall-clock>
+    </div>
+
     <!-- Tabs bar -->
     <div class="tabs-bar">
-      <button *ngFor="let t of tabs" class="tab-btn" [class.active]="activeTab===t.key" (click)="activeTab=t.key">{{ t.label }}</button>
+      <button *ngFor="let t of tabs" class="tab-btn" [class.active]="activeTab===t.key" (click)="activeTab=t.key">{{ t.label | translate }}</button>
     </div>
 
     <!-- Content -->
@@ -106,13 +179,13 @@ import { AuthenticationService } from '../../core/services/auth.service';
 
       <!-- General -->
       <ng-container *ngIf="activeTab==='general'">
-        <p class="section-head">Organizational Profile</p>
+        <p class="section-head">{{ 'SETTING.SECTION_ORG_PROFILE' | translate }}</p>
 
         <!-- Logo -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Organizational Logo</p>
-            <p class="fr-desc">Utilize a visual element such as a photo or image instead of text, and upload an image that is 132 pixels square or round.</p>
+            <p class="fr-label">{{ 'SETTING.ORG_LOGO' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.ORG_LOGO_DESC' | translate }}</p>
           </div>
           <div class="fr-right">
             <div class="logo-row">
@@ -127,22 +200,22 @@ import { AuthenticationService } from '../../core/services/auth.service';
         <!-- Display Name -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Display Name</p>
-            <p class="fr-desc">How your organization name will be appear to employees.</p>
+            <p class="fr-label">{{ 'SETTING.FIELD_DISPLAY_NAME' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.DISPLAY_NAME_DESC' | translate }}</p>
           </div>
           <div class="fr-right">
-            <input class="form-input" [(ngModel)]="org.name" placeholder="Cadavor Ltd.">
+            <input class="form-input" [(ngModel)]="org.name" [placeholder]="'SETTING.ORG_NAME_PH' | translate">
           </div>
         </div>
 
         <hr class="divider">
-        <p class="section-head">Your Profile</p>
+        <p class="section-head">{{ 'SETTING.SECTION_YOUR_PROFILE' | translate }}</p>
 
         <!-- Profile Picture -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Profile Picture</p>
-            <p class="fr-desc">Your profile will be visible to all employees, so please ensure it reflects a professional and polished image.</p>
+            <p class="fr-label">{{ 'SETTING.PROFILE_PICTURE' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.PROFILE_PIC_DESC' | translate }}</p>
           </div>
           <div class="fr-right">
             <div class="avatar-circle">
@@ -154,19 +227,19 @@ import { AuthenticationService } from '../../core/services/auth.service';
         <!-- Full Name -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Full Name</p>
-            <p class="fr-desc">Kindly input the complete and formal version as it will be displayed across all employee records.</p>
+            <p class="fr-label">{{ 'SETTING.FIELD_FULL_NAME' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.FULL_NAME_DESC' | translate }}</p>
           </div>
           <div class="fr-right">
-            <input class="form-input" [(ngModel)]="user.fullName" placeholder="Maria Karl">
+            <input class="form-input" [(ngModel)]="user.fullName" [placeholder]="'SETTING.FIELD_FULL_NAME' | translate">
           </div>
         </div>
 
         <!-- Employee ID -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Employee ID</p>
-            <p class="fr-desc">This information can not be changed anytime.</p>
+            <p class="fr-label">{{ 'SETTING.FIELD_EMP_ID' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.EMP_ID_DESC' | translate }}</p>
           </div>
           <div class="fr-right">
             <input class="form-input" [value]="user.empId" placeholder="123456789" disabled>
@@ -176,88 +249,74 @@ import { AuthenticationService } from '../../core/services/auth.service';
         <!-- Email -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Email Address</p>
-            <p class="fr-desc">This will be used to log in to your account and can't be change.</p>
+            <p class="fr-label">{{ 'SETTING.FIELD_EMAIL' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.EMAIL_LOGIN_DESC' | translate }}</p>
           </div>
           <div class="fr-right">
-            <input class="form-input" [value]="user.email" placeholder="mariakarl@example.com" disabled>
+            <input class="form-input" [value]="user.email" [placeholder]="'SETTING.EMAIL_LOGIN_PH' | translate" disabled>
           </div>
         </div>
 
         <!-- Role -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Role</p>
-            <p class="fr-desc">Ensure your role is accurately defined, as it determines your access permissions within this account.</p>
+            <p class="fr-label">{{ 'SETTING.FIELD_ROLE' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.ROLE_DESC' | translate }}</p>
           </div>
           <div class="fr-right">
-            <select class="form-input" [(ngModel)]="user.role">
-              <option>Human Resource</option><option>Manager</option><option>Developer</option><option>Finance</option>
-            </select>
+            <input class="form-input" [value]="user.role" disabled>
           </div>
         </div>
 
-        <!-- Start Date -->
+        <!-- Title -->
         <div class="form-row">
           <div class="fr-left">
-            <p class="fr-label">Start Date</p>
-            <p class="fr-desc">This information is for your reference only and cannot be altered.</p>
+            <p class="fr-label">{{ 'SETTING.FIELD_TITLE' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.TITLE_PH' | translate }}</p>
           </div>
           <div class="fr-right">
-            <select class="form-input" [(ngModel)]="user.startDate">
-              <option>January 23, 2024</option>
-            </select>
+            <input class="form-input" [(ngModel)]="user.title" [placeholder]="'SETTING.TITLE_PH' | translate">
           </div>
         </div>
       </ng-container>
 
       <!-- Security -->
       <ng-container *ngIf="activeTab==='security'">
-        <p class="section-head">Security Settings</p>
+        <p class="section-head">{{ 'SETTING.SECTION_SECURITY' | translate }}</p>
         <div class="pw-grid" style="margin-bottom:24px;">
           <div class="form-group">
-            <label class="form-label">Current Password</label>
-            <input class="form-input" type="password" placeholder="••••••••">
+            <label class="form-label">{{ 'SETTING.FIELD_CURRENT_PASSWORD' | translate }}</label>
+            <input class="form-input" type="password" [(ngModel)]="security.currentPassword" placeholder="••••••••">
           </div>
           <div></div>
           <div class="form-group">
-            <label class="form-label">New Password</label>
-            <input class="form-input" type="password" placeholder="••••••••">
+            <label class="form-label">{{ 'SETTING.FIELD_NEW_PASSWORD' | translate }}</label>
+            <input class="form-input" type="password" [(ngModel)]="security.newPassword" placeholder="••••••••">
           </div>
           <div class="form-group">
-            <label class="form-label">Confirm New Password</label>
-            <input class="form-input" type="password" placeholder="••••••••">
+            <label class="form-label">{{ 'SETTING.FIELD_CONFIRM_PASSWORD' | translate }}</label>
+            <input class="form-input" type="password" [(ngModel)]="security.confirmPassword" placeholder="••••••••">
           </div>
-        </div>
-        <hr class="divider">
-        <p class="section-head">Two-Factor Authentication</p>
-        <div class="toggle-row">
-          <div><div class="toggle-title">Authenticator App</div><div class="toggle-desc">Use an authenticator app to generate one-time codes.</div></div>
-          <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-title">SMS Authentication</div><div class="toggle-desc">Receive a code via SMS to your registered phone number.</div></div>
-          <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
         </div>
       </ng-container>
 
       <!-- Notifications -->
       <ng-container *ngIf="activeTab==='notifications'">
-        <p class="section-head">Notification Setting</p>
-        <p class="fr-desc" style="margin:-12px 0 24px;">Select the kinds of notifications you get about your activities and recommendations</p>
+        <p class="section-head">{{ 'SETTING.SECTION_NOTIFICATIONS' | translate }}</p>
+        <p class="fr-desc" style="margin:-12px 0 24px;">{{ 'SETTING.NOTIF_SECTION_DESC' | translate }}</p>
 
         <!-- Email Notification -->
         <div class="notif-section">
           <div class="fr-left">
-            <p class="fr-label">Email Notification</p>
-            <p class="fr-desc">Get email to finds out what's going on when you're not online. You can turn this off.</p>
+            <p class="fr-label">{{ 'SETTING.EMAIL_NOTIF_LABEL' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.EMAIL_NOTIF_DESC' | translate }}</p>
           </div>
           <div class="notif-list">
             <div *ngFor="let n of emailNotifs" class="notif-row">
               <label class="toggle"><input type="checkbox" [(ngModel)]="n.on"><span class="toggle-slider"></span></label>
               <div>
-                <div class="toggle-title">{{ n.title }}</div>
-                <div class="toggle-desc">{{ n.desc }}</div>
+                <div class="toggle-title">{{ n.title | translate }}</div>
+                <div class="toggle-desc">{{ n.desc | translate }}</div>
               </div>
             </div>
           </div>
@@ -268,15 +327,15 @@ import { AuthenticationService } from '../../core/services/auth.service';
         <!-- Push Notification -->
         <div class="notif-section">
           <div class="fr-left">
-            <p class="fr-label">Push Notification</p>
-            <p class="fr-desc">Get push notification to find out what's going on when you're online.</p>
+            <p class="fr-label">{{ 'SETTING.PUSH_NOTIF_LABEL' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.PUSH_NOTIF_DESC' | translate }}</p>
           </div>
           <div class="notif-list">
             <div *ngFor="let n of pushNotifs" class="notif-row">
               <label class="toggle"><input type="checkbox" [(ngModel)]="n.on"><span class="toggle-slider"></span></label>
               <div>
-                <div class="toggle-title">{{ n.title }}</div>
-                <div class="toggle-desc">{{ n.desc }}</div>
+                <div class="toggle-title">{{ n.title | translate }}</div>
+                <div class="toggle-desc">{{ n.desc | translate }}</div>
               </div>
             </div>
           </div>
@@ -285,25 +344,180 @@ import { AuthenticationService } from '../../core/services/auth.service';
 
       <!-- Theme -->
       <ng-container *ngIf="activeTab==='theme'">
-        <p class="section-head">Theme</p>
+        <p class="section-head">{{ 'SETTING.SECTION_APPEARANCE' | translate }}</p>
+        <p class="theme-section-desc">{{ 'SETTING.APPEARANCE_DESC' | translate }}</p>
+
         <div class="theme-grid">
-          <div *ngFor="let t of themes" class="theme-box" [class.selected]="selectedTheme===t.key" (click)="applyTheme(t.key)">
-            <div class="theme-preview" [style.background]="t.preview"></div>
-            <div class="theme-label">{{ t.label }}</div>
+
+          <!-- Light -->
+          <div class="theme-card" [class.selected]="selectedTheme==='light'" (click)="applyTheme('light')">
+            <div class="theme-check"><i class="bx bx-check"></i></div>
+            <div class="theme-mockup tm-light">
+              <div class="tm-sidebar">
+                <div class="tm-sb-dot active"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+              </div>
+              <div class="tm-content">
+                <div class="tm-topbar"></div>
+                <div class="tm-row">
+                  <div class="tm-card wide"></div>
+                  <div class="tm-card"></div>
+                </div>
+                <div class="tm-row">
+                  <div class="tm-card"></div>
+                  <div class="tm-card"></div>
+                  <div class="tm-card"></div>
+                </div>
+                <div class="tm-line"></div>
+                <div class="tm-line short"></div>
+              </div>
+            </div>
+            <div class="theme-card-body">
+              <p class="theme-card-name">☀️ {{ 'SETTING.THEME_LIGHT' | translate }}</p>
+              <p class="theme-card-desc">{{ 'SETTING.THEME_LIGHT_DESC' | translate }}</p>
+            </div>
           </div>
+
+          <!-- Dark -->
+          <div class="theme-card" [class.selected]="selectedTheme==='dark'" (click)="applyTheme('dark')">
+            <div class="theme-check"><i class="bx bx-check"></i></div>
+            <div class="theme-mockup tm-dark">
+              <div class="tm-sidebar">
+                <div class="tm-sb-dot active"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+              </div>
+              <div class="tm-content">
+                <div class="tm-topbar"></div>
+                <div class="tm-row">
+                  <div class="tm-card wide"></div>
+                  <div class="tm-card"></div>
+                </div>
+                <div class="tm-row">
+                  <div class="tm-card"></div>
+                  <div class="tm-card"></div>
+                  <div class="tm-card"></div>
+                </div>
+                <div class="tm-line"></div>
+                <div class="tm-line short"></div>
+              </div>
+            </div>
+            <div class="theme-card-body">
+              <p class="theme-card-name">🌙 {{ 'SETTING.THEME_DARK' | translate }}</p>
+              <p class="theme-card-desc">{{ 'SETTING.THEME_DARK_DESC' | translate }}</p>
+            </div>
+          </div>
+
+          <!-- Teal -->
+          <div class="theme-card" [class.selected]="selectedTheme==='teal'" (click)="applyTheme('teal')">
+            <div class="theme-check"><i class="bx bx-check"></i></div>
+            <div class="theme-mockup tm-teal">
+              <div class="tm-sidebar">
+                <div class="tm-sb-dot active"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+                <div class="tm-sb-dot"></div>
+              </div>
+              <div class="tm-content">
+                <div class="tm-topbar"></div>
+                <div class="tm-row">
+                  <div class="tm-card wide"></div>
+                  <div class="tm-card"></div>
+                </div>
+                <div class="tm-row">
+                  <div class="tm-card"></div>
+                  <div class="tm-card"></div>
+                  <div class="tm-card"></div>
+                </div>
+                <div class="tm-line"></div>
+                <div class="tm-line short"></div>
+              </div>
+            </div>
+            <div class="theme-card-body">
+              <p class="theme-card-name">🎨 {{ 'SETTING.THEME_TEAL' | translate }}</p>
+              <p class="theme-card-desc">{{ 'SETTING.THEME_TEAL_DESC' | translate }}</p>
+            </div>
+          </div>
+
         </div>
       </ng-container>
 
       <!-- Integrations -->
       <ng-container *ngIf="activeTab==='integrations'">
-        <p class="section-head">Apps &amp; Integrations</p>
+        <p class="section-head">{{ 'SETTING.SECTION_INTEGRATIONS' | translate }}</p>
         <div *ngFor="let i of integrations" class="integration-item">
           <div class="integration-icon" [style.background]="i.bg"><i class="bx" [ngClass]="i.icon" [style.color]="i.color"></i></div>
           <div class="integration-info">
             <div class="integration-name">{{ i.name }}</div>
             <div class="integration-desc">{{ i.desc }}</div>
           </div>
-          <button [class.btn-connect]="!i.connected" [class.btn-disconnect]="i.connected">{{ i.connected ? 'Disconnect' : 'Connect' }}</button>
+          <button [class.btn-connect]="!i.connected" [class.btn-disconnect]="i.connected">{{ i.connected ? ('SETTING.BTN_DISCONNECT' | translate) : ('SETTING.BTN_CONNECT' | translate) }}</button>
+        </div>
+      </ng-container>
+
+      <!-- Email -->
+      <ng-container *ngIf="activeTab==='email'">
+        <p class="section-head">{{ 'SETTING.SECTION_EMAIL' | translate }}</p>
+        <p class="fr-desc" style="margin:-12px 0 24px;">{{ 'SETTING.EMAIL_DESC' | translate }}</p>
+        <div class="form-row">
+          <div class="fr-left"><p class="fr-label">{{ 'SETTING.FIELD_TO' | translate }}</p><p class="fr-desc">{{ 'SETTING.TO_DESC' | translate }}</p></div>
+          <div class="fr-right"><input class="form-input" type="email" [(ngModel)]="emailForm.to" [placeholder]="'SETTING.TO_PH' | translate" /></div>
+        </div>
+        <div class="form-row">
+          <div class="fr-left"><p class="fr-label">{{ 'SETTING.FIELD_SUBJECT' | translate }}</p><p class="fr-desc">{{ 'SETTING.SUBJECT_DESC' | translate }}</p></div>
+          <div class="fr-right"><input class="form-input" [(ngModel)]="emailForm.subject" [placeholder]="'SETTING.SUBJECT_PH' | translate" /></div>
+        </div>
+        <div class="form-row">
+          <div class="fr-left"><p class="fr-label">{{ 'SETTING.FIELD_MESSAGE' | translate }}</p><p class="fr-desc">{{ 'SETTING.MESSAGE_DESC' | translate }}</p></div>
+          <div class="fr-right">
+            <textarea class="form-input" [(ngModel)]="emailForm.message" rows="6" [placeholder]="'SETTING.MESSAGE_PH' | translate"
+              style="resize:vertical;min-height:120px"></textarea>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px">
+          <span *ngIf="emailSentMsg" style="font-size:13px;font-weight:600;align-self:center">{{ emailSentMsg }}</span>
+          <button class="btn-save" [disabled]="sendingEmail || !emailForm.to || !emailForm.subject || !emailForm.message" (click)="sendEmail()">
+            {{ sendingEmail ? ('SETTING.SENDING' | translate) : ('SETTING.BTN_SEND' | translate) }}
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Import Excel -->
+      <ng-container *ngIf="activeTab==='import'">
+        <p class="section-head">{{ 'SETTING.SECTION_IMPORT' | translate }}</p>
+        <p class="fr-desc" style="margin:-12px 0 24px;">{{ 'SETTING.IMPORT_DESC' | translate }}</p>
+        <div class="form-row">
+          <div class="fr-left">
+            <p class="fr-label">{{ 'SETTING.FIELD_EXCEL_FILE' | translate }}</p>
+            <p class="fr-desc">{{ 'SETTING.EXCEL_FILE_DESC' | translate }}</p>
+          </div>
+          <div class="fr-right">
+            <div style="border:2px dashed #E8EDF2;border-radius:10px;padding:32px;text-align:center;transition:border-color .2s"
+              [style.border-color]="importFile ? '#2FA8A0' : '#E8EDF2'">
+              <i class="bx bx-spreadsheet" style="font-size:2.5rem;color:#8FA3B8;display:block;margin-bottom:12px"></i>
+              <p style="font-size:13px;color:#4A6080;margin:0 0 16px">
+                {{ importFile ? importFile.name : ('SETTING.DRAG_FILE' | translate) }}
+              </p>
+              <input type="file" accept=".xlsx,.xls" (change)="onImportFileChange($event)"
+                style="display:none" #importFileInput />
+              <button type="button" class="btn-save" (click)="importFileInput.click()">
+                <i class="bx bx-upload me-1"></i> {{ 'SETTING.BTN_CHOOSE_FILE' | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:12px;align-items:center">
+          <span *ngIf="importMsg" style="font-size:13px;font-weight:600">{{ importMsg }}</span>
+          <button class="btn-save" [disabled]="!importFile || importing" (click)="importExcel()">
+            <span *ngIf="importing" class="spinner-border spinner-border-sm me-1" style="width:.9rem;height:.9rem"></span>
+            {{ importing ? ('SETTING.IMPORTING' | translate) : ('SETTING.BTN_LAUNCH_IMPORT' | translate) }}
+          </button>
         </div>
       </ng-container>
 
@@ -312,23 +526,43 @@ import { AuthenticationService } from '../../core/services/auth.service';
 
   <!-- Sticky Save -->
   <div class="save-bar">
-    <button class="btn-save">Save Change</button>
+    <span *ngIf="saveMsg" [style.color]="saveMsgError ? '#BE123C' : '#15803D'" style="font-size:13px;font-weight:600;margin-right:16px">{{ saveMsg }}</span>
+    <button class="btn-save" [disabled]="saving" (click)="saveSettings()">
+      {{ saving ? ('SETTING.BTN_SAVING' | translate) : ('SETTING.BTN_SAVE_CHANGES' | translate) }}
+    </button>
   </div>
   `
 })
 export class SettingComponent {
-  constructor(private themeService: ThemeService, private authService: AuthenticationService) {
+  saving = false;
+  saveMsg: string | null = null;
+  saveMsgError = false;
+  sendingEmail = false;
+  emailSentMsg: string | null = null;
+  emailForm = { to: '', subject: '', message: '' };
+
+  importFile: File | null = null;
+  importing = false;
+  importMsg: string | null = null;
+
+  constructor(
+    private themeService: ThemeService,
+    private authService: AuthenticationService,
+    private adminService: AdminService,
+    private http: HttpClient,
+    private translate: TranslateService,
+  ) {
     this.selectedTheme = this.themeService.current;
 
     // Load real authenticated user data
     const authUser = this.authService.getAuthenticatedUser();
     if (authUser) {
       this.user = {
-        fullName:  `${authUser.firstname ?? ''} ${authUser.lastname ?? ''}`.trim() || '—',
-        empId:     String(authUser.id ?? '—'),
-        email:     authUser.email ?? '—',
-        role:      authUser.title ?? authUser.userRole ?? '—',
-        startDate: '—',
+        fullName: `${authUser.firstname ?? ''} ${authUser.lastname ?? ''}`.trim() || '—',
+        empId:    String(authUser.id ?? '—'),
+        email:    authUser.email ?? '—',
+        role:     (authUser.userRole ?? '—').replace(/_/g, ' '),
+        title:    authUser.title ?? '—',
       };
     }
   }
@@ -338,38 +572,152 @@ export class SettingComponent {
     this.themeService.apply(key as AppTheme);
   }
 
+  saveSettings(): void {
+    if (this.activeTab === 'security') {
+      // ── Validate ──────────────────────────────────────────────────────────
+      if (!this.security.currentPassword || !this.security.newPassword || !this.security.confirmPassword) {
+        this.showSaveMsg(this.translate.instant('SETTING.TOAST_REQUIRED_FIELDS'), true); return;
+      }
+      if (this.security.newPassword !== this.security.confirmPassword) {
+        this.showSaveMsg(this.translate.instant('SETTING.TOAST_PASSWORDS_NO_MATCH'), true); return;
+      }
+      if (this.security.newPassword.length < 8) {
+        this.showSaveMsg(this.translate.instant('SETTING.TOAST_PASSWORD_TOO_SHORT'), true); return;
+      }
+      this.saving = true;
+      this.authService.editPassword(this.security.currentPassword, this.security.newPassword).subscribe({
+        next: () => {
+          this.saving = false;
+          this.security = { currentPassword: '', newPassword: '', confirmPassword: '' };
+          this.showSaveMsg(this.translate.instant('SETTING.TOAST_PASSWORD_UPDATED'));
+        },
+        error: e => {
+          this.saving = false;
+          const code = e?.error?.code || '';
+          const msg  = code === 'WRONG_PASSWORD'  ? this.translate.instant('SETTING.TOAST_WRONG_PASSWORD')
+                     : code === 'SAME_PASSWORD'   ? this.translate.instant('SETTING.TOAST_SAME_PASSWORD')
+                     : code === 'WEAK_PASSWORD'   ? this.translate.instant('SETTING.TOAST_PASSWORD_TOO_SHORT')
+                     : (e?.error?.message || this.translate.instant('SETTING.TOAST_REQUIRED_FIELDS'));
+          this.showSaveMsg(msg, true);
+        }
+      });
+      return;
+    }
+    // General tab — update user title via backend if user has permission
+    if (this.activeTab === 'general') {
+      const authUser = this.authService.getAuthenticatedUser();
+      if (authUser && this.authService.hasPermission('USER_MANAGE')) {
+        this.saving = true;
+        const [lastName, ...rest] = (this.user.fullName || '').split(' ');
+        const firstName = rest.join(' ');
+        this.adminService.updateUser(authUser.id, {
+          firstName: firstName || lastName,
+          lastName:  firstName ? lastName : '',
+          email:     authUser.email,
+          title:     this.user.title,
+        }).subscribe({
+          next: () => { this.saving = false; this.showSaveMsg(this.translate.instant('SETTING.TOAST_PROFILE_UPDATED')); },
+          error: () => { this.saving = false; this.showSaveMsg(this.translate.instant('SETTING.TOAST_REQUIRED_FIELDS'), true); }
+        });
+        return;
+      }
+      this.showSaveMsg(this.translate.instant('SETTING.TOAST_SETTINGS_SAVED'));
+      return;
+    }
+    // Preferences (notifications, theme) are UI-only — persist to localStorage
+    localStorage.setItem('hr_notif_prefs', JSON.stringify({ email: this.emailNotifs, push: this.pushNotifs }));
+    localStorage.setItem('hr_theme', this.selectedTheme);
+    this.saving = false;
+    this.showSaveMsg(this.translate.instant('SETTING.TOAST_SETTINGS_SAVED'));
+  }
+
+  sendEmail(): void {
+    if (!this.emailForm.to || !this.emailForm.subject || !this.emailForm.message) return;
+    this.sendingEmail = true;
+    this.adminService.sendEmail(this.emailForm).subscribe({
+      next: () => {
+        this.sendingEmail = false;
+        this.emailForm = { to: '', subject: '', message: '' };
+        this.emailSentMsg = this.translate.instant('SETTING.TOAST_EMAIL_SENT');
+        setTimeout(() => this.emailSentMsg = null, 3500);
+      },
+      error: e => {
+        this.sendingEmail = false;
+        this.emailSentMsg = this.translate.instant('SETTING.TOAST_EMAIL_ERROR') + ' ' + (e?.error?.message || '');
+        setTimeout(() => this.emailSentMsg = null, 4000);
+      }
+    });
+  }
+
+  onImportFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.importFile = input.files?.[0] ?? null;
+    this.importMsg = null;
+  }
+
+  importExcel(): void {
+    if (!this.importFile) return;
+    this.importing = true;
+    this.importMsg = null;
+    const fd = new FormData();
+    fd.append('file', this.importFile);
+    this.http.post(`${environment.apiUrl}/excel/import`, fd).subscribe({
+      next: () => {
+        this.importing = false;
+        this.importFile = null;
+        this.importMsg = this.translate.instant('SETTING.TOAST_IMPORT_SUCCESS');
+        setTimeout(() => this.importMsg = null, 5000);
+      },
+      error: e => {
+        this.importing = false;
+        this.importMsg = this.translate.instant('SETTING.TOAST_EMAIL_ERROR') + ' ' + (e?.error?.message ?? '');
+        setTimeout(() => this.importMsg = null, 5000);
+      }
+    });
+  }
+
+  private showSaveMsg(msg: string, isError = false): void {
+    this.saveMsg = msg;
+    this.saveMsgError = isError;
+    setTimeout(() => { this.saveMsg = null; this.saveMsgError = false; }, 4000);
+  }
+
   tabs = [
-    { key: 'general',       label: 'General'                 },
-    { key: 'security',      label: 'Security'                },
-    { key: 'notifications', label: 'Notification Preference' },
-    { key: 'theme',         label: 'Theme'                   },
+    { key: 'general',       label: 'SETTING.TAB_GENERAL'       },
+    { key: 'security',      label: 'SETTING.TAB_SECURITY'      },
+    { key: 'notifications', label: 'SETTING.TAB_NOTIFICATIONS' },
+    { key: 'theme',         label: 'SETTING.TAB_THEME'         },
+    { key: 'email',         label: 'SETTING.TAB_EMAIL'         },
+    { key: 'import',        label: 'SETTING.TAB_IMPORT'        },
   ];
   activeTab = 'general';
 
   org = { name: 'INNOVX' };
-  user = { fullName: '—', empId: '—', email: '—', role: '—', startDate: '—' };
+  user = { fullName: '—', empId: '—', email: '—', role: '—', title: '—' };
 
   emailNotifs = [
-    { title: 'News and Updates',       desc: 'News about platform and updates.',                                                                on: false },
-    { title: 'Deadline',               desc: 'Important deadlines for projects, tasks, and submissions.',                                       on: true  },
-    { title: 'Reminders',              desc: 'Timely reminders for upcoming events, meetings, and deadlines.',                                  on: true  },
-    { title: 'Employee Attendances',   desc: 'Notifications regarding employee check-ins, check-outs, and attendance records.',                 on: true  },
-    { title: 'Recruitment Process',    desc: 'Updates on job vacancies, applications, interviews, and hiring progress.',                        on: true  },
-    { title: 'Day Off Request',        desc: 'Notifications for new day-off requests, approvals, and schedule adjustments.',                    on: true  },
+    { title: 'SETTING.NOTIF_NEWS_TITLE',        desc: 'SETTING.NOTIF_NEWS_DESC',        on: false },
+    { title: 'SETTING.NOTIF_DEADLINE_TITLE',    desc: 'SETTING.NOTIF_DEADLINE_DESC',    on: true  },
+    { title: 'SETTING.NOTIF_REMINDER_TITLE',    desc: 'SETTING.NOTIF_REMINDER_DESC',    on: true  },
+    { title: 'SETTING.NOTIF_ATTENDANCE_TITLE',  desc: 'SETTING.NOTIF_ATTENDANCE_DESC',  on: true  },
+    { title: 'SETTING.NOTIF_RECRUITMENT_TITLE', desc: 'SETTING.NOTIF_RECRUITMENT_DESC', on: true  },
+    { title: 'SETTING.NOTIF_DAYOFF_TITLE',      desc: 'SETTING.NOTIF_DAYOFF_DESC',      on: true  },
   ];
   pushNotifs = [
-    { title: 'Deadline',               desc: 'Important deadlines for projects, tasks, and submissions.',                                       on: true  },
-    { title: 'Reminders',              desc: 'Timely reminders for upcoming events, meetings, and deadlines.',                                  on: true  },
-    { title: 'Day-Off Request',        desc: 'Notifications for new day-off requests, approvals, and schedule adjustments.',                    on: true  },
-    { title: 'More Activity About You',desc: 'Additional notifications related to your activities, tasks, and interactions within the platform.',on: true  },
+    { title: 'SETTING.NOTIF_DEADLINE_TITLE',    desc: 'SETTING.NOTIF_DEADLINE_DESC',    on: true  },
+    { title: 'SETTING.NOTIF_REMINDER_TITLE',    desc: 'SETTING.NOTIF_REMINDER_DESC',    on: true  },
+    { title: 'SETTING.NOTIF_DAYOFF_TITLE',      desc: 'SETTING.NOTIF_DAYOFF_DESC',      on: true  },
+    { title: 'SETTING.NOTIF_ACTIVITY_TITLE',    desc: 'SETTING.NOTIF_ACTIVITY_DESC',    on: true  },
   ];
 
   themes = [
-    { key: 'light',    label: 'Light',     preview: 'linear-gradient(135deg,#F5F6FA 50%,#E8F7F6 100%)' },
-    { key: 'dark',     label: 'Dark',      preview: 'linear-gradient(135deg,#162233 50%,#1E3249 100%)' },
-    { key: 'teal',     label: 'Teal',      preview: 'linear-gradient(135deg,#2FA8A0 50%,#C8F0ED 100%)' },
+    { key: 'light', label: '☀️ Light', desc: 'Thème clair, idéal pour les environnements lumineux.' },
+    { key: 'dark',  label: '🌙 Dark',  desc: 'Thème sombre, parfait pour travailler la nuit.'       },
+    { key: 'teal',  label: '🎨 Teal',  desc: 'Thème turquoise, moderne et professionnel.'            },
   ];
   selectedTheme = 'light';
+
+  security = { currentPassword: '', newPassword: '', confirmPassword: '' };
 
   integrations = [
     { name: 'Slack',      desc: 'Send HR notifications to Slack channels.',    icon: 'bxl-slack',    bg: '#4A154B22', color: '#4A154B', connected: true  },

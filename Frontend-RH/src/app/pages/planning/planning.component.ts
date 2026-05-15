@@ -1,1240 +1,1517 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgApexchartsModule } from 'ng-apexcharts';
 import { forkJoin } from 'rxjs';
 import { PlanningService } from './planning.service';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { ConfirmService } from 'src/app/shared/confirm.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
+
+interface CalDay { date: Date; cur: boolean; events: any[]; }
 
 @Component({
   selector: 'app-planning',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, TranslateModule, WallClockComponent],
   styles: [`
-    /* ═══════════════════════════════════════════
-       WIKO HR — Planning Page (Sidebar Layout)
-       ═══════════════════════════════════════════ */
-    :host { display:block; font-family:'Inter',sans-serif; }
-
-    /* ── Outer wrapper: planning sidebar + content ── */
-    .planning-wrapper {
-      display: flex;
-      min-height: calc(100vh - 70px);
-      background: #F4F7FB;
-      animation: fadeIn .35s ease both;
-    }
+    :host { display:block; font-family:'Inter',sans-serif; background:#F4F7FB; min-height:100vh; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    @keyframes spin    { to{transform:rotate(360deg)} }
+    @keyframes rpIn    { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:none} }
 
-    /* ══════════════════════════════════════
-       PLANNING SIDEBAR
-       ══════════════════════════════════════ */
-    .plan-sidebar {
-      width: 248px;
-      min-width: 248px;
-      background: #fff;
-      border-right: 1px solid #EDF0F5;
-      display: flex;
-      flex-direction: column;
-      padding-bottom: 20px;
-      box-shadow: 2px 0 12px rgba(22,34,51,.06);
-      position: sticky;
-      top: 70px;
-      height: calc(100vh - 70px);
-      overflow-y: auto;
-    }
-
-    .ps-header {
-      padding: 20px 18px 14px;
-      border-bottom: 1px solid #EDF0F5;
-    }
-    .ps-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-    .ps-logo-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
-      background: linear-gradient(135deg,#1B7872,#2FA8A0);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-    .ps-title { font-size: 15px; font-weight: 800; color: #1A2B3C; }
-    .ps-subtitle { font-size: 11.5px; color: #8FA3B8; margin-top: 2px; }
-
-    .ps-search {
-      margin: 14px 18px 0;
-      position: relative;
-    }
-    .ps-search input {
-      width: 100%;
-      padding: 8px 12px 8px 34px;
-      border: 1.5px solid #EDF0F5;
-      border-radius: 8px;
-      font-size: 12.5px;
-      color: #1A2B3C;
-      font-family: 'Inter', sans-serif;
-      background: #F8FAFC;
-      box-sizing: border-box;
-      outline: none;
-      transition: border .15s;
-    }
-    .ps-search input:focus { border-color: #2FA8A0; background: #fff; }
-    .ps-search input::placeholder { color: #B0BEC5; }
-    .ps-search i {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 15px;
-      color: #B0BEC5;
-    }
-
-    /* Module groups */
-    .ps-nav { padding: 12px 10px; flex: 1; }
-
-    .ps-group { margin-bottom: 6px; }
-
-    .ps-module-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border: none;
-      border-radius: 9px;
-      background: none;
-      cursor: pointer;
-      transition: all .15s;
-      text-align: left;
-    }
-    .ps-module-btn:hover { background: #F4F7FB; }
-    .ps-module-btn.active { background: #E8F7F6; }
-
-    .ps-module-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      flex-shrink: 0;
-      transition: all .15s;
-    }
-    .icon-workforce  { background: #E8F7F6; color: #1B7872; }
-    .icon-training   { background: #DBEAFE; color: #1E40AF; }
-    .icon-career     { background: #EDE9FE; color: #6D28D9; }
-    .icon-recruitment{ background: #FEF3C7; color: #B45309; }
-
-    .ps-module-btn.active .icon-workforce  { background: #1B7872; color: #fff; }
-    .ps-module-btn.active .icon-training   { background: #1E40AF; color: #fff; }
-    .ps-module-btn.active .icon-career     { background: #6D28D9; color: #fff; }
-    .ps-module-btn.active .icon-recruitment{ background: #B45309; color: #fff; }
-
-    .ps-module-label {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 600;
-      color: #4A6080;
-      transition: color .15s;
-    }
-    .ps-module-btn.active .ps-module-label { color: #1A2B3C; }
-
-    .ps-chevron {
-      font-size: 14px;
-      color: #C0CDD8;
-      transition: transform .2s;
-    }
-    .ps-module-btn.active .ps-chevron { transform: rotate(90deg); color: #1B7872; }
-
-    /* Sub-items */
-    .ps-sub-list {
-      margin: 2px 0 4px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height .25s ease;
-    }
-    .ps-sub-list.open { max-height: 300px; }
-
-    .ps-sub-btn {
-      width: 100%;
-      text-align: left;
-      border: none;
-      background: none;
-      padding: 6px 10px;
-      font-size: 12.5px;
-      font-weight: 500;
-      color: #8FA3B8;
-      border-radius: 7px;
-      cursor: pointer;
-      transition: all .12s;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-    .ps-sub-btn::before {
-      content: '';
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #CBD5E0;
-      flex-shrink: 0;
-      transition: background .12s;
-    }
-    .ps-sub-btn:hover { background: #F4F7FB; color: #4A6080; }
-    .ps-sub-btn.active { color: #1B7872; font-weight: 700; background: #F0FDF9; }
-    .ps-sub-btn.active::before { background: #1B7872; }
-
-    /* Divider */
-    .ps-divider { height: 1px; background: #EDF0F5; margin: 10px 12px; }
-
-    /* Footer stat */
-    .ps-footer {
-      padding: 14px 18px;
-      border-top: 1px solid #EDF0F5;
-    }
-    .ps-stat-row { display: flex; gap: 8px; }
-    .ps-stat { flex: 1; text-align: center; }
-    .ps-stat-num { font-size: 18px; font-weight: 800; color: #1A2B3C; }
-    .ps-stat-lbl { font-size: 10.5px; color: #8FA3B8; }
-
-    /* ══════════════════════════════════════
-       MAIN CONTENT AREA
-       ══════════════════════════════════════ */
-    .plan-main {
-      flex: 1;
-      min-width: 0;
-      padding: 20px 22px 40px;
-      overflow-x: hidden;
-    }
+    .page { padding:0 24px 48px; animation:fadeIn .35s ease both; }
 
     /* ── Header ── */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 20px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(22,34,51,.08);
-      margin-bottom: 18px;
-    }
-    .page-header-left { display: flex; align-items: center; gap: 14px; }
-    .page-breadcrumb { font-size: 12px; color: #8FA3B8; }
-    .page-breadcrumb span { color: #1B7872; font-weight: 600; }
-    .page-title { font-size: 20px; font-weight: 800; color: #1A2B3C; margin: 0; }
-    .header-right { display: flex; align-items: center; gap: 12px; }
-    .header-date { font-size: 12.5px; color: #8FA3B8; display: flex; align-items: center; gap: 5px; }
-    .btn-solid {
-      background: #1B7872; color: #fff; border: none; border-radius: 9px;
-      padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; transition: background .15s;
-    }
-    .btn-solid:hover { background: #1A9690; }
-    .btn-outline {
-      background: #fff; color: #4A6080; border: 1.5px solid #E2E8F0; border-radius: 9px;
-      padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; transition: all .15s;
-    }
-    .btn-outline:hover { border-color: #2FA8A0; color: #1B7872; }
+    .ph { display:flex; align-items:center; justify-content:space-between; background:#fff;
+          border-radius:12px; box-shadow:0 4px 20px rgba(22,34,51,.08); padding:14px 20px;
+          margin-bottom:20px; }
+    .ph-left { display:flex; align-items:center; gap:14px; }
+    .ph-icon  { width:40px; height:40px; border-radius:11px;
+                background:linear-gradient(135deg,#1B7872,#2FA8A0);
+                display:flex; align-items:center; justify-content:center; color:#fff; font-size:19px; }
+    .ph-title { font-size:20px; font-weight:800; color:#1A2B3C; margin:0; }
+    .ph-sub   { font-size:12px; color:#8FA3B8; margin-top:1px; }
+    .ph-right { display:flex; align-items:center; gap:10px; }
+    .ph-date  { font-size:12.5px; color:#8FA3B8; display:flex; align-items:center; gap:5px; }
 
-    /* ── Card base ── */
-    .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(22,34,51,.08); }
-    .card-pad { padding: 20px 22px; }
-    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .card-title { font-size: 15px; font-weight: 700; color: #1A2B3C; }
-    .card-badge { font-size: 12px; color: #2FA8A0; background: #E8F7F6; padding: 4px 12px; border-radius: 999px; cursor: pointer; font-weight: 600; }
+    /* ── Buttons ── */
+    .btn-prim { background:#1B7872; color:#fff; border:none; border-radius:9px;
+                padding:9px 18px; font-size:13px; font-weight:600; cursor:pointer;
+                display:inline-flex; align-items:center; gap:6px; transition:background .15s; }
+    .btn-prim:hover  { background:#1A9690; }
+    .btn-prim:disabled { opacity:.5; cursor:default; }
+    .btn-ghost { background:#F1F5F9; color:#4A6080; border:none; border-radius:9px;
+                 padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+                 display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+    .btn-ghost:hover { background:#E2E8F0; }
 
-    /* ── KPI row ── */
-    .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 18px; }
-    .kpi-box { background: #fff; border-radius: 12px; padding: 18px 20px; box-shadow: 0 4px 20px rgba(22,34,51,.08); }
-    .kpi-box-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .kpi-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-    .kpi-icon--teal   { background: #E8F7F6; color: #1B7872; }
-    .kpi-icon--blue   { background: #DBEAFE; color: #1E40AF; }
-    .kpi-icon--amber  { background: #FEF3C7; color: #92400E; }
-    .kpi-icon--rose   { background: #FFE4E6; color: #BE123C; }
-    .kpi-icon--purple { background: #EDE9FE; color: #6D28D9; }
-    .kpi-val { font-size: 28px; font-weight: 800; color: #1A2B3C; line-height: 1; margin-bottom: 4px; }
-    .kpi-lbl { font-size: 12px; color: #8FA3B8; }
-    .kpi-trend { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-top: 6px; }
-    .trend-up      { background: #DCFCE7; color: #15803D; }
-    .trend-dn      { background: #FFE4E6; color: #BE123C; }
-    .trend-neutral { background: #F1F5F9; color: #4A6080; }
+    /* ── View tabs ── */
+    .view-tabs { display:flex; gap:4px; background:#fff; border-radius:12px;
+                 box-shadow:0 4px 20px rgba(22,34,51,.08); padding:6px; margin-bottom:20px; }
+    .vt { flex:1; padding:10px 14px; border:none; border-radius:9px; background:none;
+          font-size:13px; font-weight:600; color:#8FA3B8; cursor:pointer;
+          display:flex; align-items:center; justify-content:center; gap:7px; transition:all .15s; }
+    .vt:hover:not(.vt--active) { background:#F8FAFC; color:#4A6080; }
+    .vt--active { background:#1B7872; color:#fff; }
+    .vt-icon { width:24px; height:24px; border-radius:6px; display:flex; align-items:center;
+               justify-content:center; font-size:13px; transition:all .15s; }
+    .vt--active .vt-icon { background:rgba(255,255,255,.2); }
 
-    /* ── Grid layouts ── */
-    .two-col   { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-bottom: 18px; align-items: start; }
-    .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 18px; }
-    .full-card { margin-bottom: 18px; }
+    /* ── KPI strip ── */
+    .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .kpi  { background:#fff; border-radius:12px; padding:16px 18px;
+            box-shadow:0 4px 20px rgba(22,34,51,.08);
+            display:flex; align-items:center; gap:14px; }
+    .kpi-ico { width:44px; height:44px; border-radius:12px; display:flex; align-items:center;
+               justify-content:center; font-size:20px; flex-shrink:0; }
+    .ico-teal   { background:#E8F7F6; color:#1B7872; }
+    .ico-blue   { background:#DBEAFE; color:#1E40AF; }
+    .ico-purple { background:#EDE9FE; color:#6D28D9; }
+    .ico-amber  { background:#FEF3C7; color:#92400E; }
+    .kpi-v  { font-size:26px; font-weight:800; color:#1A2B3C; line-height:1; }
+    .kpi-l  { font-size:11.5px; color:#8FA3B8; margin-top:2px; }
 
-    /* ── Tables ── */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    thead tr { background: #FAFBFC; }
-    thead th { padding: 11px 16px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8FA3B8; border-bottom: 1px solid #F0F3F6; white-space: nowrap; }
-    tbody tr { cursor: pointer; transition: background .12s; }
-    tbody tr:hover { background: #F8FFFE; }
-    tbody td { padding: 11px 16px; font-size: 13px; color: #4A6080; border-bottom: 1px solid #F5F7FA; vertical-align: middle; }
-    tbody tr:last-child td { border-bottom: none; }
-    .td-bold { font-weight: 600; color: #1A2B3C; }
-    .td-id   { font-size: 12px; font-weight: 600; color: #4A6080; }
+    /* ══════════════════════════════════
+       CALENDAR
+       ══════════════════════════════════ */
+    .cal-wrap { background:#fff; border-radius:14px; box-shadow:0 4px 20px rgba(22,34,51,.08); overflow:hidden; }
 
-    /* ── Chips / Status ── */
-    .chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
-    .chip--approved   { background: #DCFCE7; color: #15803D; }
-    .chip--pending    { background: #FEF3C7; color: #B45309; }
-    .chip--draft      { background: #F1F5F9; color: #64748B; }
-    .chip--rejected   { background: #FFE4E6; color: #BE123C; }
-    .chip--active     { background: #DBEAFE; color: #1E40AF; }
-    .chip--completed  { background: #F0FDF4; color: #166534; }
-    .chip--critical   { background: #FFE4E6; color: #BE123C; }
-    .chip--high       { background: #FEF3C7; color: #B45309; }
-    .chip--medium     { background: #DBEAFE; color: #1E40AF; }
-    .chip--low        { background: #F1F5F9; color: #64748B; }
-    .chip--open       { background: #E8F7F6; color: #1B7872; }
-    .chip--inprogress { background: #EDE9FE; color: #6D28D9; }
+    /* Calendar toolbar */
+    .cal-toolbar { display:flex; align-items:center; justify-content:space-between;
+                   padding:18px 22px 14px; border-bottom:1px solid #F0F3F6; }
+    .cal-nav     { display:flex; align-items:center; gap:10px; }
+    .cal-nav-btn { width:34px; height:34px; border:1.5px solid #E2E8F0; background:#fff;
+                   border-radius:9px; display:flex; align-items:center; justify-content:center;
+                   cursor:pointer; font-size:16px; color:#4A6080; transition:all .15s; }
+    .cal-nav-btn:hover { border-color:#2FA8A0; color:#1B7872; background:#F0FDF9; }
+    .cal-month-label { font-size:17px; font-weight:800; color:#1A2B3C; min-width:160px; text-align:center; }
+    .cal-today-btn   { padding:6px 16px; border:1.5px solid #E2E8F0; background:#fff;
+                       border-radius:8px; font-size:12.5px; font-weight:600; color:#4A6080;
+                       cursor:pointer; transition:all .15s; }
+    .cal-today-btn:hover { border-color:#2FA8A0; color:#1B7872; }
 
-    /* ── Progress bar ── */
-    .prog-wrap { background: #F1F5F9; border-radius: 999px; height: 6px; overflow: hidden; margin-top: 6px; }
-    .prog-fill { height: 100%; border-radius: 999px; }
-    .prog-teal  { background: #1B7872; }
-    .prog-blue  { background: #3B82F6; }
-    .prog-amber { background: #F59E0B; }
-    .prog-rose  { background: #F43F5E; }
+    /* Legend */
+    .cal-legend { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .leg-item   { display:flex; align-items:center; gap:5px; font-size:11.5px; color:#4A6080; font-weight:500; }
+    .leg-dot    { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
 
-    /* ── Action buttons ── */
-    .act-btn          { background: none; border: none; font-size: 15px; color: #B0BEC5; cursor: pointer; padding: 0 2px; }
-    .act-btn:hover         { color: #4A6080; }
-    .act-btn--del:hover    { color: #EF4444; }
-    .act-btn--green:hover  { color: #1B7872; }
+    /* Day-of-week header */
+    .cal-dow { display:grid; grid-template-columns:repeat(7,1fr);
+               background:#FAFBFC; border-bottom:1px solid #F0F3F6; }
+    .cal-dow-cell { padding:10px 0; text-align:center; font-size:11px; font-weight:700;
+                    letter-spacing:.06em; text-transform:uppercase; color:#8FA3B8; }
 
-    /* ── Inner tabs ── */
-    .inner-tabs { display: flex; gap: 2px; padding: 14px 20px 0; border-bottom: 1px solid #F0F3F6; flex-wrap: wrap; }
-    .inner-tab { padding: 8px 16px; font-size: 13px; font-weight: 500; color: #8FA3B8; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -1px; transition: all .15s; }
-    .inner-tab.active { color: #2FA8A0; border-bottom-color: #2FA8A0; font-weight: 600; }
-    .inner-tab:hover:not(.active) { color: #4A6080; }
+    /* Day grid */
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); }
+    .cal-cell  { min-height:110px; padding:8px 8px 6px; border-right:1px solid #F5F7FA;
+                 border-bottom:1px solid #F5F7FA; cursor:pointer; transition:background .12s;
+                 position:relative; }
+    .cal-cell:hover { background:#F8FFFE; }
+    .cal-cell:nth-child(7n) { border-right:none; }
+    .cal-cell--other { background:#FAFBFC; }
+    .cal-cell--other .cal-day-num { color:#CBD5E0; }
+    .cal-cell--today  { background:#F0FDF9; }
+    .cal-cell--today .cal-day-num { background:#1B7872; color:#fff; }
+    .cal-cell--selected { background:#E8F7F6; }
 
-    /* ═════════ WORKFORCE ═════════ */
-    .scenario-list { display: flex; flex-direction: column; gap: 10px; }
-    .scenario-item { border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all .15s; }
-    .scenario-item:hover, .scenario-item.active { border-color: #1B7872; background: #F0FDF9; }
-    .scenario-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-    .scenario-name { font-size: 13px; font-weight: 700; color: #1A2B3C; }
-    .scenario-desc { font-size: 12px; color: #8FA3B8; line-height: 1.5; }
-    .scenario-meta { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-    .scenario-meta-item { font-size: 11px; color: #4A6080; display: flex; align-items: center; gap: 4px; }
+    .cal-day-num { display:inline-flex; align-items:center; justify-content:center;
+                   width:26px; height:26px; border-radius:50%; font-size:13px; font-weight:700;
+                   color:#1A2B3C; margin-bottom:4px; }
 
-    .budget-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F5F7FA; }
-    .budget-item:last-child { border-bottom: none; }
-    .budget-dept { font-size: 13px; font-weight: 600; color: #1A2B3C; flex: 1; min-width: 0; }
-    .budget-bar-wrap { flex: 2; }
-    .budget-pct { font-size: 12px; font-weight: 700; color: #1A2B3C; width: 36px; text-align: right; flex-shrink: 0; }
+    /* Event pills inside day cells */
+    .cal-events { display:flex; flex-direction:column; gap:2px; }
+    .cal-pill   { display:flex; align-items:center; gap:4px; padding:2px 7px; border-radius:5px;
+                  font-size:11px; font-weight:600; cursor:pointer; transition:opacity .1s;
+                  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .cal-pill:hover { opacity:.82; }
+    .cal-pill-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .cal-more   { font-size:10.5px; color:#8FA3B8; font-weight:600; padding:1px 6px;
+                  cursor:pointer; text-decoration:underline; }
 
-    /* ═════════ TRAINING ═════════ */
-    .training-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 18px; }
-    .t-stat-box { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 4px 20px rgba(22,34,51,.08); }
-    .t-stat-num { font-size: 28px; font-weight: 800; color: #1A2B3C; line-height: 1; margin-bottom: 3px; }
-    .t-stat-lbl { font-size: 12px; color: #8FA3B8; }
-    .t-stat-sub { font-size: 11px; color: #2FA8A0; font-weight: 600; margin-top: 4px; }
+    /* ── Selected day events list (below calendar) ── */
+    .day-events-panel { padding:20px 22px; border-top:1px solid #F0F3F6; }
+    .dep-title  { font-size:14px; font-weight:700; color:#1A2B3C; margin-bottom:14px;
+                  display:flex; align-items:center; gap:8px; }
+    .dep-date-chip { background:#E8F7F6; color:#1B7872; padding:3px 10px; border-radius:7px;
+                     font-size:12px; font-weight:700; }
+    .dep-empty  { color:#B0BEC5; font-size:13px; padding:12px 0; }
+    .dep-event  { display:flex; align-items:center; gap:12px; padding:10px 0;
+                  border-bottom:1px solid #F5F7FA; cursor:pointer; transition:background .1s; }
+    .dep-event:last-child { border-bottom:none; }
+    .dep-event:hover { background:#F8FFFE; margin:0 -4px; padding:10px 4px; border-radius:8px; }
+    .dep-type-badge { width:34px; height:34px; border-radius:9px; display:flex; align-items:center;
+                      justify-content:center; font-size:15px; flex-shrink:0; }
+    .dep-ev-title { font-size:13px; font-weight:600; color:#1A2B3C; }
+    .dep-ev-meta  { font-size:11.5px; color:#8FA3B8; margin-top:1px; }
+    .dep-ev-chip  { margin-left:auto; padding:3px 10px; border-radius:999px;
+                    font-size:11px; font-weight:700; flex-shrink:0; }
 
-    .session-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F5F7FA; }
-    .session-item:last-child { border-bottom: none; }
-    .session-date-box { width: 42px; height: 42px; border-radius: 10px; background: #E8F7F6; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
-    .session-day { font-size: 15px; font-weight: 800; color: #1B7872; line-height: 1; }
-    .session-month { font-size: 9px; font-weight: 700; color: #2FA8A0; text-transform: uppercase; }
-    .session-info { flex: 1; }
-    .session-name { font-size: 13px; font-weight: 600; color: #1A2B3C; margin-bottom: 2px; }
-    .session-meta { font-size: 11.5px; color: #8FA3B8; }
-    .session-spots { font-size: 11.5px; font-weight: 700; color: #4A6080; white-space: nowrap; }
+    /* ══════════════════════════════════
+       MODULE VIEWS (Workforce / Training / Career / Recruitment)
+       ══════════════════════════════════ */
+    .section { margin-bottom:20px; }
+    .card    { background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(22,34,51,.08); overflow:hidden; }
+    .card-pad { padding:20px 22px; }
+    .card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .card-title { font-size:14px; font-weight:700; color:#1A2B3C; }
+    .card-badge { background:#E8F7F6; color:#1B7872; border-radius:999px; padding:3px 12px;
+                  font-size:12px; font-weight:700; }
 
-    .pdi-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F5F7FA; }
-    .pdi-row:last-child { border-bottom: none; }
-    .pdi-name { font-size: 13px; font-weight: 600; color: #1A2B3C; }
-    .pdi-role { font-size: 11.5px; color: #8FA3B8; }
-    .pdi-pct  { font-size: 13px; font-weight: 700; color: #1B7872; white-space: nowrap; }
+    .two-col   { display:grid; grid-template-columns:1fr 320px; gap:18px; align-items:start; }
+    .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 
-    /* ═════════ CAREER ═════════ */
-    .career-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 18px; }
+    /* Inner tabs */
+    .itabs { display:flex; gap:2px; padding:14px 20px 0; border-bottom:1px solid #F0F3F6; }
+    .itab  { padding:8px 16px; border:none; background:none; font-size:13px; font-weight:500;
+             color:#8FA3B8; border-bottom:2px solid transparent; cursor:pointer;
+             margin-bottom:-1px; transition:all .15s; }
+    .itab.act { color:#2FA8A0; border-bottom-color:#2FA8A0; font-weight:700; }
+    .itab:hover:not(.act) { color:#4A6080; }
 
-    .milestone-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F5F7FA; }
-    .milestone-item:last-child { border-bottom: none; }
-    .milestone-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .milestone-dot--done    { background: #22C55E; }
-    .milestone-dot--active  { background: #1B7872; }
-    .milestone-dot--pending { background: #E2E8F0; }
-    .milestone-title { font-size: 13px; font-weight: 600; color: #1A2B3C; flex: 1; }
-    .milestone-date  { font-size: 11.5px; color: #8FA3B8; white-space: nowrap; }
-    .milestone-status { font-size: 11px; font-weight: 700; }
-    .ms-done    { color: #15803D; }
-    .ms-active  { color: #1B7872; }
-    .ms-pending { color: #8FA3B8; }
+    /* Tables */
+    .tbl-wrap { overflow-x:auto; }
+    table  { width:100%; border-collapse:collapse; }
+    thead tr { background:#FAFBFC; }
+    thead th { padding:10px 16px; font-size:11px; font-weight:700; letter-spacing:.06em;
+               text-transform:uppercase; color:#8FA3B8; border-bottom:1px solid #F0F3F6; }
+    tbody tr { cursor:pointer; transition:background .12s; }
+    tbody tr:hover { background:#F8FFFE; }
+    tbody td { padding:11px 16px; font-size:13px; color:#4A6080;
+               border-bottom:1px solid #F5F7FA; vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:none; }
+    .td-b { font-weight:600; color:#1A2B3C; }
 
-    .mentor-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F5F7FA; }
-    .mentor-item:last-child { border-bottom: none; }
-    .mentor-avatar { width: 34px; height: 34px; border-radius: 50%; background: #E8F7F6; color: #1B7872; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .mentor-name { font-size: 13px; font-weight: 600; color: #1A2B3C; }
-    .mentor-meta { font-size: 11.5px; color: #8FA3B8; }
-    .mentor-arrow { font-size: 14px; color: #CBD5E0; }
-    .mentee-name  { font-size: 13px; font-weight: 500; color: #4A6080; }
+    /* Chips */
+    .chip { display:inline-flex; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:700; }
+    .ch-green  { background:#DCFCE7; color:#15803D; }
+    .ch-blue   { background:#DBEAFE; color:#1E40AF; }
+    .ch-amber  { background:#FEF3C7; color:#B45309; }
+    .ch-red    { background:#FFE4E6; color:#BE123C; }
+    .ch-purple { background:#EDE9FE; color:#6D28D9; }
+    .ch-gray   { background:#F1F5F9; color:#64748B; }
+    .ch-teal   { background:#E8F7F6; color:#1B7872; }
 
-    /* ═════════ RECRUITMENT ═════════ */
-    .pipeline-funnel { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 18px; }
-    .funnel-stage { background: #fff; border-radius: 12px; padding: 16px 14px; box-shadow: 0 4px 20px rgba(22,34,51,.08); text-align: center; }
-    .funnel-count { font-size: 28px; font-weight: 800; color: #1A2B3C; line-height: 1; margin-bottom: 4px; }
-    .funnel-lbl   { font-size: 11.5px; color: #8FA3B8; margin-bottom: 8px; }
-    .funnel-bar   { height: 4px; border-radius: 999px; }
+    /* Progress */
+    .prog-bg { background:#F1F5F9; border-radius:999px; height:6px; overflow:hidden; }
+    .prog-fill { height:100%; border-radius:999px; background:#1B7872; }
 
-    /* ══════════════════════════════════════
-       RIGHT PANEL (DETAIL / CREATE)
-       ══════════════════════════════════════ */
-    .backdrop { position: fixed; inset: 0; background: rgba(10,20,35,.35); z-index: 1800; backdrop-filter: blur(1px); }
-    .rp {
-      position: fixed; top: 70px; right: 0; bottom: 0; width: 520px;
-      background: #fff; box-shadow: -8px 0 40px rgba(10,20,35,.14);
-      border-radius: 16px 0 0 0; z-index: 1801;
-      display: flex; flex-direction: column;
-      animation: rpIn .22s ease both; overflow: hidden;
-    }
-    @keyframes rpIn { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:none} }
-    .rp-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 16px; border-bottom: 1px solid #F0F3F6; flex-shrink: 0; }
-    .rp-title    { font-size: 15px; font-weight: 700; color: #1A2B3C; }
-    .rp-head-right { display: flex; align-items: center; gap: 10px; }
-    .rp-close { width: 30px; height: 30px; border: none; background: #F1F5F9; border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: #4A6080; }
-    .rp-close:hover { background: #E2E8F0; }
-    .rp-body { flex: 1; overflow-y: auto; padding: 22px; }
-    .rp-section { font-size: 13px; font-weight: 700; color: #1A2B3C; margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #F0F3F6; }
-    .rp-section:first-child { margin-top: 0; }
-    .rp-field { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #F8FAFC; }
-    .rp-field:last-of-type { border-bottom: none; }
-    .rp-lbl { font-size: 12px; color: #8FA3B8; min-width: 140px; display: flex; align-items: center; gap: 6px; }
-    .rp-lbl i { font-size: 14px; }
-    .rp-val { font-size: 13px; font-weight: 600; color: #1A2B3C; }
-    .rp-edit-btn { display: flex; align-items: center; gap: 7px; padding: 9px 18px; background: #1B7872; color: #fff; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .rp-edit-btn:hover { background: #1A9690; }
+    /* Action btns */
+    .act-btn { background:none; border:none; font-size:15px; color:#B0BEC5; cursor:pointer;
+               padding:3px 5px; border-radius:6px; }
+    .act-btn:hover { background:#F1F5F9; color:#4A6080; }
+    .act-btn.del:hover { background:#FEE2E2; color:#BE123C; }
 
-    /* ── Create Panel ── */
-    .cp-field { margin-bottom: 16px; }
-    .cp-lbl { font-size: 13px; font-weight: 600; color: #1A2B3C; margin-bottom: 6px; }
-    .cp-input { width: 100%; padding: 10px 14px; border: 1.5px solid #E2E8F0; border-radius: 9px; font-size: 13.5px; color: #1A2B3C; font-family: 'Inter',sans-serif; box-sizing: border-box; outline: none; transition: border .15s; }
-    .cp-input:focus { border-color: #2FA8A0; box-shadow: 0 0 0 3px rgba(47,168,160,.1); }
-    .cp-input::placeholder { color: #C0CDD8; }
-    .cp-select { width: 100%; padding: 10px 14px; border: 1.5px solid #E2E8F0; border-radius: 9px; font-size: 13.5px; color: #4A6080; font-family: 'Inter',sans-serif; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238FA3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center; box-sizing: border-box; outline: none; cursor: pointer; }
-    .cp-select:focus { border-color: #2FA8A0; }
-    .cp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .cp-textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #E2E8F0; border-radius: 9px; font-size: 13.5px; color: #1A2B3C; font-family: 'Inter',sans-serif; box-sizing: border-box; outline: none; resize: vertical; min-height: 80px; transition: border .15s; }
-    .cp-textarea:focus { border-color: #2FA8A0; }
-    .cp-footer { padding: 14px 22px; border-top: 1px solid #F0F3F6; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 10px; }
-    .cp-cancel { padding: 10px 20px; background: #F1F5F9; color: #4A6080; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .cp-submit { padding: 10px 24px; background: #1B7872; color: #fff; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .cp-submit:hover { background: #1A9690; }
+    /* ── Small list items ── */
+    .list-item  { display:flex; align-items:center; gap:12px; padding:10px 0;
+                  border-bottom:1px solid #F5F7FA; }
+    .list-item:last-child { border-bottom:none; }
+    .li-avatar  { width:36px; height:36px; border-radius:10px; background:#E8F7F6; color:#1B7872;
+                  font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .li-main    { flex:1; min-width:0; }
+    .li-title   { font-size:13px; font-weight:600; color:#1A2B3C; margin-bottom:1px; }
+    .li-sub     { font-size:11.5px; color:#8FA3B8; }
+
+    /* ── Date box ── */
+    .date-box   { width:40px; height:40px; border-radius:9px; background:#E8F7F6;
+                  display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; }
+    .db-day     { font-size:15px; font-weight:800; color:#1B7872; line-height:1; }
+    .db-mon     { font-size:9px; font-weight:700; color:#2FA8A0; text-transform:uppercase; }
+
+    /* ── Budget bar ── */
+    .bgt-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F7FA; }
+    .bgt-row:last-child { border-bottom:none; }
+    .bgt-dept { font-size:13px; font-weight:600; color:#1A2B3C; width:130px; flex-shrink:0;
+                overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bgt-bar  { flex:1; }
+    .bgt-pct  { font-size:12px; font-weight:700; color:#1B7872; width:34px; text-align:right; }
+
+    /* ── Mentor pair ── */
+    .mentor-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F7FA; }
+    .mentor-row:last-child { border-bottom:none; }
+
+    /* ── State boxes ── */
+    .state-box { padding:48px 0; text-align:center; color:#8FA3B8; font-size:14px; }
+    .state-box i { font-size:36px; display:block; margin-bottom:10px; }
+    .spinner { width:30px; height:30px; border:3px solid #E2E8F0; border-top-color:#2FA8A0;
+               border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 10px; }
+
+    /* ── Right Panel ── */
+    .backdrop { position:fixed; inset:0; background:rgba(10,20,35,.35); z-index:1800; backdrop-filter:blur(1px); }
+    .rp { position:fixed; top:70px; right:0; bottom:0; width:500px; background:#fff;
+          box-shadow:-8px 0 40px rgba(10,20,35,.14); border-radius:16px 0 0 0; z-index:1801;
+          display:flex; flex-direction:column; animation:rpIn .22s ease both; overflow:hidden; }
+    .rp-hd  { display:flex; align-items:center; justify-content:space-between;
+              padding:18px 22px 16px; border-bottom:1px solid #F0F3F6; flex-shrink:0; }
+    .rp-t   { font-size:15px; font-weight:700; color:#1A2B3C; }
+    .rp-cls { width:30px; height:30px; border:none; background:#F1F5F9; border-radius:7px;
+              display:flex; align-items:center; justify-content:center; cursor:pointer;
+              font-size:18px; color:#4A6080; }
+    .rp-cls:hover { background:#E2E8F0; }
+    .rp-bd  { flex:1; overflow-y:auto; padding:22px; }
+    .rp-sec { font-size:13px; font-weight:700; color:#1A2B3C; margin:16px 0 10px;
+              padding-bottom:6px; border-bottom:1px solid #F0F3F6; }
+    .rp-sec:first-child { margin-top:0; }
+    .rp-row { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid #F8FAFC; }
+    .rp-row:last-of-type { border-bottom:none; }
+    .rp-lbl { font-size:12px; color:#8FA3B8; min-width:130px; display:flex; align-items:center; gap:5px; }
+    .rp-lbl i { font-size:14px; }
+    .rp-val { font-size:13px; font-weight:600; color:#1A2B3C; }
+    .rp-ft  { padding:14px 22px; border-top:1px solid #F0F3F6; flex-shrink:0; display:flex; justify-content:flex-end; gap:10px; }
+
+    /* ── Create form ── */
+    .cf-field { margin-bottom:14px; }
+    .cf-lbl   { font-size:13px; font-weight:600; color:#1A2B3C; margin-bottom:5px; display:block; }
+    .cf-in    { width:100%; padding:10px 14px; border:1.5px solid #E2E8F0; border-radius:9px;
+                font-size:13px; color:#1A2B3C; font-family:'Inter',sans-serif;
+                box-sizing:border-box; outline:none; transition:border .15s; }
+    .cf-in:focus { border-color:#2FA8A0; box-shadow:0 0 0 3px rgba(47,168,160,.1); }
+    .cf-in::placeholder { color:#C0CDD8; }
+    .cf-sel   { width:100%; padding:10px 14px; border:1.5px solid #E2E8F0; border-radius:9px;
+                font-size:13px; color:#4A6080; font-family:'Inter',sans-serif;
+                appearance:none; background:#fff; box-sizing:border-box; outline:none; cursor:pointer; }
+    .cf-sel:focus { border-color:#2FA8A0; }
+    .cf-row   { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .cf-ta    { width:100%; padding:10px 14px; border:1.5px solid #E2E8F0; border-radius:9px;
+                font-size:13px; color:#1A2B3C; font-family:'Inter',sans-serif;
+                box-sizing:border-box; outline:none; resize:vertical; min-height:72px; transition:border .15s; }
+    .cf-ta:focus { border-color:#2FA8A0; }
+    .cf-err { color:#BE123C; font-size:12px; padding:8px 12px; background:#FFF5F5;
+              border-radius:8px; border:1px solid #FFE4E6; margin-bottom:10px; }
+
+    .btn-cancel { padding:10px 20px; background:#F1F5F9; color:#4A6080; border:none;
+                  border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; }
+    .btn-save   { padding:10px 24px; background:#1B7872; color:#fff; border:none;
+                  border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; }
+    .btn-save:hover { background:#1A9690; }
+    .btn-save:disabled { opacity:.5; cursor:default; }
+
+    /* ── Calendar view switcher ── */
+    .cal-vsw       { display:flex; gap:2px; background:#F1F5F9; border-radius:9px; padding:3px; }
+    .cal-vsw-btn   { padding:6px 16px; border:none; border-radius:7px; background:none;
+                     font-size:12.5px; font-weight:600; color:#8FA3B8; cursor:pointer; transition:all .15s; }
+    .cal-vsw-btn.act { background:#fff; color:#1B7872; box-shadow:0 1px 4px rgba(10,20,35,.12); }
+    .cal-vsw-btn:hover:not(.act) { color:#4A6080; }
+
+    /* ── Weekly view ── */
+    .cal-week-wrap    { overflow:hidden; }
+    .cal-week-header  { display:flex; border-bottom:2px solid #F0F3F6; }
+    .cal-tg           { width:62px; flex-shrink:0; border-right:1px solid #F0F3F6; }
+    .cal-week-day-hd  { flex:1; padding:10px 8px 10px; text-align:center;
+                        border-right:1px solid #F0F3F6; transition:background .12s; }
+    .cal-week-day-hd:last-child { border-right:none; }
+    .cal-wdh-name     { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#8FA3B8; }
+    .cal-wdh-num      { display:inline-flex; align-items:center; justify-content:center;
+                        width:30px; height:30px; border-radius:50%;
+                        font-size:15px; font-weight:800; color:#1A2B3C; margin-top:3px; }
+    .cal-wdh-num.today { background:#1B7872; color:#fff; }
+    .cal-allday-row   { display:flex; border-bottom:1px solid #F0F3F6; background:#FAFBFC; }
+    .cal-allday-tg    { width:62px; flex-shrink:0; border-right:1px solid #F0F3F6;
+                        padding:6px 6px 0; font-size:9.5px; font-weight:700; color:#C0CDD8;
+                        text-align:right; text-transform:uppercase; letter-spacing:.04em; }
+    .cal-allday-cell  { flex:1; border-right:1px solid #F5F7FA; padding:4px 3px; min-height:24px; }
+    .cal-allday-cell:last-child { border-right:none; }
+    .cal-week-body    { overflow-y:auto; max-height:500px; }
+    .cal-time-row     { display:flex; border-bottom:1px solid #F5F7FA; min-height:54px; }
+    .cal-tg-cell      { width:62px; flex-shrink:0; border-right:1px solid #F0F3F6;
+                        padding:0 8px 0 0; font-size:10.5px; font-weight:600; color:#C0CDD8;
+                        text-align:right; padding-top:6px; }
+    .cal-day-col      { flex:1; border-right:1px solid #F5F7FA; padding:3px; cursor:pointer;
+                        transition:background .1s; }
+    .cal-day-col:last-child { border-right:none; }
+    .cal-day-col:hover { background:#F0FDF9; }
+    .cal-ev-block     { padding:3px 7px 3px 8px; border-radius:5px; font-size:11px; font-weight:600;
+                        margin-bottom:2px; cursor:pointer; overflow:hidden; white-space:nowrap;
+                        text-overflow:ellipsis; transition:opacity .12s; border-left-width:3px; border-left-style:solid; }
+    .cal-ev-block:hover { opacity:.8; }
+
+    /* ── Daily view ── */
+    .cal-day-wrap     { overflow:hidden; }
+    .cal-day-allday   { display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+                        padding:8px 16px 8px 78px; border-bottom:1px solid #F0F3F6; background:#FAFBFC; }
+    .cal-day-allday-lbl { font-size:10px; font-weight:700; color:#C0CDD8; text-transform:uppercase;
+                          letter-spacing:.04em; margin-right:4px; }
+    .cal-day-body     { overflow-y:auto; max-height:580px; }
+    .cal-day-row      { display:flex; border-bottom:1px solid #F5F7FA; min-height:64px; }
+    .cal-day-row:hover { background:#FAFFFE; }
+    .cal-day-row:last-child { border-bottom:none; }
+    .cal-day-tg       { width:62px; flex-shrink:0; border-right:1px solid #F0F3F6;
+                        padding:0 8px 0 0; font-size:10.5px; font-weight:600; color:#C0CDD8;
+                        text-align:right; padding-top:6px; }
+    .cal-day-slot     { flex:1; padding:4px 10px; }
+    .cal-day-ev       { display:flex; align-items:center; gap:10px; padding:8px 12px;
+                        border-radius:9px; margin-bottom:4px; cursor:pointer;
+                        transition:opacity .12s; border-left-width:4px; border-left-style:solid; }
+    .cal-day-ev:hover { opacity:.85; }
+    .cal-day-ev-t     { font-size:13px; font-weight:600; flex:1; min-width:0;
+                        overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .cal-day-ev-time  { font-size:11.5px; font-weight:700; opacity:.8; flex-shrink:0; }
+    .cal-day-chip     { padding:2px 9px; border-radius:999px; font-size:10.5px; font-weight:700; flex-shrink:0; }
+    .cal-day-empty    { text-align:center; color:#C0CDD8; padding:14px 0;
+                        font-size:12px; font-style:italic; }
+
+    .toast { position:fixed; bottom:24px; right:24px; z-index:9999; background:#1A2B3C; color:#fff;
+             padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500;
+             box-shadow:0 8px 24px rgba(0,0,0,.18); animation:rpIn .22s ease both; }
   `],
   template: `
-  <!-- Backdrop -->
   <div class="backdrop" *ngIf="showPanel" (click)="closePanel()"></div>
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
 
   <!-- ══ Right Panel ══ -->
-  <div class="rp" *ngIf="showPanel && (selected || panelType==='create')">
+  <div class="rp" *ngIf="showPanel">
+    <div class="rp-hd">
+      <span class="rp-t">{{ panelType === 'create' ? createTitle : ('PLANNING.PANEL_EVENT_DETAIL' | translate) }}</span>
+      <button class="rp-cls" (click)="closePanel()"><i class="bx bx-x"></i></button>
+    </div>
 
-    <!-- Workforce detail -->
-    <ng-container *ngIf="panelType==='workforce'">
-      <div class="rp-header">
-        <span class="rp-title">Headcount Plan Detail</span>
-        <div class="rp-head-right">
-          <button class="rp-edit-btn"><i class="bx bx-edit-alt"></i> Edit Plan</button>
-          <button class="rp-close" (click)="closePanel()"><i class="bx bx-x"></i></button>
+    <!-- Event detail -->
+    <div class="rp-bd" *ngIf="panelType === 'event' && selected">
+      <div class="rp-sec">{{ 'PLANNING.SECTION_EVENT_INFO' | translate }}</div>
+      <div class="rp-row"><span class="rp-lbl"><i class="bx bx-font"></i> {{ 'PLANNING.FIELD_TITLE' | translate }}</span><span class="rp-val">{{ selected.title }}</span></div>
+      <div class="rp-row"><span class="rp-lbl"><i class="bx bx-category"></i> {{ 'PLANNING.FIELD_TYPE' | translate }}</span>
+        <span class="chip" [ngClass]="typeChipClass(selected.type)">{{ selected.type }}</span>
+      </div>
+      <div class="rp-row"><span class="rp-lbl"><i class="bx bx-calendar"></i> {{ 'PLANNING.FIELD_START' | translate }}</span>
+        <span class="rp-val">{{ formatDateDisplay(selected.startDateTime) }}</span>
+      </div>
+      <div class="rp-row" *ngIf="selected.endDateTime">
+        <span class="rp-lbl"><i class="bx bx-calendar-check"></i> {{ 'PLANNING.FIELD_END' | translate }}</span>
+        <span class="rp-val">{{ formatDateDisplay(selected.endDateTime) }}</span>
+      </div>
+      <div class="rp-row" *ngIf="selected.location">
+        <span class="rp-lbl"><i class="bx bx-map-pin"></i> {{ 'PLANNING.FIELD_LOCATION' | translate }}</span>
+        <span class="rp-val">{{ selected.location }}</span>
+      </div>
+      <div class="rp-row" *ngIf="selected.description">
+        <span class="rp-lbl"><i class="bx bx-note"></i> {{ 'PLANNING.FIELD_DESCRIPTION' | translate }}</span>
+        <span class="rp-val" style="white-space:pre-wrap">{{ selected.description }}</span>
+      </div>
+      <div class="rp-row" *ngIf="selected.createdBy">
+        <span class="rp-lbl"><i class="bx bx-user"></i> {{ 'PLANNING.FIELD_CREATED_BY' | translate }}</span>
+        <span class="rp-val">{{ selected.createdBy.firstname }} {{ selected.createdBy.lastname }}</span>
+      </div>
+    </div>
+
+    <!-- Generic row detail panels -->
+    <div class="rp-bd" *ngIf="panelType !== 'event' && panelType !== 'create' && selected">
+      <div class="rp-sec">{{ 'PLANNING.SECTION_DETAILS' | translate }}</div>
+      <div class="rp-row" *ngIf="selected.dept"><span class="rp-lbl"><i class="bx bx-buildings"></i> {{ 'PLANNING.FIELD_DEPARTMENT' | translate }}</span><span class="rp-val">{{ selected.dept }}</span></div>
+      <div class="rp-row" *ngIf="selected.employee"><span class="rp-lbl"><i class="bx bx-user"></i> {{ 'PLANNING.FIELD_EMPLOYEE' | translate }}</span><span class="rp-val">{{ selected.employee }}</span></div>
+      <div class="rp-row" *ngIf="selected.position"><span class="rp-lbl"><i class="bx bx-briefcase"></i> {{ 'PLANNING.FIELD_POSITION' | translate }}</span><span class="rp-val">{{ selected.position }}</span></div>
+      <div class="rp-row" *ngIf="selected.skill"><span class="rp-lbl"><i class="bx bx-book"></i> {{ 'PLANNING.FIELD_SKILL' | translate }}</span><span class="rp-val">{{ selected.skill }}</span></div>
+      <div class="rp-row" *ngIf="selected.currentRole"><span class="rp-lbl"><i class="bx bx-briefcase"></i> {{ 'PLANNING.FIELD_CURRENT_ROLE' | translate }}</span><span class="rp-val">{{ selected.currentRole }}</span></div>
+      <div class="rp-row" *ngIf="selected.targetRole"><span class="rp-lbl"><i class="bx bx-trending-up"></i> {{ 'PLANNING.FIELD_TARGET_ROLE' | translate }}</span><span class="rp-val">{{ selected.targetRole }}</span></div>
+      <div class="rp-row" *ngIf="selected.status"><span class="rp-lbl"><i class="bx bx-check-circle"></i> {{ 'PLANNING.FIELD_STATUS' | translate }}</span><span class="rp-val">{{ selected.status }}</span></div>
+    </div>
+
+    <!-- Create form -->
+    <ng-container *ngIf="panelType === 'create'">
+      <div class="rp-bd" style="padding-bottom:0">
+        <div class="cf-err" *ngIf="saveError"><i class="bx bx-error-circle"></i> {{ saveError }}</div>
+
+        <!-- Calendar event create -->
+        <ng-container *ngIf="activeView === 'calendar'">
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAL_FORM_TITLE' | translate }}</label>
+            <input class="cf-in" [(ngModel)]="createForm.title" [placeholder]="'PLANNING.CAL_FORM_EVENT_TITLE_PH' | translate"/></div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAL_FORM_TYPE' | translate }}</label>
+              <select class="cf-sel" [(ngModel)]="createForm.type">
+                <option value="MEETING">{{ 'PLANNING.CAL_TYPE_MEETING' | translate }}</option><option value="TRAINING">{{ 'PLANNING.CAL_TYPE_TRAINING' | translate }}</option>
+                <option value="INTERVIEW">{{ 'PLANNING.CAL_TYPE_INTERVIEW' | translate }}</option><option value="HOLIDAY">{{ 'PLANNING.CAL_TYPE_HOLIDAY' | translate }}</option>
+                <option value="DEADLINE">{{ 'PLANNING.CAL_TYPE_DEADLINE' | translate }}</option><option value="OTHER">{{ 'PLANNING.CAL_TYPE_OTHER' | translate }}</option>
+              </select></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAL_FORM_START_DATE' | translate }}</label>
+              <input class="cf-in" type="datetime-local" [(ngModel)]="createForm.startDateTime"/></div>
+          </div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAL_FORM_END_DATE' | translate }}</label>
+              <input class="cf-in" type="datetime-local" [(ngModel)]="createForm.endDateTime"/></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAL_FORM_LOCATION' | translate }}</label>
+              <input class="cf-in" [(ngModel)]="createForm.location" [placeholder]="'PLANNING.CAL_FORM_LOCATION_PH' | translate"/></div>
+          </div>
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAL_FORM_DESCRIPTION' | translate }}</label>
+            <textarea class="cf-ta" [(ngModel)]="createForm.description" [placeholder]="'PLANNING.CAL_FORM_DESCRIPTION_PH' | translate"></textarea></div>
+        </ng-container>
+
+        <!-- Workforce create -->
+        <ng-container *ngIf="activeView === 'workforce'">
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_DEPT' | translate }}</label>
+            <select class="cf-sel" [(ngModel)]="createForm.dept">
+              <option value="">{{ 'PLANNING.WF_SELECT_DEPT' | translate }}</option>
+              <option *ngFor="let d of deptOptions">{{d}}</option>
+            </select></div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_CURRENT_HC' | translate }}</label>
+              <input class="cf-in" type="number" [(ngModel)]="createForm.current" placeholder="0"/></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_PLANNED_HC' | translate }}</label>
+              <input class="cf-in" type="number" [(ngModel)]="createForm.planned" placeholder="0"/></div>
+          </div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_BUDGET' | translate }}</label>
+              <input class="cf-in" [(ngModel)]="createForm.budget" placeholder="$0.00"/></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_REVIEW_DATE' | translate }}</label>
+              <input class="cf-in" type="date" [(ngModel)]="createForm.reviewDate"/></div>
+          </div>
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_NOTES' | translate }}</label>
+            <textarea class="cf-ta" [(ngModel)]="createForm.notes"></textarea></div>
+        </ng-container>
+
+        <!-- Training create -->
+        <ng-container *ngIf="activeView === 'training'">
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.TR_FORM_EMPLOYEE' | translate }}</label>
+            <input class="cf-in" [(ngModel)]="createForm.employee" [placeholder]="'PLANNING.TR_FORM_EMPLOYEE_PH' | translate"/></div>
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.TR_FORM_SKILL_GAP' | translate }}</label>
+            <input class="cf-in" [(ngModel)]="createForm.skill" [placeholder]="'PLANNING.TR_FORM_SKILL_PH' | translate"/></div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.TR_FORM_PRIORITY' | translate }}</label>
+              <select class="cf-sel" [(ngModel)]="createForm.priority">
+                <option>{{ 'PLANNING.TR_PRIORITY_CRITICAL' | translate }}</option><option>{{ 'PLANNING.TR_PRIORITY_HIGH' | translate }}</option><option>{{ 'PLANNING.TR_PRIORITY_MEDIUM' | translate }}</option><option>{{ 'PLANNING.TR_PRIORITY_LOW' | translate }}</option>
+              </select></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.TR_FORM_DEADLINE' | translate }}</label>
+              <input class="cf-in" type="date" [(ngModel)]="createForm.deadline"/></div>
+          </div>
+        </ng-container>
+
+        <!-- Career create -->
+        <ng-container *ngIf="activeView === 'career'">
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAR_FORM_EMPLOYEE' | translate }}</label>
+            <input class="cf-in" [(ngModel)]="createForm.employee" [placeholder]="'PLANNING.CAR_FORM_EMPLOYEE_PH' | translate"/></div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAR_FORM_CURRENT_ROLE' | translate }}</label>
+              <input class="cf-in" [(ngModel)]="createForm.currentRole" [placeholder]="'PLANNING.CAR_FORM_CURRENT_ROLE_PH' | translate"/></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAR_FORM_TARGET_ROLE' | translate }}</label>
+              <input class="cf-in" [(ngModel)]="createForm.targetRole" [placeholder]="'PLANNING.CAR_FORM_TARGET_ROLE_PH' | translate"/></div>
+          </div>
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.CAR_FORM_TIMELINE' | translate }}</label>
+            <input class="cf-in" [(ngModel)]="createForm.timeline" [placeholder]="'PLANNING.CAR_FORM_TIMELINE_PH' | translate"/></div>
+        </ng-container>
+
+        <!-- Recruitment create -->
+        <ng-container *ngIf="activeView === 'recruitment'">
+          <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.REC_FORM_POSITION' | translate }}</label>
+            <input class="cf-in" [(ngModel)]="createForm.position" [placeholder]="'PLANNING.REC_FORM_POSITION_PH' | translate"/></div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.REC_FORM_DEPT' | translate }}</label>
+              <select class="cf-sel" [(ngModel)]="createForm.dept">
+                <option value="">{{ 'PLANNING.REC_SELECT_DEPT' | translate }}</option>
+                <option *ngFor="let d of deptOptions">{{d}}</option>
+              </select></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.REC_FORM_TARGET_DATE' | translate }}</label>
+              <input class="cf-in" type="date" [(ngModel)]="createForm.targetDate"/></div>
+          </div>
+          <div class="cf-row">
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.REC_FORM_HC' | translate }}</label>
+              <input class="cf-in" type="number" [(ngModel)]="createForm.hc" placeholder="1"/></div>
+            <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.REC_FORM_BUDGET' | translate }}</label>
+              <input class="cf-in" [(ngModel)]="createForm.budget" placeholder="$0"/></div>
+          </div>
+        </ng-container>
+      </div>
+      <div class="rp-ft">
+        <button class="btn-cancel" (click)="closePanel()">{{ 'PLANNING.BTN_CANCEL' | translate }}</button>
+        <button class="btn-save" [disabled]="saving" (click)="submitCreate()">
+          {{ saving ? ('PLANNING.BTN_SAVING' | translate) : ('PLANNING.BTN_CREATE' | translate) }}
+        </button>
+      </div>
+    </ng-container>
+    <div class="rp-ft" *ngIf="panelType !== 'create'">
+      <button class="btn-cancel" (click)="closePanel()">{{ 'PLANNING.BTN_CLOSE' | translate }}</button>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE ══════════ -->
+  <div class="page">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="ph" style="flex:1;margin-bottom:0;">
+        <div class="ph-left">
+          <div class="ph-icon"><i class="bx bxs-calendar-check"></i></div>
+          <div>
+            <h4 class="ph-title">{{ 'PLANNING.PLANNING_HEADER' | translate }}</h4>
+            <div class="ph-sub">HR Strategic Planning &amp; Calendar</div>
+          </div>
+        </div>
+        <div class="ph-right">
+          <button class="btn-ghost" style="border:1.5px solid #E2E8F0"><i class="bx bx-export"></i> Export</button>
+          <button class="btn-prim" (click)="openCreate()"><i class="bx bx-plus"></i> New Event</button>
         </div>
       </div>
-      <div class="rp-body">
-        <div class="rp-section">Plan Information</div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-buildings"></i> Department</span><span class="rp-val">{{ selected.dept }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-group"></i> Current HC</span><span class="rp-val">{{ selected.current }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-target-lock"></i> Planned HC</span><span class="rp-val">{{ selected.planned }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-trending-up"></i> Gap</span><span class="rp-val" [style.color]="selected.gap>0?'#15803D':'#BE123C'">{{ selected.gap > 0 ? '+' : '' }}{{ selected.gap }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-dollar-circle"></i> Budget</span><span class="rp-val">{{ selected.budget }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-calendar"></i> Review Date</span><span class="rp-val">{{ selected.reviewDate }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-check-circle"></i> Status</span><span class="chip chip--{{ selected.statusClass }}">{{ selected.status }}</span></div>
-        <div class="rp-section">Workforce Scenarios</div>
-        <div *ngFor="let s of workforceScenarios" class="scenario-item" style="margin-bottom:10px;">
-          <div class="scenario-head">
-            <span class="scenario-name">{{ s.name }}</span>
-            <span class="chip chip--{{ s.chipClass }}">{{ s.label }}</span>
+      <app-wall-clock></app-wall-clock>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-strip" *ngIf="!loading">
+      <div class="kpi">
+        <div class="kpi-ico ico-teal"><i class="bx bx-calendar-event"></i></div>
+        <div><div class="kpi-v">{{ allEvents.length }}</div><div class="kpi-l">Total Events</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico ico-blue"><i class="bx bx-group"></i></div>
+        <div><div class="kpi-v">{{ totalHC }}</div><div class="kpi-l">Total Headcount</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico ico-purple"><i class="bx bx-chalkboard"></i></div>
+        <div><div class="kpi-v">{{ trainingNeeds.length }}</div><div class="kpi-l">Training Needs</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico ico-amber"><i class="bx bx-user-plus"></i></div>
+        <div><div class="kpi-v">{{ hiringRequests.length }}</div><div class="kpi-l">Open Positions</div></div>
+      </div>
+    </div>
+
+    <!-- View tabs -->
+    <div class="view-tabs">
+      <button class="vt" [class.vt--active]="activeView==='calendar'" (click)="activeView='calendar'">
+        <span class="vt-icon"><i class="bx bx-calendar"></i></span> Calendar
+      </button>
+      <button class="vt" [class.vt--active]="activeView==='workforce'" (click)="activeView='workforce'">
+        <span class="vt-icon"><i class="bx bx-building-house"></i></span> Workforce
+      </button>
+      <button class="vt" [class.vt--active]="activeView==='training'" (click)="activeView='training'">
+        <span class="vt-icon"><i class="bx bx-chalkboard"></i></span> Training
+      </button>
+      <button class="vt" [class.vt--active]="activeView==='career'" (click)="activeView='career'">
+        <span class="vt-icon"><i class="bx bx-trending-up"></i></span> Career
+      </button>
+      <button class="vt" [class.vt--active]="activeView==='recruitment'" (click)="activeView='recruitment'">
+        <span class="vt-icon"><i class="bx bx-user-plus"></i></span> Recruitment
+      </button>
+    </div>
+
+    <!-- Loading / Error -->
+    <div class="state-box" *ngIf="loading">
+      <div class="spinner"></div>Loading planning data…
+    </div>
+    <div class="state-box" style="color:#EF4444" *ngIf="!loading && error">
+      <i class="bx bx-error-circle"></i> {{ error }}
+    </div>
+
+    <!-- ═══════════ CALENDAR VIEW ═══════════ -->
+    <ng-container *ngIf="!loading && activeView==='calendar'">
+      <div class="cal-wrap">
+
+        <!-- Toolbar -->
+        <div class="cal-toolbar">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" (click)="prevPeriod()"><i class="bx bx-chevron-left"></i></button>
+            <span class="cal-month-label">{{ calLabel }}</span>
+            <button class="cal-nav-btn" (click)="nextPeriod()"><i class="bx bx-chevron-right"></i></button>
+            <button class="cal-today-btn" (click)="goToday()">{{ 'PLANNING.CAL_TODAY_BTN' | translate }}</button>
           </div>
-          <div class="scenario-desc">{{ s.desc }}</div>
-          <div class="scenario-meta">
-            <span class="scenario-meta-item"><i class="bx bx-group"></i> +{{ s.hc }} HC</span>
-            <span class="scenario-meta-item"><i class="bx bx-dollar"></i> {{ s.cost }}</span>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <!-- View switcher -->
+            <div class="cal-vsw">
+              <button class="cal-vsw-btn" [class.act]="calView==='daily'"   (click)="setCalView('daily')">
+                <i class="bx bx-calendar-day" style="vertical-align:middle;margin-right:3px"></i>Daily
+              </button>
+              <button class="cal-vsw-btn" [class.act]="calView==='weekly'"  (click)="setCalView('weekly')">
+                <i class="bx bx-calendar-week" style="vertical-align:middle;margin-right:3px"></i>Weekly
+              </button>
+              <button class="cal-vsw-btn" [class.act]="calView==='monthly'" (click)="setCalView('monthly')">
+                <i class="bx bx-calendar" style="vertical-align:middle;margin-right:3px"></i>Monthly
+              </button>
+            </div>
+            <!-- Legend -->
+            <div class="cal-legend">
+              <div class="leg-item" *ngFor="let l of typeLegend">
+                <span class="leg-dot" [style.background]="l.color"></span> {{ l.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ MONTHLY VIEW ══ -->
+        <ng-container *ngIf="calView==='monthly'">
+          <!-- Day of week header -->
+          <div class="cal-dow">
+            <div class="cal-dow-cell" *ngFor="let d of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']">{{ d }}</div>
+          </div>
+
+          <!-- Day grid -->
+          <div class="cal-grid">
+            <div class="cal-cell"
+                 *ngFor="let day of calendarDays"
+                 [class.cal-cell--other]="!day.cur"
+                 [class.cal-cell--today]="isToday(day.date)"
+                 [class.cal-cell--selected]="isSameDay(day.date, selectedDay)"
+                 (click)="selectDay(day)">
+              <span class="cal-day-num">{{ day.date.getDate() }}</span>
+              <div class="cal-events">
+                <div class="cal-pill"
+                     *ngFor="let ev of day.events.slice(0,3)"
+                     [style.background]="typeColor(ev.type) + '20'"
+                     [style.color]="typeColorDark(ev.type)"
+                     (click)="openEventDetail(ev); $event.stopPropagation()">
+                  <span class="cal-pill-dot" [style.background]="typeColor(ev.type)"></span>
+                  {{ ev.title | slice:0:22 }}{{ ev.title.length > 22 ? '…' : '' }}
+                </div>
+                <span class="cal-more" *ngIf="day.events.length > 3"
+                      (click)="selectDay(day); $event.stopPropagation()">
+                  +{{ day.events.length - 3 }} more
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected day event list -->
+          <div class="day-events-panel" *ngIf="selectedDay">
+            <div class="dep-title">
+              <i class="bx bx-calendar-event" style="color:#1B7872;"></i>
+              Events for
+              <span class="dep-date-chip">{{ selectedDay | date:'EEEE, MMMM d, y' }}</span>
+              <span style="color:#8FA3B8;font-weight:400;font-size:13px;margin-left:4px;">
+                ({{ selectedDayEvents.length }} event{{ selectedDayEvents.length !== 1 ? 's' : '' }})
+              </span>
+            </div>
+            <div class="dep-empty" *ngIf="selectedDayEvents.length === 0">
+              <i class="bx bx-calendar-x" style="font-size:22px;vertical-align:middle;margin-right:8px;"></i>
+              No events on this day. Click "New Event" to add one.
+            </div>
+            <div class="dep-event" *ngFor="let ev of selectedDayEvents" (click)="openEventDetail(ev)">
+              <div class="dep-type-badge" [style.background]="typeColor(ev.type)+'20'"
+                   [style.color]="typeColorDark(ev.type)">
+                <i class="bx" [ngClass]="typeIcon(ev.type)"></i>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div class="dep-ev-title">{{ ev.title }}</div>
+                <div class="dep-ev-meta">
+                  {{ formatDateDisplay(ev.startDateTime) }}
+                  <span *ngIf="ev.location"> · {{ ev.location }}</span>
+                </div>
+              </div>
+              <span class="dep-ev-chip" [style.background]="typeColor(ev.type)+'20'"
+                    [style.color]="typeColorDark(ev.type)">{{ ev.type }}</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ══ WEEKLY VIEW ══ -->
+        <ng-container *ngIf="calView==='weekly'">
+          <div class="cal-week-wrap">
+            <!-- Day headers -->
+            <div class="cal-week-header">
+              <div class="cal-tg"></div>
+              <div class="cal-week-day-hd" *ngFor="let wd of weekDays"
+                   [style.background]="isToday(wd.date) ? '#F0FDF9' : ''">
+                <div class="cal-wdh-name">{{ wd.date | date:'EEE' }}</div>
+                <div class="cal-wdh-num" [class.today]="isToday(wd.date)">{{ wd.date.getDate() }}</div>
+              </div>
+            </div>
+            <!-- All-day row (shown only when there are all-day events) -->
+            <div class="cal-allday-row" *ngIf="weekHasAllDay">
+              <div class="cal-allday-tg">all-day</div>
+              <div class="cal-allday-cell" *ngFor="let wd of weekDays">
+                <div class="cal-pill" *ngFor="let ev of wd.allDayEvents"
+                     [style.background]="typeColor(ev.type)+'20'"
+                     [style.color]="typeColorDark(ev.type)"
+                     (click)="openEventDetail(ev)">
+                  <span class="cal-pill-dot" [style.background]="typeColor(ev.type)"></span>
+                  {{ ev.title | slice:0:16 }}{{ ev.title.length > 16 ? '…' : '' }}
+                </div>
+              </div>
+            </div>
+            <!-- Time grid -->
+            <div class="cal-week-body">
+              <div class="cal-time-row" *ngFor="let h of calHours">
+                <div class="cal-tg-cell">{{ fmtHour(h) }}:00</div>
+                <div class="cal-day-col" *ngFor="let wd of weekDays"
+                     [style.background]="isToday(wd.date) ? '#FAFFFD' : ''"
+                     (click)="drillDay(wd.date, h)">
+                  <div class="cal-ev-block" *ngFor="let ev of wd.eventsByHour[h]"
+                       [style.background]="typeColor(ev.type)+'22'"
+                       [style.color]="typeColorDark(ev.type)"
+                       [style.border-left-color]="typeColor(ev.type)"
+                       (click)="openEventDetail(ev); $event.stopPropagation()">
+                    {{ ev.title | slice:0:22 }}{{ ev.title.length > 22 ? '…' : '' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ══ DAILY VIEW ══ -->
+        <ng-container *ngIf="calView==='daily'">
+          <div class="cal-day-wrap">
+            <!-- Day title bar -->
+            <div style="padding:12px 16px 12px 78px;border-bottom:1px solid #F0F3F6;
+                        display:flex;align-items:center;gap:10px;background:#FAFBFC">
+              <span style="font-size:15px;font-weight:800;color:#1A2B3C">
+                {{ calDayDate | date:'EEEE' }}
+              </span>
+              <span class="dep-date-chip">{{ calDayDate | date:'MMMM d, y' }}</span>
+              <span style="margin-left:auto;font-size:12px;color:#8FA3B8">
+                {{ dayTotalEvents }} event{{ dayTotalEvents !== 1 ? 's' : '' }}
+              </span>
+            </div>
+            <!-- All-day events -->
+            <div class="cal-day-allday" *ngIf="dayAllDayEvents.length > 0">
+              <span class="cal-day-allday-lbl">{{ 'PLANNING.CAL_ALL_DAY' | translate }}</span>
+              <div class="cal-pill" *ngFor="let ev of dayAllDayEvents"
+                   [style.background]="typeColor(ev.type)+'20'"
+                   [style.color]="typeColorDark(ev.type)"
+                   (click)="openEventDetail(ev)">
+                <span class="cal-pill-dot" [style.background]="typeColor(ev.type)"></span>
+                {{ ev.title }}
+              </div>
+            </div>
+            <!-- Time slots -->
+            <div class="cal-day-body">
+              <div class="cal-day-row" *ngFor="let slot of dayHours">
+                <div class="cal-day-tg">{{ fmtHour(slot.hour) }}:00</div>
+                <div class="cal-day-slot">
+                  <div class="cal-day-ev" *ngFor="let ev of slot.events"
+                       [style.background]="typeColor(ev.type)+'18'"
+                       [style.border-left-color]="typeColor(ev.type)"
+                       (click)="openEventDetail(ev)">
+                    <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0"
+                          [style.background]="typeColor(ev.type)"></span>
+                    <span class="cal-day-ev-t" [style.color]="typeColorDark(ev.type)">{{ ev.title }}</span>
+                    <span class="cal-day-ev-time" [style.color]="typeColorDark(ev.type)">
+                      {{ ev.startDateTime | date:'HH:mm' }}
+                      <span *ngIf="ev.endDateTime"> – {{ ev.endDateTime | date:'HH:mm' }}</span>
+                    </span>
+                    <span class="cal-day-chip"
+                          [style.background]="typeColor(ev.type)+'22'"
+                          [style.color]="typeColorDark(ev.type)">{{ ev.type }}</span>
+                  </div>
+                  <div class="cal-day-empty" *ngIf="slot.events.length === 0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </ng-container>
+
+    <!-- ═══════════ WORKFORCE ═══════════ -->
+    <ng-container *ngIf="!loading && activeView==='workforce'">
+      <div class="section two-col">
+        <div class="card">
+          <div class="itabs">
+            <button class="itab" [class.act]="wfTab==='hc'" (click)="wfTab='hc'">{{ 'PLANNING.ITAB_HC_PLAN' | translate }}</button>
+            <button class="itab" [class.act]="wfTab==='budget'" (click)="wfTab='budget'">{{ 'PLANNING.ITAB_DEPT_BUDGET' | translate }}</button>
+          </div>
+          <div class="tbl-wrap" *ngIf="wfTab==='hc'">
+            <table>
+              <thead><tr><th>{{ 'PLANNING.TH_DEPARTMENT' | translate }}</th><th>{{ 'PLANNING.TH_CURRENT_HC' | translate }}</th><th>{{ 'PLANNING.TH_PLANNED_HC' | translate }}</th><th>{{ 'PLANNING.TH_GAP' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
+              <tbody>
+                <tr *ngIf="headcountPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_HC_PLANS' | translate }}</td></tr>
+                <tr *ngFor="let r of headcountPlans" (click)="openDetail(r,'workforce')">
+                  <td class="td-b">{{ r.dept }}</td>
+                  <td>{{ r.current }}</td>
+                  <td>{{ r.planned }}</td>
+                  <td [style.color]="r.gap >= 0 ? '#15803D' : '#BE123C'" style="font-weight:700">{{ r.gap > 0 ? '+' : '' }}{{ r.gap }}</td>
+                  <td><span class="chip ch-green">{{ 'PLANNING.STATUS_ACTIVE' | translate }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-pad" *ngIf="wfTab==='budget'">
+            <div class="bgt-row" *ngFor="let b of departmentBudgets">
+              <span class="bgt-dept">{{ b.dept }}</span>
+              <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="b.pct"></div></div></div>
+              <span class="bgt-pct">{{ b.pct }}%</span>
+            </div>
+            <div *ngIf="departmentBudgets.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_DEPT_BUDGET' | translate }}</div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_DEPT_DISTRIBUTION' | translate }}</span></div>
+          <div class="bgt-row" *ngFor="let b of departmentBudgets">
+            <span class="bgt-dept" style="width:110px">{{ b.dept }}</span>
+            <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="b.pct"></div></div></div>
+            <span class="bgt-pct">{{ b.pct }}%</span>
           </div>
         </div>
       </div>
     </ng-container>
 
-    <!-- Training detail -->
-    <ng-container *ngIf="panelType==='training'">
-      <div class="rp-header">
-        <span class="rp-title">Training Need Detail</span>
-        <div class="rp-head-right">
-          <button class="rp-edit-btn"><i class="bx bx-edit-alt"></i> Edit</button>
-          <button class="rp-close" (click)="closePanel()"><i class="bx bx-x"></i></button>
+    <!-- ═══════════ TRAINING ═══════════ -->
+    <ng-container *ngIf="!loading && activeView==='training'">
+      <div class="section three-col" style="margin-bottom:18px;">
+        <div class="card card-pad">
+          <div class="kpi-ico ico-purple" style="margin-bottom:8px;"><i class="bx bx-book-bookmark"></i></div>
+          <div class="kpi-v">{{ trainingNeeds.length }}</div>
+          <div class="kpi-l">{{ 'PLANNING.KPI_TRAINING_NEEDS_LABEL' | translate }}</div>
+        </div>
+        <div class="card card-pad">
+          <div class="kpi-ico ico-teal" style="margin-bottom:8px;"><i class="bx bx-chalkboard"></i></div>
+          <div class="kpi-v">{{ trainingSessions.length }}</div>
+          <div class="kpi-l">{{ 'PLANNING.KPI_SESSIONS_LABEL' | translate }}</div>
+        </div>
+        <div class="card card-pad">
+          <div class="kpi-ico ico-blue" style="margin-bottom:8px;"><i class="bx bx-user-check"></i></div>
+          <div class="kpi-v">{{ pdiProgress.length }}</div>
+          <div class="kpi-l">PDIs in Progress</div>
         </div>
       </div>
-      <div class="rp-body">
-        <div class="rp-section">Training Need</div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-user"></i> Employee</span><span class="rp-val">{{ selected.employee }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-briefcase"></i> Role</span><span class="rp-val">{{ selected.role }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-book-bookmark"></i> Skill Gap</span><span class="rp-val">{{ selected.skill }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-bar-chart"></i> Current Level</span><span class="rp-val">{{ selected.currentLevel }}/5</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-target-lock"></i> Target Level</span><span class="rp-val">{{ selected.targetLevel }}/5</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-flag"></i> Priority</span><span class="chip chip--{{ selected.priorityClass }}">{{ selected.priority }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-check-circle"></i> Status</span><span class="chip chip--{{ selected.statusClass }}">{{ selected.status }}</span></div>
-        <div class="rp-section">Development Plan</div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-calendar"></i> Deadline</span><span class="rp-val">{{ selected.deadline }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-chalkboard"></i> Training</span><span class="rp-val">{{ selected.assignedTraining || 'Not assigned' }}</span></div>
+
+      <div class="section two-col">
+        <div class="card">
+          <div class="itabs">
+            <button class="itab" [class.act]="trTab==='needs'" (click)="trTab='needs'">{{ 'PLANNING.ITAB_TRAINING_NEEDS' | translate }}</button>
+            <button class="itab" [class.act]="trTab==='sessions'" (click)="trTab='sessions'">{{ 'PLANNING.ITAB_SESSIONS' | translate }}</button>
+            <button class="itab" [class.act]="trTab==='pdi'" (click)="trTab='pdi'">{{ 'PLANNING.ITAB_PDI_PROGRESS' | translate }}</button>
+          </div>
+          <div class="tbl-wrap" *ngIf="trTab==='needs'">
+            <table>
+              <thead><tr><th>{{ 'PLANNING.TH_EMPLOYEE' | translate }}</th><th>{{ 'PLANNING.TH_SKILL_GAP' | translate }}</th><th>{{ 'PLANNING.TH_PRIORITY' | translate }}</th><th>{{ 'PLANNING.TH_DEADLINE' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th><th></th></tr></thead>
+              <tbody>
+                <tr *ngIf="trainingNeeds.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_TRAINING_NEEDS' | translate }}</td></tr>
+                <tr *ngFor="let r of trainingNeeds" (click)="openDetail(r,'training')">
+                  <td class="td-b">{{ r.employee }}</td>
+                  <td>{{ r.skill }}</td>
+                  <td><span class="chip" [ngClass]="prioClass(r.priority)">{{ r.priority }}</span></td>
+                  <td style="font-size:12.5px;">{{ r.deadline }}</td>
+                  <td><span class="chip" [ngClass]="r.statusClass==='completed'?'ch-green':'ch-blue'">{{ r.status }}</span></td>
+                  <td (click)="$event.stopPropagation()">
+                    <button class="act-btn del" *ngIf="r._eventId" (click)="deletePlanRow(r)"><i class="bx bx-trash"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tbl-wrap" *ngIf="trTab==='sessions'">
+            <table>
+              <thead><tr><th>{{ 'PLANNING.TH_DATE' | translate }}</th><th>{{ 'PLANNING.TH_SESSION' | translate }}</th><th>{{ 'PLANNING.TH_TRAINER' | translate }}</th><th>{{ 'PLANNING.TH_DURATION' | translate }}</th></tr></thead>
+              <tbody>
+                <tr *ngIf="trainingSessions.length===0"><td colspan="4" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_SESSIONS' | translate }}</td></tr>
+                <tr *ngFor="let s of trainingSessions">
+                  <td><div class="date-box"><span class="db-day">{{ s.day }}</span><span class="db-mon">{{ s.month }}</span></div></td>
+                  <td class="td-b">{{ s.name }}</td>
+                  <td>{{ s.trainer }}</td>
+                  <td>{{ s.duration }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-pad" *ngIf="trTab==='pdi'">
+            <div class="list-item" *ngFor="let p of pdiProgress">
+              <div class="li-avatar">{{ p.name[0] }}</div>
+              <div class="li-main">
+                <div class="li-title">{{ p.name }}</div>
+                <div class="li-sub">{{ p.role }}</div>
+                <div class="prog-bg" style="margin-top:6px;"><div class="prog-fill" [style.width.%]="p.pct"></div></div>
+              </div>
+              <span style="font-size:13px;font-weight:700;color:#1B7872;">{{ p.pct }}%</span>
+            </div>
+            <div *ngIf="pdiProgress.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_PDI' | translate }}</div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_UPCOMING_SESSIONS' | translate }}</span></div>
+          <div class="list-item" *ngFor="let s of trainingSessions.slice(0,6)">
+            <div class="date-box"><span class="db-day">{{ s.day }}</span><span class="db-mon">{{ s.month }}</span></div>
+            <div class="li-main">
+              <div class="li-title">{{ s.name }}</div>
+              <div class="li-sub">{{ s.trainer }} · {{ s.duration }}</div>
+            </div>
+          </div>
+          <div *ngIf="trainingSessions.length===0" class="dep-empty" style="padding:12px 0;">{{ 'PLANNING.EMPTY_SESSIONS_SCHEDULED' | translate }}</div>
+        </div>
       </div>
     </ng-container>
 
-    <!-- Career / IDP detail -->
-    <ng-container *ngIf="panelType==='career'">
-      <div class="rp-header">
-        <span class="rp-title">Individual Development Plan</span>
-        <div class="rp-head-right">
-          <button class="rp-edit-btn"><i class="bx bx-edit-alt"></i> Edit IDP</button>
-          <button class="rp-close" (click)="closePanel()"><i class="bx bx-x"></i></button>
+    <!-- ═══════════ CAREER ═══════════ -->
+    <ng-container *ngIf="!loading && activeView==='career'">
+      <div class="section two-col">
+        <div class="card">
+          <div class="itabs">
+            <button class="itab" [class.act]="carTab==='idp'" (click)="carTab='idp'">{{ 'PLANNING.ITAB_IDP' | translate }}</button>
+            <button class="itab" [class.act]="carTab==='milestones'" (click)="carTab='milestones'">{{ 'PLANNING.ITAB_MILESTONES' | translate }}</button>
+            <button class="itab" [class.act]="carTab==='mentorship'" (click)="carTab='mentorship'">{{ 'PLANNING.ITAB_MENTORSHIP' | translate }}</button>
+          </div>
+          <div class="tbl-wrap" *ngIf="carTab==='idp'">
+            <table>
+              <thead><tr><th>{{ 'PLANNING.TH_EMPLOYEE' | translate }}</th><th>{{ 'PLANNING.TH_CURRENT_ROLE' | translate }}</th><th>{{ 'PLANNING.TH_TARGET_ROLE' | translate }}</th><th>{{ 'PLANNING.TH_PROGRESS' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
+              <tbody>
+                <tr *ngIf="idpPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_IDP' | translate }}</td></tr>
+                <tr *ngFor="let r of idpPlans" (click)="openDetail(r,'career')">
+                  <td class="td-b">{{ r.employee }}</td>
+                  <td style="font-size:12.5px;">{{ r.currentRole }}</td>
+                  <td style="font-size:12.5px;font-weight:600;color:#1B7872;">{{ r.targetRole }}</td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <div class="prog-bg" style="width:60px;"><div class="prog-fill" [style.width.%]="r.progress"></div></div>
+                      <span style="font-size:12px;font-weight:700;color:#1B7872;">{{ r.progress }}%</span>
+                    </div>
+                  </td>
+                  <td><span class="chip ch-blue">{{ r.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tbl-wrap" *ngIf="carTab==='milestones'">
+            <table>
+              <thead><tr><th>{{ 'PLANNING.TH_MILESTONE' | translate }}</th><th>{{ 'PLANNING.TH_DATE' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
+              <tbody>
+                <tr *ngIf="careerMilestones.length===0"><td colspan="3" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_MILESTONES' | translate }}</td></tr>
+                <tr *ngFor="let m of careerMilestones">
+                  <td class="td-b">{{ m.title }}</td>
+                  <td>{{ m.date }}</td>
+                  <td><span class="chip" [ngClass]="m.dotClass==='done'?'ch-green':'ch-gray'">{{ m.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-pad" *ngIf="carTab==='mentorship'">
+            <div class="mentor-row" *ngFor="let m of mentorships">
+              <div class="li-avatar">{{ m.mentorInitials }}</div>
+              <div class="li-main"><div class="li-title">{{ m.mentor }}</div><div class="li-sub">{{ m.mentorRole }}</div></div>
+              <i class="bx bx-right-arrow-alt" style="font-size:18px;color:#CBD5E0;"></i>
+              <div style="text-align:right;">
+                <div class="li-title">{{ m.mentee }}</div>
+                <div class="li-sub">{{ m.menteeRole }}</div>
+              </div>
+            </div>
+            <div *ngIf="mentorships.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_MENTORSHIP' | translate }}</div>
+          </div>
         </div>
-      </div>
-      <div class="rp-body">
-        <div class="rp-section">Employee</div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-user"></i> Name</span><span class="rp-val">{{ selected.employee }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-briefcase"></i> Current Role</span><span class="rp-val">{{ selected.currentRole }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-trending-up"></i> Target Role</span><span class="rp-val">{{ selected.targetRole }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-calendar"></i> Timeline</span><span class="rp-val">{{ selected.timeline }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-check-circle"></i> Status</span><span class="chip chip--{{ selected.statusClass }}">{{ selected.status }}</span></div>
-        <div class="rp-section">Career Milestones</div>
-        <div *ngFor="let m of careerMilestones" class="milestone-item">
-          <span class="milestone-dot milestone-dot--{{ m.dotClass }}"></span>
-          <span class="milestone-title">{{ m.title }}</span>
-          <span class="milestone-date">{{ m.date }}</span>
-          <span class="milestone-status ms-{{ m.dotClass }}">{{ m.status }}</span>
+        <div class="card card-pad">
+          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_MENTORSHIP_PAIRS' | translate }}</span><span class="card-badge">{{ mentorships.length }} {{ 'PLANNING.ACTIVE_COUNT' | translate }}</span></div>
+          <div class="mentor-row" *ngFor="let m of mentorships">
+            <div class="li-avatar">{{ m.mentorInitials }}</div>
+            <div class="li-main"><div class="li-title">{{ m.mentor }}</div><div class="li-sub">→ {{ m.mentee }}</div></div>
+          </div>
+          <div *ngIf="mentorships.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_PAIRS' | translate }}</div>
         </div>
-        <div class="rp-section">Mentorship</div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-user-check"></i> Mentor</span><span class="rp-val">{{ selected.mentor }}</span></div>
       </div>
     </ng-container>
 
-    <!-- Hiring Request detail -->
-    <ng-container *ngIf="panelType==='recruitment'">
-      <div class="rp-header">
-        <span class="rp-title">Hiring Request Detail</span>
-        <div class="rp-head-right">
-          <button class="rp-edit-btn"><i class="bx bx-send"></i> Send to HR Core</button>
-          <button class="rp-close" (click)="closePanel()"><i class="bx bx-x"></i></button>
+    <!-- ═══════════ RECRUITMENT ═══════════ -->
+    <ng-container *ngIf="!loading && activeView==='recruitment'">
+      <div class="section" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;">
+        <div *ngFor="let s of pipelineStages" class="card card-pad" style="text-align:center;">
+          <div style="font-size:26px;font-weight:800;color:#1A2B3C;line-height:1;margin-bottom:4px;">{{ s.count }}</div>
+          <div style="font-size:11.5px;color:#8FA3B8;margin-bottom:8px;">{{ s.label }}</div>
+          <div style="height:4px;border-radius:999px;" [style.background]="s.color"></div>
         </div>
       </div>
-      <div class="rp-body">
-        <div class="rp-section">Job Requisition</div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-id-card"></i> Req ID</span><span class="rp-val">{{ selected.reqId }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-briefcase"></i> Position</span><span class="rp-val">{{ selected.position }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-buildings"></i> Department</span><span class="rp-val">{{ selected.dept }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-group"></i> Headcount</span><span class="rp-val">{{ selected.hc }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-calendar"></i> Target Date</span><span class="rp-val">{{ selected.targetDate }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-dollar-circle"></i> Budget</span><span class="rp-val">{{ selected.budget }}</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-check-circle"></i> Stage</span><span class="chip chip--{{ selected.stageClass }}">{{ selected.stage }}</span></div>
-        <div class="rp-section">Source</div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-link"></i> Event</span><span class="rp-val" style="font-size:12px;font-family:monospace;">planning.headcount.approved</span></div>
-        <div class="rp-field"><span class="rp-lbl"><i class="bx bx-server"></i> Plan Ref</span><span class="rp-val">{{ selected.planRef }}</span></div>
-        <div class="rp-section">Pipeline Breakdown</div>
-        <div *ngFor="let s of recruitPipeline" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F8FAFC;">
-          <span class="chip chip--{{ s.cls }}" style="min-width:90px;justify-content:center;">{{ s.name }}</span>
-          <div style="flex:1;"><div class="prog-wrap"><div class="prog-fill prog-{{ s.color }}" [style.width.%]="s.pct"></div></div></div>
-          <span style="font-size:12px;font-weight:700;color:#1A2B3C;width:24px;text-align:right;">{{ s.count }}</span>
+      <div class="section two-col">
+        <div class="card">
+          <div class="itabs">
+            <button class="itab" [class.act]="recTab==='hiring'" (click)="recTab='hiring'">{{ 'PLANNING.ITAB_HIRING' | translate }}</button>
+            <button class="itab" [class.act]="recTab==='pipeline'" (click)="recTab='pipeline'">{{ 'PLANNING.ITAB_PIPELINE' | translate }}</button>
+          </div>
+          <div class="tbl-wrap" *ngIf="recTab==='hiring'">
+            <table>
+              <thead><tr><th>{{ 'PLANNING.TH_REQ_ID' | translate }}</th><th>{{ 'PLANNING.TH_POSITION' | translate }}</th><th>{{ 'PLANNING.TH_DEPARTMENT' | translate }}</th><th>{{ 'PLANNING.TH_TARGET_DATE' | translate }}</th><th>{{ 'PLANNING.TH_STAGE' | translate }}</th><th></th></tr></thead>
+              <tbody>
+                <tr *ngIf="hiringRequests.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_HIRING' | translate }}</td></tr>
+                <tr *ngFor="let r of hiringRequests" (click)="openDetail(r,'recruitment')">
+                  <td style="font-size:12px;font-weight:600;color:#4A6080;">{{ r.reqId }}</td>
+                  <td class="td-b">{{ r.position }}</td>
+                  <td>{{ r.dept }}</td>
+                  <td style="font-size:12.5px;">{{ r.targetDate }}</td>
+                  <td><span class="chip" [ngClass]="r.stageClass==='completed'?'ch-green':'ch-blue'">{{ r.stage }}</span></td>
+                  <td (click)="$event.stopPropagation()">
+                    <button class="act-btn del" *ngIf="r._eventId" (click)="deletePlanRow(r)"><i class="bx bx-trash"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-pad" *ngIf="recTab==='pipeline'">
+            <div class="bgt-row" *ngFor="let s of pipelineStages">
+              <span class="bgt-dept">{{ s.label }}</span>
+              <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="(s.count / (pipelineStages[0]?.count || 1)) * 100" [style.background]="s.color"></div></div></div>
+              <span class="bgt-pct">{{ s.count }}</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </ng-container>
-
-    <!-- Create Panel -->
-    <ng-container *ngIf="panelType==='create'">
-      <div class="rp-header">
-        <span class="rp-title">{{ createTitle }}</span>
-        <div class="rp-head-right">
-          <button class="rp-close" (click)="closePanel()"><i class="bx bx-x"></i></button>
+        <div class="card card-pad">
+          <div class="card-head"><span class="card-title">{{ 'PLANNING.CARD_RECENT_EVENTS' | translate }}</span></div>
+          <div class="list-item" *ngFor="let e of allEvents.slice(0,8)">
+            <div class="dep-type-badge" [style.background]="typeColor(e.type)+'20'" [style.color]="typeColorDark(e.type)">
+              <i class="bx" [ngClass]="typeIcon(e.type)"></i>
+            </div>
+            <div class="li-main">
+              <div class="li-title">{{ e.title }}</div>
+              <div class="li-sub">{{ formatDateDisplay(e.startDateTime) }}</div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="rp-body" style="padding-bottom:0;">
-        <ng-container *ngIf="activeModule==='workforce'">
-          <div class="cp-field"><div class="cp-lbl">Department</div><select class="cp-select" [(ngModel)]="createForm.dept"><option value="">Select department</option><option *ngFor="let d of deptOptions">{{d}}</option></select></div>
-          <div class="cp-row">
-            <div class="cp-field"><div class="cp-lbl">Current HC</div><input class="cp-input" type="number" [(ngModel)]="createForm.current" placeholder="0"/></div>
-            <div class="cp-field"><div class="cp-lbl">Planned HC</div><input class="cp-input" type="number" [(ngModel)]="createForm.planned" placeholder="0"/></div>
-          </div>
-          <div class="cp-row">
-            <div class="cp-field"><div class="cp-lbl">Budget</div><input class="cp-input" [(ngModel)]="createForm.budget" placeholder="$0.00"/></div>
-            <div class="cp-field"><div class="cp-lbl">Review Date</div><input class="cp-input" type="date" [(ngModel)]="createForm.reviewDate"/></div>
-          </div>
-          <div class="cp-field"><div class="cp-lbl">Scenario</div><select class="cp-select" [(ngModel)]="createForm.scenario"><option>Conservative</option><option>Moderate</option><option>Aggressive</option></select></div>
-          <div class="cp-field"><div class="cp-lbl">Notes</div><textarea class="cp-textarea" [(ngModel)]="createForm.notes" placeholder="Additional notes..."></textarea></div>
-        </ng-container>
-        <ng-container *ngIf="activeModule==='training'">
-          <div class="cp-field"><div class="cp-lbl">Employee</div><input class="cp-input" [(ngModel)]="createForm.employee" placeholder="Employee name"/></div>
-          <div class="cp-field"><div class="cp-lbl">Skill Gap</div><input class="cp-input" [(ngModel)]="createForm.skill" placeholder="e.g. Python, Leadership"/></div>
-          <div class="cp-row">
-            <div class="cp-field"><div class="cp-lbl">Current Level (1-5)</div><input class="cp-input" type="number" min="1" max="5" [(ngModel)]="createForm.currentLevel"/></div>
-            <div class="cp-field"><div class="cp-lbl">Target Level (1-5)</div><input class="cp-input" type="number" min="1" max="5" [(ngModel)]="createForm.targetLevel"/></div>
-          </div>
-          <div class="cp-row">
-            <div class="cp-field"><div class="cp-lbl">Priority</div><select class="cp-select" [(ngModel)]="createForm.priority"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-            <div class="cp-field"><div class="cp-lbl">Deadline</div><input class="cp-input" type="date" [(ngModel)]="createForm.deadline"/></div>
-          </div>
-        </ng-container>
-        <ng-container *ngIf="activeModule==='career'">
-          <div class="cp-field"><div class="cp-lbl">Employee</div><input class="cp-input" [(ngModel)]="createForm.employee" placeholder="Employee name"/></div>
-          <div class="cp-row">
-            <div class="cp-field"><div class="cp-lbl">Current Role</div><input class="cp-input" [(ngModel)]="createForm.currentRole" placeholder="Current position"/></div>
-            <div class="cp-field"><div class="cp-lbl">Target Role</div><input class="cp-input" [(ngModel)]="createForm.targetRole" placeholder="Goal position"/></div>
-          </div>
-          <div class="cp-field"><div class="cp-lbl">Timeline</div><input class="cp-input" [(ngModel)]="createForm.timeline" placeholder="e.g. 12–18 months"/></div>
-          <div class="cp-field"><div class="cp-lbl">Assign Mentor</div><select class="cp-select" [(ngModel)]="createForm.mentor"><option value="">Select mentor</option><option *ngFor="let m of mentorOptions">{{m}}</option></select></div>
-          <div class="cp-field"><div class="cp-lbl">Career Goal</div><textarea class="cp-textarea" [(ngModel)]="createForm.notes" placeholder="Describe the career objective..."></textarea></div>
-        </ng-container>
-        <ng-container *ngIf="activeModule==='recruitment'">
-          <div class="cp-field"><div class="cp-lbl">Position Title</div><input class="cp-input" [(ngModel)]="createForm.position" placeholder="e.g. Senior Developer"/></div>
-          <div class="cp-row">
-            <div class="cp-field"><div class="cp-lbl">Department</div><select class="cp-select" [(ngModel)]="createForm.dept"><option value="">Select</option><option *ngFor="let d of deptOptions">{{d}}</option></select></div>
-            <div class="cp-field"><div class="cp-lbl">Headcount</div><input class="cp-input" type="number" [(ngModel)]="createForm.hc" placeholder="1"/></div>
-          </div>
-          <div class="cp-row">
-            <div class="cp-field"><div class="cp-lbl">Budget</div><input class="cp-input" [(ngModel)]="createForm.budget" placeholder="$0"/></div>
-            <div class="cp-field"><div class="cp-lbl">Target Date</div><input class="cp-input" type="date" [(ngModel)]="createForm.targetDate"/></div>
-          </div>
-          <div class="cp-field"><div class="cp-lbl">Workforce Plan Reference</div><select class="cp-select" [(ngModel)]="createForm.planRef"><option value="">Link to headcount plan</option><option *ngFor="let p of headcountPlans">{{p.dept}} — {{p.planned}} HC</option></select></div>
-        </ng-container>
-      </div>
-      <div class="cp-footer">
-        <button class="cp-cancel" (click)="closePanel()">Cancel</button>
-        <button class="cp-submit" (click)="submitCreate()">Create</button>
       </div>
     </ng-container>
 
   </div>
-
-  <!-- ══════════════════════════════════════════
-       PLANNING WRAPPER (sidebar + content)
-       ══════════════════════════════════════════ -->
-  <div class="planning-wrapper">
-
-    <!-- ══ PLANNING SIDEBAR ══ -->
-    <aside class="plan-sidebar">
-      <!-- Logo / Title -->
-      <div class="ps-header">
-        <div class="ps-logo">
-          <div class="ps-logo-icon"><i class="bx bxs-calendar-check"></i></div>
-          <span class="ps-title">Planning</span>
-        </div>
-        <div class="ps-subtitle">HR Strategic Planning</div>
-      </div>
-
-      <!-- Search -->
-      <div class="ps-search">
-        <i class="bx bx-search"></i>
-        <input type="text" placeholder="Search modules..." [(ngModel)]="sidebarSearch"/>
-      </div>
-
-      <!-- Nav -->
-      <nav class="ps-nav">
-
-        <!-- Workforce Planning -->
-        <div class="ps-group">
-          <button class="ps-module-btn" [class.active]="activeModule==='workforce'" (click)="setModule('workforce')">
-            <span class="ps-module-icon icon-workforce"><i class="bx bx-building-house"></i></span>
-            <span class="ps-module-label">Workforce</span>
-            <i class="bx bx-chevron-right ps-chevron"></i>
-          </button>
-          <div class="ps-sub-list" [class.open]="activeModule==='workforce'">
-            <button class="ps-sub-btn" [class.active]="activeSub==='headcount'"  (click)="activeSub='headcount'">Headcount Plan</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='budget'"     (click)="activeSub='budget'">Department Budget</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='scenarios'"  (click)="activeSub='scenarios'">Scenarios</button>
-          </div>
-        </div>
-
-        <!-- Training Planning -->
-        <div class="ps-group">
-          <button class="ps-module-btn" [class.active]="activeModule==='training'" (click)="setModule('training')">
-            <span class="ps-module-icon icon-training"><i class="bx bx-chalkboard"></i></span>
-            <span class="ps-module-label">Training</span>
-            <i class="bx bx-chevron-right ps-chevron"></i>
-          </button>
-          <div class="ps-sub-list" [class.open]="activeModule==='training'">
-            <button class="ps-sub-btn" [class.active]="activeSub==='needs'"     (click)="activeSub='needs'">Training Needs</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='tplans'"    (click)="activeSub='tplans'">Training Plans</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='sessions'"  (click)="activeSub='sessions'">Sessions</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='pdi'"       (click)="activeSub='pdi'">PDI</button>
-          </div>
-        </div>
-
-        <!-- Career Planning -->
-        <div class="ps-group">
-          <button class="ps-module-btn" [class.active]="activeModule==='career'" (click)="setModule('career')">
-            <span class="ps-module-icon icon-career"><i class="bx bx-trending-up"></i></span>
-            <span class="ps-module-label">Career</span>
-            <i class="bx bx-chevron-right ps-chevron"></i>
-          </button>
-          <div class="ps-sub-list" [class.open]="activeModule==='career'">
-            <button class="ps-sub-btn" [class.active]="activeSub==='idp'"         (click)="activeSub='idp'">Goals & IDP</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='succession'"  (click)="activeSub='succession'">Succession</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='milestones'"  (click)="activeSub='milestones'">Milestones</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='mentorship'"  (click)="activeSub='mentorship'">Mentorship</button>
-          </div>
-        </div>
-
-        <!-- Recruitment Planning -->
-        <div class="ps-group">
-          <button class="ps-module-btn" [class.active]="activeModule==='recruitment'" (click)="setModule('recruitment')">
-            <span class="ps-module-icon icon-recruitment"><i class="bx bx-user-plus"></i></span>
-            <span class="ps-module-label">Recruitment</span>
-            <i class="bx bx-chevron-right ps-chevron"></i>
-          </button>
-          <div class="ps-sub-list" [class.open]="activeModule==='recruitment'">
-            <button class="ps-sub-btn" [class.active]="activeSub==='hiring'"       (click)="activeSub='hiring'">Hiring Requests</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='requisitions'" (click)="activeSub='requisitions'">Job Requisitions</button>
-            <button class="ps-sub-btn" [class.active]="activeSub==='pipeline'"     (click)="activeSub='pipeline'">Pipeline</button>
-          </div>
-        </div>
-
-        <div class="ps-divider"></div>
-
-        <!-- Quick actions -->
-        <button class="ps-sub-btn" style="margin:0 0 2px;" (click)="openCreate()">
-          <i class="bx bx-plus" style="font-size:14px;color:#1B7872;margin-right:2px;"></i>
-          New Plan
-        </button>
-
-      </nav>
-
-      <!-- Footer stats -->
-      <div class="ps-footer">
-        <div class="ps-stat-row">
-          <div class="ps-stat">
-            <div class="ps-stat-num" style="color:#1B7872;">14</div>
-            <div class="ps-stat-lbl">Active Plans</div>
-          </div>
-          <div class="ps-stat">
-            <div class="ps-stat-num" style="color:#3B82F6;">47</div>
-            <div class="ps-stat-lbl">Needs</div>
-          </div>
-          <div class="ps-stat">
-            <div class="ps-stat-num" style="color:#6D28D9;">63</div>
-            <div class="ps-stat-lbl">IDPs</div>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- ══ MAIN CONTENT ══ -->
-    <div class="plan-main">
-
-      <!-- Header bar -->
-      <div class="page-header">
-        <div class="page-header-left">
-          <div>
-            <div class="page-breadcrumb">Planning / <span>{{ moduleLabel }}</span></div>
-            <h4 class="page-title">{{ moduleLabel }}</h4>
-          </div>
-        </div>
-        <div class="header-right">
-          <span class="header-date"><i class="bx bx-calendar-alt"></i> May 1, 2025</span>
-          <button class="btn-outline"><i class="bx bx-export"></i> Export</button>
-          <button class="btn-solid" (click)="openCreate()"><i class="bx bx-plus"></i> New Plan</button>
-        </div>
-      </div>
-
-      <!-- ══ WORKFORCE PLANNING ══ -->
-      <ng-container *ngIf="activeModule==='workforce'">
-        <div class="kpi-row">
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">2,213</div><div class="kpi-lbl">Total Headcount</div></div><span class="kpi-icon kpi-icon--teal"><i class="bx bx-group"></i></span></div>
-            <span class="kpi-trend trend-up"><i class="bx bx-up-arrow-alt"></i> +3.2% vs plan</span>
-          </div>
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">14</div><div class="kpi-lbl">Approved Plans</div></div><span class="kpi-icon kpi-icon--blue"><i class="bx bx-check-shield"></i></span></div>
-            <span class="kpi-trend trend-up"><i class="bx bx-up-arrow-alt"></i> +2 this month</span>
-          </div>
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">78%</div><div class="kpi-lbl">Budget Utilized</div></div><span class="kpi-icon kpi-icon--amber"><i class="bx bx-dollar-circle"></i></span></div>
-            <span class="kpi-trend trend-neutral"><i class="bx bx-minus"></i> On track</span>
-          </div>
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">38</div><div class="kpi-lbl">Open Positions</div></div><span class="kpi-icon kpi-icon--rose"><i class="bx bx-user-plus"></i></span></div>
-            <span class="kpi-trend trend-dn"><i class="bx bx-down-arrow-alt"></i> -6 vs last Q</span>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="card">
-            <div class="inner-tabs">
-              <button class="inner-tab active">HeadcountPlan</button>
-              <button class="inner-tab">DepartmentBudget</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Department</th><th>Current HC</th><th>Planned HC</th><th>Gap</th><th>Budget</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let r of headcountPlans" (click)="openDetail(r,'workforce')">
-                    <td class="td-bold">{{ r.dept }}</td>
-                    <td>{{ r.current }}</td>
-                    <td>{{ r.planned }}</td>
-                    <td [style.color]="r.gap>0?'#15803D':'#BE123C'" style="font-weight:700;">{{ r.gap>0?'+':'' }}{{ r.gap }}</td>
-                    <td>{{ r.budget }}</td>
-                    <td><span class="chip chip--{{ r.statusClass }}">{{ r.status }}</span></td>
-                    <td (click)="$event.stopPropagation()">
-                      <button class="act-btn act-btn--green"><i class="bx bx-edit-alt"></i></button>
-                      <button class="act-btn act-btn--del"><i class="bx bx-trash"></i></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div style="display:flex;flex-direction:column;gap:16px;">
-            <div class="card card-pad">
-              <div class="card-head">
-                <span class="card-title">Workforce Scenarios</span>
-                <span class="card-badge">Q1 2025</span>
-              </div>
-              <div class="scenario-list">
-                <div *ngFor="let s of workforceScenarios" class="scenario-item" [class.active]="s.active" (click)="s.active=!s.active">
-                  <div class="scenario-head">
-                    <span class="scenario-name">{{ s.name }}</span>
-                    <span class="chip chip--{{ s.chipClass }}">{{ s.label }}</span>
-                  </div>
-                  <div class="scenario-desc">{{ s.desc }}</div>
-                  <div class="scenario-meta">
-                    <span class="scenario-meta-item"><i class="bx bx-group"></i> +{{ s.hc }} HC</span>
-                    <span class="scenario-meta-item"><i class="bx bx-dollar"></i> {{ s.cost }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card card-pad">
-              <div class="card-head"><span class="card-title">Budget by Department</span></div>
-              <div *ngFor="let b of departmentBudgets" class="budget-item">
-                <div class="budget-dept">{{ b.dept }}</div>
-                <div class="budget-bar-wrap">
-                  <div class="prog-wrap"><div class="prog-fill prog-teal" [style.width.%]="b.pct"></div></div>
-                </div>
-                <span class="budget-pct">{{ b.pct }}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-
-      <!-- ══ TRAINING PLANNING ══ -->
-      <ng-container *ngIf="activeModule==='training'">
-        <div class="training-stats">
-          <div class="t-stat-box">
-            <div class="t-stat-num">47</div>
-            <div class="t-stat-lbl">Training Needs Identified</div>
-            <div class="t-stat-sub">↑ 8 new from GPEC</div>
-          </div>
-          <div class="t-stat-box">
-            <div class="t-stat-num">12</div>
-            <div class="t-stat-lbl">Training Plans Active</div>
-            <div class="t-stat-sub">3 pending approval</div>
-          </div>
-          <div class="t-stat-box">
-            <div class="t-stat-num">89</div>
-            <div class="t-stat-lbl">PDIs in Progress</div>
-            <div class="t-stat-sub">Avg. completion 64%</div>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="card full-card">
-            <div class="inner-tabs">
-              <button class="inner-tab active">Training Needs</button>
-              <button class="inner-tab">Training Plans</button>
-              <button class="inner-tab">PDI</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Employee</th><th>Role</th><th>Skill Gap</th><th>Gap Level</th><th>Priority</th><th>Deadline</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let r of trainingNeeds" (click)="openDetail(r,'training')">
-                    <td class="td-bold">{{ r.employee }}</td>
-                    <td>{{ r.role }}</td>
-                    <td>{{ r.skill }}</td>
-                    <td>
-                      <div style="display:flex;align-items:center;gap:6px;">
-                        <span style="font-size:12px;font-weight:700;color:#1A2B3C;">{{ r.currentLevel }}/{{ r.targetLevel }}</span>
-                        <div class="prog-wrap" style="width:56px;"><div class="prog-fill prog-rose" [style.width.%]="(r.currentLevel/r.targetLevel)*100"></div></div>
-                      </div>
-                    </td>
-                    <td><span class="chip chip--{{ r.priorityClass }}">{{ r.priority }}</span></td>
-                    <td style="font-size:12.5px;">{{ r.deadline }}</td>
-                    <td><span class="chip chip--{{ r.statusClass }}">{{ r.status }}</span></td>
-                    <td (click)="$event.stopPropagation()">
-                      <button class="act-btn act-btn--green"><i class="bx bx-book-add"></i></button>
-                      <button class="act-btn act-btn--del"><i class="bx bx-trash"></i></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:16px;">
-            <div class="card card-pad">
-              <div class="card-head">
-                <span class="card-title">Upcoming Sessions</span>
-                <span class="card-badge">May 2025</span>
-              </div>
-              <div *ngFor="let s of trainingSessions" class="session-item">
-                <div class="session-date-box">
-                  <span class="session-day">{{ s.day }}</span>
-                  <span class="session-month">{{ s.month }}</span>
-                </div>
-                <div class="session-info">
-                  <div class="session-name">{{ s.name }}</div>
-                  <div class="session-meta">{{ s.trainer }} · {{ s.duration }}</div>
-                </div>
-                <span class="session-spots">{{ s.enrolled }}/{{ s.capacity }}</span>
-              </div>
-            </div>
-            <div class="card card-pad">
-              <div class="card-head"><span class="card-title">PDI Progress</span></div>
-              <div *ngFor="let p of pdiProgress" class="pdi-row">
-                <div>
-                  <div class="pdi-name">{{ p.name }}</div>
-                  <div class="pdi-role">{{ p.role }}</div>
-                  <div class="prog-wrap" style="margin-top:6px;width:150px;"><div class="prog-fill prog-teal" [style.width.%]="p.pct"></div></div>
-                </div>
-                <span class="pdi-pct">{{ p.pct }}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-
-      <!-- ══ CAREER PLANNING ══ -->
-      <ng-container *ngIf="activeModule==='career'">
-        <div class="career-stats">
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">63</div><div class="kpi-lbl">Active IDPs</div></div><span class="kpi-icon kpi-icon--teal"><i class="bx bx-user-check"></i></span></div>
-            <span class="kpi-trend trend-up"><i class="bx bx-up-arrow-alt"></i> +11 this year</span>
-          </div>
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">28</div><div class="kpi-lbl">Career Goals Set</div></div><span class="kpi-icon kpi-icon--blue"><i class="bx bx-target-lock"></i></span></div>
-            <span class="kpi-trend trend-up"><i class="bx bx-up-arrow-alt"></i> 44% completion</span>
-          </div>
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">18</div><div class="kpi-lbl">Mentorships Active</div></div><span class="kpi-icon kpi-icon--purple"><i class="bx bxs-graduation"></i></span></div>
-            <span class="kpi-trend trend-neutral"><i class="bx bx-minus"></i> Stable</span>
-          </div>
-          <div class="kpi-box">
-            <div class="kpi-box-top"><div><div class="kpi-val">9</div><div class="kpi-lbl">Promotions Planned</div></div><span class="kpi-icon kpi-icon--amber"><i class="bx bx-trending-up"></i></span></div>
-            <span class="kpi-trend trend-up"><i class="bx bx-up-arrow-alt"></i> Q2 2025</span>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="card">
-            <div class="inner-tabs">
-              <button class="inner-tab active">IDP / Career Goals</button>
-              <button class="inner-tab">Succession</button>
-              <button class="inner-tab">Mobility</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Employee</th><th>Current Role</th><th>Target Role</th><th>Timeline</th><th>Mentor</th><th>Progress</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let r of idpPlans" (click)="openDetail(r,'career')">
-                    <td class="td-bold">{{ r.employee }}</td>
-                    <td style="font-size:12.5px;">{{ r.currentRole }}</td>
-                    <td style="font-size:12.5px;font-weight:600;color:#1B7872;">{{ r.targetRole }}</td>
-                    <td style="font-size:12.5px;">{{ r.timeline }}</td>
-                    <td style="font-size:12.5px;">{{ r.mentor }}</td>
-                    <td>
-                      <div style="display:flex;align-items:center;gap:6px;">
-                        <div class="prog-wrap" style="width:60px;"><div class="prog-fill prog-teal" [style.width.%]="r.progress"></div></div>
-                        <span style="font-size:12px;font-weight:700;color:#1B7872;">{{ r.progress }}%</span>
-                      </div>
-                    </td>
-                    <td><span class="chip chip--{{ r.statusClass }}">{{ r.status }}</span></td>
-                    <td (click)="$event.stopPropagation()">
-                      <button class="act-btn act-btn--green"><i class="bx bx-edit-alt"></i></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="card card-pad">
-            <div class="card-head">
-              <span class="card-title">Mentorship Assignments</span>
-              <span class="card-badge">Active</span>
-            </div>
-            <div *ngFor="let m of mentorships" class="mentor-item">
-              <div class="mentor-avatar">{{ m.mentorInitials }}</div>
-              <div style="flex:1;">
-                <div class="mentor-name">{{ m.mentor }}</div>
-                <div class="mentor-meta">{{ m.mentorRole }}</div>
-              </div>
-              <i class="bx bx-right-arrow-alt mentor-arrow"></i>
-              <div style="text-align:right;">
-                <div class="mentee-name">{{ m.mentee }}</div>
-                <div class="mentor-meta">{{ m.menteeRole }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-
-      <!-- ══ RECRUITMENT PLANNING ══ -->
-      <ng-container *ngIf="activeModule==='recruitment'">
-        <div class="pipeline-funnel">
-          <div *ngFor="let s of pipelineStages" class="funnel-stage">
-            <div class="funnel-count">{{ s.count }}</div>
-            <div class="funnel-lbl">{{ s.label }}</div>
-            <div class="funnel-bar" [style.background]="s.color"></div>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="card">
-            <div class="inner-tabs">
-              <button class="inner-tab active">Hiring Requests</button>
-              <button class="inner-tab">Job Requisitions</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Req ID</th><th>Position</th><th>Dept</th><th>HC</th><th>Budget</th><th>Target Date</th><th>Stage</th><th></th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let r of hiringRequests" (click)="openDetail(r,'recruitment')">
-                    <td class="td-id">{{ r.reqId }}</td>
-                    <td class="td-bold">{{ r.position }}</td>
-                    <td>{{ r.dept }}</td>
-                    <td style="font-weight:700;text-align:center;">{{ r.hc }}</td>
-                    <td style="font-size:12.5px;">{{ r.budget }}</td>
-                    <td style="font-size:12.5px;">{{ r.targetDate }}</td>
-                    <td><span class="chip chip--{{ r.stageClass }}">{{ r.stage }}</span></td>
-                    <td (click)="$event.stopPropagation()">
-                      <button class="act-btn act-btn--green"><i class="bx bx-send"></i></button>
-                      <button class="act-btn act-btn--del"><i class="bx bx-trash"></i></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div style="display:flex;flex-direction:column;gap:16px;">
-            <div class="card card-pad">
-              <div class="card-head">
-                <span class="card-title">Event Stream</span>
-                <span style="font-size:11px;background:#DCFCE7;color:#15803D;padding:3px 9px;border-radius:999px;font-weight:700;">Live</span>
-              </div>
-              <div *ngFor="let e of eventStream" style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #F5F7FA;">
-                <div style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;" [style.background]="e.color"></div>
-                <div style="flex:1;">
-                  <div style="font-size:12px;font-weight:600;color:#1A2B3C;font-family:monospace;">{{ e.event }}</div>
-                  <div style="font-size:11px;color:#8FA3B8;">{{ e.desc }}</div>
-                </div>
-                <div style="font-size:11px;color:#B0BEC5;white-space:nowrap;padding-top:2px;">{{ e.time }}</div>
-              </div>
-            </div>
-            <div class="card card-pad">
-              <div class="card-head"><span class="card-title">Recruitment Pipeline</span></div>
-              <div *ngFor="let s of recruitPipeline" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                <div style="width:80px;font-size:12px;color:#4A6080;flex-shrink:0;">{{ s.name }}</div>
-                <div style="flex:1;"><div class="prog-wrap"><div class="prog-fill prog-{{ s.color }}" [style.width.%]="s.pct"></div></div></div>
-                <div style="font-size:12px;font-weight:700;color:#1A2B3C;width:22px;text-align:right;">{{ s.count }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-
-    </div><!-- /plan-main -->
-  </div><!-- /planning-wrapper -->
   `
 })
 export class PlanningComponent implements OnInit {
 
-  activeModule = 'workforce';
-  activeSub    = 'headcount';
-  sidebarSearch = '';
-  loading  = false;
+  today      = new Date();
+  activeView = 'calendar';
+  loading    = false;
   error: string | null = null;
-  saving   = false;
+  saving     = false;
   saveError: string | null = null;
+  toast: string | null = null;
 
-  get moduleLabel(): string {
-    const map: Record<string,string> = {
-      workforce: 'Workforce Planning', training: 'Training Planning',
-      career: 'Career Planning', recruitment: 'Recruitment Planning',
-    };
-    return map[this.activeModule] ?? 'Planning';
-  }
+  // Inner tab state
+  wfTab  = 'hc';
+  trTab  = 'needs';
+  carTab = 'idp';
+  recTab = 'hiring';
 
-  setModule(key: string): void {
-    this.activeModule = key;
-    const defaults: Record<string,string> = {
-      workforce: 'headcount', training: 'needs', career: 'idp', recruitment: 'hiring',
-    };
-    this.activeSub = defaults[key] ?? '';
-  }
-
-  // ── Panel state ──
-  showPanel   = false;
-  panelType   = '';
+  // Panel
+  showPanel  = false;
+  panelType  = '';
   selected: any = null;
-  createTitle = 'New Plan';
+  createTitle  = 'New Event';
   createForm: any = {};
 
-  // ── Options (loaded from API) ──
-  deptOptions:   string[] = [];
-  mentorOptions: string[] = [];
+  // Calendar state
+  calYear  = new Date().getFullYear();
+  calMonth = new Date().getMonth();
+  selectedDay: Date | null = null;
 
-  // ══════════ WORKFORCE ══════════
-  headcountPlans: { dept:string; current:number; planned:number; gap:number; budget:string; reviewDate:string; status:string; statusClass:string }[] = [];
-  workforceScenarios: { name:string; label:string; chipClass:string; desc:string; hc:number; cost:string; active:boolean }[] = [];
-  departmentBudgets: { dept:string; pct:number }[] = [];
+  // Calendar view mode
+  calView: 'monthly' | 'weekly' | 'daily' = 'monthly';
+  calWeekStart: Date = this._getWeekStart(new Date());
+  calDayDate: Date  = new Date();
 
-  // ══════════ TRAINING ══════════
-  trainingNeeds: { employee:string; role:string; skill:string; currentLevel:number; targetLevel:number; priority:string; priorityClass:string; deadline:string; status:string; statusClass:string; assignedTraining:string|null }[] = [];
-  trainingSessions: { day:string; month:string; name:string; trainer:string; duration:string; enrolled:number; capacity:number }[] = [];
-  pdiProgress: { name:string; role:string; pct:number }[] = [];
+  /** Hours displayed in weekly / daily time grid (07:00 → 21:00) */
+  readonly calHours = Array.from({ length: 15 }, (_, i) => i + 7);
 
-  // ══════════ CAREER ══════════
-  idpPlans: { employee:string; currentRole:string; targetRole:string; timeline:string; mentor:string; progress:number; status:string; statusClass:string }[] = [];
-  careerMilestones: { title:string; date:string; dotClass:string; status:string }[] = [];
-  mentorships: { mentorInitials:string; mentor:string; mentorRole:string; mentee:string; menteeRole:string }[] = [];
+  // Data
+  allEvents: any[] = [];
+  deptOptions: string[] = [];
 
-  // ══════════ RECRUITMENT ══════════
-  pipelineStages: { label:string; count:number; color:string }[] = [];
-  hiringRequests: { reqId:string; position:string; dept:string; hc:number; budget:string; targetDate:string; stage:string; stageClass:string; planRef:string }[] = [];
-  recruitPipeline: { name:string; count:number; pct:number; color:string; cls:string }[] = [];
+  headcountPlans:   any[] = [];
+  departmentBudgets:any[] = [];
+  workforceScenarios: any[] = [];
 
-  // ══════════ EVENT STREAM ══════════
-  eventStream: { event:string; desc:string; time:string; color:string }[] = [];
+  trainingNeeds:    any[] = [];
+  trainingSessions: any[] = [];
+  pdiProgress:      any[] = [];
 
-  private readonly EVENT_COLORS: Record<string,string> = {
-    MEETING: '#2FA8A0', INTERVIEW: '#3B82F6', TRAINING: '#8B5CF6',
-    HOLIDAY: '#22C55E', DEADLINE: '#F97316',  OTHER: '#8FA3B8',
+  idpPlans:         any[] = [];
+  careerMilestones: any[] = [];
+  mentorships:      any[] = [];
+
+  pipelineStages:   any[] = [];
+  hiringRequests:   any[] = [];
+
+  // Computed KPIs
+  get totalHC(): number { return this.headcountPlans.reduce((s, r) => s + r.current, 0); }
+
+  private readonly TYPE_COLORS: Record<string,string> = {
+    MEETING:   '#2FA8A0', INTERVIEW: '#3B82F6', TRAINING: '#8B5CF6',
+    HOLIDAY:   '#22C55E', DEADLINE:  '#F97316', OTHER:    '#94A3B8',
   };
+  private readonly TYPE_COLORS_DARK: Record<string,string> = {
+    MEETING:   '#1B7872', INTERVIEW: '#1E40AF', TRAINING: '#6D28D9',
+    HOLIDAY:   '#15803D', DEADLINE:  '#C2410C', OTHER:    '#64748B',
+  };
+  private readonly TYPE_ICONS: Record<string,string> = {
+    MEETING:   'bx-group',       INTERVIEW:  'bx-user-voice',
+    TRAINING:  'bx-chalkboard',  HOLIDAY:    'bx-sun',
+    DEADLINE:  'bx-flag',        OTHER:      'bx-calendar',
+  };
+
+  readonly typeLegend = Object.entries(this.TYPE_COLORS).map(([t, c]) => ({
+    label: t.charAt(0) + t.slice(1).toLowerCase(), color: c,
+  }));
 
   constructor(
     private planningService: PlanningService,
     private collaborateurService: CollaborateurService,
+    private confirmSvc: ConfirmService,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
     this.loading = true;
-    this.error   = null;
     forkJoin({
       events:         this.planningService.getAllEvents(),
       collaborateurs: this.collaborateurService.getAll(),
     }).subscribe({
       next: ({ events, collaborateurs }) => {
-        this.loading = false;
+        this.loading   = false;
+        this.allEvents = events as any[];
         this._buildFromCollaborateurs(collaborateurs as any[]);
         this._buildFromEvents(events as any[]);
       },
       error: err => {
         this.loading = false;
-        this.error = err?.error?.message || 'Failed to load planning data.';
+        this.error   = err?.error?.message || 'Failed to load planning data.';
       },
     });
   }
 
-  // ─── Derive data from real Collaborateur list ───────────────────────────────
+  // ── Calendar helpers ──────────────────────────────────────────────────────
+
+  get calMonthLabel(): string {
+    return new Date(this.calYear, this.calMonth, 1)
+      .toLocaleString('en', { month: 'long', year: 'numeric' });
+  }
+
+  get calendarDays(): CalDay[] {
+    const days: CalDay[] = [];
+    const first    = new Date(this.calYear, this.calMonth, 1);
+    const lastDate = new Date(this.calYear, this.calMonth + 1, 0).getDate();
+    // Monday-based: 0=Mon … 6=Sun
+    let dow = first.getDay(); // 0=Sun
+    dow = dow === 0 ? 6 : dow - 1;
+
+    for (let i = dow - 1; i >= 0; i--) {
+      const d = new Date(this.calYear, this.calMonth, -i);
+      days.push({ date: d, cur: false, events: [] });
+    }
+    for (let d = 1; d <= lastDate; d++) {
+      const date = new Date(this.calYear, this.calMonth, d);
+      days.push({ date, cur: true, events: this._eventsForDay(date) });
+    }
+    const fill = 42 - days.length;
+    for (let d = 1; d <= fill; d++) {
+      const date = new Date(this.calYear, this.calMonth + 1, d);
+      days.push({ date, cur: false, events: this._eventsForDay(date) });
+    }
+    return days;
+  }
+
+  get selectedDayEvents(): any[] {
+    if (!this.selectedDay) return [];
+    return this._eventsForDay(this.selectedDay);
+  }
+
+  private _eventsForDay(date: Date): any[] {
+    return this.allEvents.filter(ev => {
+      if (!ev.startDateTime) return false;
+      const d = new Date(ev.startDateTime);
+      return d.getFullYear() === date.getFullYear()
+          && d.getMonth()    === date.getMonth()
+          && d.getDate()     === date.getDate();
+    });
+  }
+
+  // ── Calendar view switching ───────────────────────────────────────────────
+
+  setCalView(v: 'monthly' | 'weekly' | 'daily'): void {
+    this.calView = v;
+    if (v === 'weekly') {
+      // Sync week start to the currently selected/viewed day
+      const ref = this.selectedDay ?? new Date(this.calYear, this.calMonth, 1);
+      this.calWeekStart = this._getWeekStart(ref);
+    }
+    if (v === 'daily') {
+      this.calDayDate = this.selectedDay ?? new Date();
+    }
+  }
+
+  /** Navigate back by month / week / day depending on active view. */
+  prevPeriod(): void {
+    if (this.calView === 'monthly') {
+      if (this.calMonth === 0) { this.calMonth = 11; this.calYear--; }
+      else this.calMonth--;
+    } else if (this.calView === 'weekly') {
+      const d = new Date(this.calWeekStart);
+      d.setDate(d.getDate() - 7);
+      this.calWeekStart = d;
+    } else {
+      const d = new Date(this.calDayDate);
+      d.setDate(d.getDate() - 1);
+      this.calDayDate = d;
+    }
+  }
+
+  /** Navigate forward by month / week / day depending on active view. */
+  nextPeriod(): void {
+    if (this.calView === 'monthly') {
+      if (this.calMonth === 11) { this.calMonth = 0; this.calYear++; }
+      else this.calMonth++;
+    } else if (this.calView === 'weekly') {
+      const d = new Date(this.calWeekStart);
+      d.setDate(d.getDate() + 7);
+      this.calWeekStart = d;
+    } else {
+      const d = new Date(this.calDayDate);
+      d.setDate(d.getDate() + 1);
+      this.calDayDate = d;
+    }
+  }
+
+  goToday(): void {
+    const n = new Date();
+    this.calYear      = n.getFullYear();
+    this.calMonth     = n.getMonth();
+    this.calWeekStart = this._getWeekStart(n);
+    this.calDayDate   = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    this.selectedDay  = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+
+  // ── Calendar label ────────────────────────────────────────────────────────
+
+  get calLabel(): string {
+    if (this.calView === 'monthly') {
+      return new Date(this.calYear, this.calMonth, 1)
+        .toLocaleString('en', { month: 'long', year: 'numeric' });
+    }
+    if (this.calView === 'weekly') {
+      const end = new Date(this.calWeekStart);
+      end.setDate(end.getDate() + 6);
+      const s = this.calWeekStart.toLocaleString('en', { month: 'short', day: 'numeric' });
+      const e = end.toLocaleString('en', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `${s} – ${e}`;
+    }
+    return this.calDayDate.toLocaleString('en', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    });
+  }
+
+  // ── Weekly getters ────────────────────────────────────────────────────────
+
+  get weekDays(): { date: Date; events: any[]; allDayEvents: any[]; eventsByHour: Record<number, any[]> }[] {
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(this.calWeekStart);
+      date.setDate(date.getDate() + i);
+      const all  = this._eventsForDay(date);
+      const allDayEvents = all.filter(ev => !this._hasTime(ev));
+      const eventsByHour: Record<number, any[]> = {};
+      for (const h of this.calHours) eventsByHour[h] = [];
+      all.filter(ev => this._hasTime(ev)).forEach(ev => {
+        const h = new Date(ev.startDateTime).getHours();
+        if (eventsByHour[h] !== undefined) eventsByHour[h].push(ev);
+      });
+      return { date, events: all, allDayEvents, eventsByHour };
+    });
+  }
+
+  get weekHasAllDay(): boolean {
+    return this.weekDays.some(wd => wd.allDayEvents.length > 0);
+  }
+
+  /** Click on a week cell → drill into daily view at that day/hour. */
+  drillDay(date: Date, _hour: number): void {
+    this.calDayDate = new Date(date);
+    this.setCalView('daily');
+  }
+
+  // ── Daily getters ─────────────────────────────────────────────────────────
+
+  get dayHours(): { hour: number; events: any[] }[] {
+    const all = this._eventsForDay(this.calDayDate);
+    return this.calHours.map(h => ({
+      hour:   h,
+      events: all.filter(ev => this._hasTime(ev) && new Date(ev.startDateTime).getHours() === h),
+    }));
+  }
+
+  get dayAllDayEvents(): any[] {
+    return this._eventsForDay(this.calDayDate).filter(ev => !this._hasTime(ev));
+  }
+
+  get dayTotalEvents(): number {
+    return this._eventsForDay(this.calDayDate).length;
+  }
+
+  // ── Private helpers ───────────────────────────────────────────────────────
+
+  /** Returns the Monday of the week containing `d`. */
+  private _getWeekStart(d: Date): Date {
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    const dow = date.getDay(); // 0 = Sun
+    const diff = dow === 0 ? -6 : 1 - dow;
+    date.setDate(date.getDate() + diff);
+    return date;
+  }
+
+  /** Returns true if the event has a specific time (not midnight = all-day). */
+  private _hasTime(ev: any): boolean {
+    if (!ev.startDateTime) return false;
+    const str = String(ev.startDateTime);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return false; // date-only string
+    const d = new Date(ev.startDateTime);
+    return !isNaN(d.getTime()) && (d.getHours() !== 0 || d.getMinutes() !== 0);
+  }
+  selectDay(day: CalDay): void {
+    this.selectedDay = new Date(day.date.getFullYear(), day.date.getMonth(), day.date.getDate());
+  }
+  isToday(d: Date):               boolean { const n = new Date(); return this.isSameDay(d, n); }
+  isSameDay(a: Date, b: Date | null): boolean {
+    if (!b) return false;
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  // ── Type helpers ──────────────────────────────────────────────────────────
+  typeColor(t: string):     string { return this.TYPE_COLORS[t]      ?? '#94A3B8'; }
+  typeColorDark(t: string): string { return this.TYPE_COLORS_DARK[t] ?? '#64748B'; }
+  typeIcon(t: string):      string { return this.TYPE_ICONS[t]       ?? 'bx-calendar'; }
+  typeChipClass(t: string): string {
+    const m: Record<string,string> = {
+      MEETING:'ch-teal', INTERVIEW:'ch-blue', TRAINING:'ch-purple',
+      HOLIDAY:'ch-green', DEADLINE:'ch-amber', OTHER:'ch-gray',
+    };
+    return m[t] ?? 'ch-gray';
+  }
+  prioClass(p: string): string {
+    const m: Record<string,string> = { Critical:'ch-red', High:'ch-amber', Medium:'ch-blue', Low:'ch-gray' };
+    return m[p] ?? 'ch-gray';
+  }
+
+  /** Zero-pads an hour number: 7 → "07", 14 → "14" */
+  fmtHour(h: number): string { return String(h).padStart(2, '0'); }
+
+  formatDateDisplay(val: any): string {
+    if (!val) return '—';
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? String(val) : d.toLocaleString('en-GB', {
+      day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit',
+    });
+  }
+
+  // ── Panel ─────────────────────────────────────────────────────────────────
+  openEventDetail(ev: any): void {
+    this.selected  = ev;
+    this.panelType = 'event';
+    this.showPanel = true;
+  }
+  openDetail(row: any, type: string): void {
+    this.selected  = row;
+    this.panelType = type;
+    this.showPanel = true;
+  }
+  openCreate(): void {
+    this.createForm = { type: 'MEETING', status: 'SCHEDULED' };
+    this.saveError  = null;
+    this.panelType  = 'create';
+    this.showPanel  = true;
+    this.selected   = null;
+    const labelKeys: Record<string,string> = {
+      calendar: 'PLANNING.CREATE_TITLE_CALENDAR', workforce: 'PLANNING.CREATE_TITLE_WORKFORCE',
+      training: 'PLANNING.CREATE_TITLE_TRAINING',  career: 'PLANNING.CREATE_TITLE_CAREER',
+      recruitment: 'PLANNING.CREATE_TITLE_RECRUITMENT',
+    };
+    this.createTitle = this.translate.instant(labelKeys[this.activeView] ?? 'PLANNING.CREATE_TITLE_DEFAULT');
+  }
+  closePanel(): void { this.showPanel = false; this.selected = null; }
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+  submitCreate(): void {
+    this.saving    = true;
+    this.saveError = null;
+
+    const typeMap: Record<string,string> = {
+      workforce: 'MEETING', training: 'TRAINING', career: 'OTHER',
+      recruitment: 'INTERVIEW', calendar: this.createForm.type || 'OTHER',
+    };
+
+    let title = '', startDateTime = new Date().toISOString(),
+        endDateTime: string | undefined, location = '', description = '';
+
+    if (this.activeView === 'calendar') {
+      if (!this.createForm.title) { this.saving = false; this.saveError = 'Title is required.'; return; }
+      title         = this.createForm.title;
+      startDateTime = this.createForm.startDateTime
+        ? new Date(this.createForm.startDateTime).toISOString() : startDateTime;
+      endDateTime   = this.createForm.endDateTime
+        ? new Date(this.createForm.endDateTime).toISOString() : undefined;
+      location      = this.createForm.location || '';
+      description   = this.createForm.description || '';
+    } else if (this.activeView === 'workforce') {
+      if (!this.createForm.dept) { this.saving = false; this.saveError = 'Department is required.'; return; }
+      title       = `HC Plan — ${this.createForm.dept}`;
+      endDateTime = this.createForm.reviewDate ? new Date(this.createForm.reviewDate).toISOString() : undefined;
+      location    = this.createForm.dept;
+      description = `Budget: ${this.createForm.budget||'—'} | ${this.createForm.notes||''}`.trim();
+    } else if (this.activeView === 'training') {
+      if (!this.createForm.skill) { this.saving = false; this.saveError = 'Skill gap is required.'; return; }
+      title       = `Training — ${this.createForm.skill} (${this.createForm.employee||'?'})`;
+      endDateTime = this.createForm.deadline ? new Date(this.createForm.deadline).toISOString() : undefined;
+      location    = this.createForm.employee || '';
+      description = `Priority: ${this.createForm.priority||'Medium'}`;
+    } else if (this.activeView === 'career') {
+      if (!this.createForm.employee) { this.saving = false; this.saveError = 'Employee is required.'; return; }
+      title       = `IDP — ${this.createForm.employee}${this.createForm.targetRole ? ' → ' + this.createForm.targetRole : ''}`;
+      location    = this.createForm.employee;
+      description = `Timeline: ${this.createForm.timeline||'—'}`;
+    } else if (this.activeView === 'recruitment') {
+      if (!this.createForm.position) { this.saving = false; this.saveError = 'Position is required.'; return; }
+      title       = this.createForm.position;
+      endDateTime = this.createForm.targetDate ? new Date(this.createForm.targetDate).toISOString() : undefined;
+      location    = this.createForm.dept || '';
+      description = `HC: ${this.createForm.hc||1} | Budget: ${this.createForm.budget||'—'}`;
+    }
+
+    this.planningService.createEvent({
+      title, description, startDateTime, endDateTime: endDateTime ?? null,
+      location, type: typeMap[this.activeView] ?? 'OTHER',
+    } as any).subscribe({
+      next: (created: any) => {
+        this.saving    = false;
+        this.allEvents = [created, ...this.allEvents];
+        this._buildFromEvents(this.allEvents);
+        this.closePanel();
+        this._toast(this.translate.instant('PLANNING.TOAST_EVENT_CREATED'));
+      },
+      error: err => { this.saving = false; this.saveError = err?.error?.message || this.translate.instant('PLANNING.SAVE_ERROR_DEFAULT'); },
+    });
+  }
+
+  async deletePlanRow(row: any): Promise<void> {
+    if (!row._eventId) return;
+    if (!(await this.confirmSvc.confirm(this.translate.instant('PLANNING.CONFIRM_DELETE_EVENT_MSG'), this.translate.instant('PLANNING.CONFIRM_DELETE_EVENT_BTN')))) return;
+    this.planningService.deleteEvent(row._eventId).subscribe({
+      next: () => {
+        this.allEvents     = this.allEvents.filter(e => e.id !== row._eventId);
+        this.trainingNeeds = this.trainingNeeds.filter(r => r._eventId !== row._eventId);
+        this.hiringRequests= this.hiringRequests.filter(r => r._eventId !== row._eventId);
+        this._toast(this.translate.instant('PLANNING.TOAST_EVENT_DELETED'));
+      },
+      error: () => {}
+    });
+  }
+
+  private _toast(msg: string): void {
+    this.toast = msg;
+    setTimeout(() => this.toast = null, 3000);
+  }
+
+  // ── Build data from Collaborateurs ────────────────────────────────────────
   private _buildFromCollaborateurs(colls: any[]): void {
-    // Group by department
     const deptMap = new Map<string, number>();
     colls.forEach(c => {
       const dept = (c.Département || c.département || '—').trim();
       deptMap.set(dept, (deptMap.get(dept) ?? 0) + 1);
     });
-
     const total = colls.length || 1;
 
-    // headcountPlans — real current headcount per department
     this.headcountPlans = Array.from(deptMap.entries())
       .filter(([dept]) => dept !== '—')
-      .map(([dept, count]) => ({
-        dept, current: count, planned: count, gap: 0,
-        budget: '—', reviewDate: '—', status: 'Active', statusClass: 'approved',
-      }));
+      .map(([dept, count]) => ({ dept, current: count, planned: count, gap: 0 }));
 
-    // departmentBudgets — relative % of total workforce
-    const sorted = Array.from(deptMap.entries())
-      .filter(([dept]) => dept !== '—')
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8);
+    const sorted  = Array.from(deptMap.entries()).filter(([d]) => d !== '—').sort((a,b) => b[1]-a[1]).slice(0,8);
     const maxCount = sorted[0]?.[1] ?? 1;
     this.departmentBudgets = sorted.map(([dept, count]) => ({
-      dept: dept.length > 20 ? dept.slice(0, 20) + '…' : dept,
-      pct: Math.round(count / maxCount * 100),
+      dept: dept.length > 22 ? dept.slice(0,22)+'…' : dept,
+      pct:  Math.round(count / maxCount * 100),
     }));
 
-    // workforceScenarios — one real scenario based on current headcount
-    this.workforceScenarios = [
-      {
-        name: 'Current Headcount',
-        label: 'Live',
-        chipClass: 'active',
-        desc: `${total} employees across ${deptMap.size} department(s). Based on live HR data.`,
-        hc: total,
-        cost: '—',
-        active: true,
-      },
-    ];
-
-    // deptOptions for create form
     this.deptOptions = Array.from(deptMap.keys()).filter(d => d !== '—');
 
-    // pdiProgress — seniority-based (Ancienneté / 5 years → 100%)
-    this.pdiProgress = colls
-      .filter(c => c.prenom || c.nom)
-      .slice(0, 8)
-      .map(c => ({
-        name: `${c.prenom ?? ''} ${c.nom ?? ''}`.trim(),
-        role: c.Fonction || c.Département || '—',
-        pct:  Math.min(100, Math.round(((c.Ancienneté ?? 0) / 5) * 100)),
-      }));
+    this.pdiProgress = colls.filter(c => c.prenom || c.nom).slice(0,8).map(c => ({
+      name: `${c.prenom??''} ${c.nom??''}`.trim(),
+      role: c.Fonction || c.Département || '—',
+      pct:  Math.min(100, Math.round(((c.Ancienneté ?? 0) / 5) * 100)),
+    }));
 
-    // mentorOptions — collaborateur full names
-    this.mentorOptions = colls
-      .filter(c => c.nom && c.prenom)
-      .map(c => `${c.prenom} ${c.nom}`.trim())
-      .slice(0, 20);
+    const mgrs   = colls.filter(c => /(manager|responsable|directeur|chef|head)/i.test(c.Fonction??'')).slice(0,5);
+    const others = colls.filter(c => !mgrs.includes(c)).slice(0,5);
+    this.mentorships = mgrs.slice(0, Math.min(mgrs.length, others.length)).map((m, i) => ({
+      mentorInitials: `${(m.prenom||'?')[0]}${(m.nom||'?')[0]}`.toUpperCase(),
+      mentor:         `${m.prenom??''} ${m.nom??''}`.trim(),
+      mentorRole:     m.Fonction || '—',
+      mentee:         `${others[i]?.prenom??''} ${others[i]?.nom??''}`.trim(),
+      menteeRole:     others[i]?.Fonction || '—',
+    }));
 
-    // mentorships — pair managers with their team
-    const mgrs = colls.filter(c =>
-      /(manager|responsable|directeur|chef|head)/i.test(c.Fonction ?? '')
-    ).slice(0, 5);
-    const others = colls.filter(c => !mgrs.includes(c)).slice(0, 5);
-    this.mentorships = mgrs
-      .slice(0, Math.min(mgrs.length, others.length))
-      .map((m, i) => ({
-        mentorInitials: `${(m.prenom || '?')[0]}${(m.nom || '?')[0]}`.toUpperCase(),
-        mentor:         `${m.prenom ?? ''} ${m.nom ?? ''}`.trim(),
-        mentorRole:     m.Fonction || '—',
-        mentee:         `${others[i]?.prenom ?? ''} ${others[i]?.nom ?? ''}`.trim(),
-        menteeRole:     others[i]?.Fonction || '—',
-      }));
-
-    // idpPlans — every employee as a development candidate
-    this.idpPlans = colls.slice(0, 10).map(c => ({
-      employee:    `${c.prenom ?? ''} ${c.nom ?? ''}`.trim(),
+    this.idpPlans = colls.slice(0,10).map(c => ({
+      employee:    `${c.prenom??''} ${c.nom??''}`.trim(),
       currentRole: c.Fonction || '—',
       targetRole:  '—',
       timeline:    '—',
@@ -1245,154 +1522,65 @@ export class PlanningComponent implements OnInit {
     }));
   }
 
-  // ─── Derive data from real PlanningEvent list ────────────────────────────────
+  // ── Build data from Events ─────────────────────────────────────────────────
   private _buildFromEvents(events: any[]): void {
-    const now = new Date();
-    const sorted = [...events].sort(
-      (a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime()
-    );
-
+    const now    = new Date();
+    const sorted = [...events].sort((a,b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime());
     const byType = (t: string) => sorted.filter(e => e.type === t);
 
-    // ── Training ──
-    const trainingEvts = byType('TRAINING');
-    this.trainingNeeds = trainingEvts.map(e => {
+    this.trainingNeeds = byType('TRAINING').map(e => {
       const cb = e.createdBy;
-      const emp = cb ? `${cb.firstname ?? ''} ${cb.lastname ?? ''}`.trim() : '—';
+      const emp = cb ? `${cb.firstname??''} ${cb.lastname??''}`.trim() : '—';
       const isPast = new Date(e.startDateTime) < now;
       return {
-        employee: emp, role: e.location || '—', skill: e.title,
-        currentLevel: 0, targetLevel: 0,
+        _eventId: e.id, employee: emp, role: e.location || '—', skill: e.title,
+        currentLevel: 0, targetLevel: 5,
         priority: 'Medium', priorityClass: 'medium',
-        deadline: e.endDateTime
-          ? new Date(e.endDateTime).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
-          : '—',
+        deadline: e.endDateTime ? new Date(e.endDateTime).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : '—',
         status:      isPast ? 'Completed' : 'Assigned',
         statusClass: isPast ? 'completed'  : 'active',
         assignedTraining: e.description || null,
       };
     });
 
-    this.trainingSessions = trainingEvts.map(e => {
-      const d   = new Date(e.startDateTime);
-      const cb  = e.createdBy;
-      const dur = e.endDateTime
-        ? `${Math.max(1, Math.ceil((new Date(e.endDateTime).getTime() - d.getTime()) / 86_400_000))} day(s)`
-        : '—';
+    this.trainingSessions = byType('TRAINING').map(e => {
+      const d = new Date(e.startDateTime);
+      const cb = e.createdBy;
       return {
-        day:     String(d.getDate()).padStart(2, '0'),
-        month:   d.toLocaleString('en', { month: 'short' }),
+        day:     String(d.getDate()).padStart(2,'0'),
+        month:   d.toLocaleString('en',{month:'short'}),
         name:    e.title,
-        trainer: cb ? `${cb.firstname ?? ''} ${cb.lastname ?? ''}`.trim() : (e.location || '—'),
-        duration: dur,
+        trainer: cb ? `${cb.firstname??''} ${cb.lastname??''}`.trim() : (e.location||'—'),
+        duration: e.endDateTime
+          ? `${Math.max(1, Math.ceil((new Date(e.endDateTime).getTime()-d.getTime())/86400000))} day(s)`
+          : '—',
         enrolled: 0, capacity: 0,
       };
     });
 
-    // ── Career milestones (DEADLINE events) ──
     this.careerMilestones = byType('DEADLINE').map(e => {
-      const d    = new Date(e.startDateTime);
+      const d = new Date(e.startDateTime);
       const past = d < now;
-      return {
-        title:    e.title,
-        date:     d.toLocaleDateString('en', { month: 'short', year: 'numeric' }),
-        dotClass: past ? 'done' : 'pending',
-        status:   past ? 'Done' : 'Pending',
-      };
+      return { title: e.title, date: d.toLocaleDateString('en',{month:'short',year:'numeric'}),
+               dotClass: past ? 'done' : 'pending', status: past ? 'Done' : 'Pending' };
     });
 
-    // ── Recruitment — INTERVIEW events ──
-    const interviewEvts = byType('INTERVIEW');
-    this.hiringRequests = interviewEvts.map((e, idx) => {
+    this.hiringRequests = byType('INTERVIEW').map((e, idx) => {
       const d = new Date(e.startDateTime);
       return {
-        reqId:      `HR-${String(e.id ?? idx + 1).padStart(4, '0')}`,
-        position:   e.title,
-        dept:       e.location || '—',
-        hc:         1,
-        budget:     '—',
-        targetDate: d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }),
+        _eventId:   e.id,
+        reqId:      `HR-${String(e.id??idx+1).padStart(4,'0')}`,
+        position:   e.title, dept: e.location||'—', hc: 1, budget: '—',
+        targetDate: d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),
         stage:      d < now ? 'Completed' : 'Interviewing',
-        stageClass: d < now ? 'completed' : 'active',
-        planRef:    `EVT-${e.id ?? idx + 1}`,
+        stageClass: d < now ? 'completed' : 'active', planRef: `EVT-${e.id??idx+1}`,
       };
     });
 
-    // pipelineStages — count by event type
-    const typeCounts = new Map<string, number>();
-    events.forEach(e => typeCounts.set(e.type, (typeCounts.get(e.type) ?? 0) + 1));
-
+    const typeCounts = new Map<string,number>();
+    events.forEach(e => typeCounts.set(e.type, (typeCounts.get(e.type)??0)+1));
     this.pipelineStages = Array.from(typeCounts.entries()).map(([type, count]) => ({
-      label: type.charAt(0) + type.slice(1).toLowerCase(),
-      count,
-      color: this.EVENT_COLORS[type] ?? '#8FA3B8',
+      label: type.charAt(0)+type.slice(1).toLowerCase(), count, color: this.typeColor(type),
     }));
-
-    const maxCount = Math.max(1, ...Array.from(typeCounts.values()));
-    this.recruitPipeline = Array.from(typeCounts.entries()).map(([type, count]) => ({
-      name:  type.charAt(0) + type.slice(1).toLowerCase(),
-      count,
-      pct:   Math.round(count / maxCount * 100),
-      color: 'teal',
-      cls:   'active',
-    }));
-
-    // ── Event stream — 6 most recent events ──
-    this.eventStream = sorted.slice(0, 6).map(e => {
-      const diff = now.getTime() - new Date(e.startDateTime).getTime();
-      const mins = Math.floor(diff / 60_000);
-      const hrs  = Math.floor(diff / 3_600_000);
-      const days = Math.floor(diff / 86_400_000);
-      const time = days > 0 ? `${days}d ago` : hrs > 0 ? `${hrs}h ago` : `${Math.max(0,mins)}m ago`;
-      return {
-        event: `planning.${e.type.toLowerCase()}.event`,
-        desc:  `${e.title}${e.location ? ' — ' + e.location : ''}`,
-        time,
-        color: this.EVENT_COLORS[e.type] ?? '#8FA3B8',
-      };
-    });
   }
-
-  // ── Panel handlers ──
-  openDetail(row: any, type: string): void {
-    this.selected  = row;
-    this.panelType = type;
-    this.showPanel = true;
-  }
-
-  openCreate(): void {
-    this.createForm = {};
-    this.panelType  = 'create';
-    this.showPanel  = true;
-    this.selected   = null;
-    this.saveError  = null;
-    const labels: Record<string,string> = {
-      workforce: 'New Headcount Plan', training: 'New Training Need',
-      career: 'New Development Plan',  recruitment: 'New Hiring Request',
-    };
-    this.createTitle = labels[this.activeModule] ?? 'New Plan';
-  }
-
-  submitCreate(): void {
-    if (!this.createForm.title) { this.saveError = 'Title is required.'; return; }
-    this.saving    = true;
-    this.saveError = null;
-    const typeMap: Record<string,string> = {
-      workforce: 'MEETING', training: 'TRAINING', career: 'OTHER', recruitment: 'INTERVIEW',
-    };
-    const payload: any = {
-      title:         this.createForm.title,
-      description:   this.createForm.description || '',
-      startDateTime: this.createForm.startDate   || new Date().toISOString(),
-      endDateTime:   this.createForm.endDate     || null,
-      location:      this.createForm.location    || '',
-      type:          typeMap[this.activeModule]  ?? 'OTHER',
-    };
-    this.planningService.createEvent(payload).subscribe({
-      next: () => { this.saving = false; this.closePanel(); this.ngOnInit(); },
-      error: err => { this.saving = false; this.saveError = err?.error?.message || 'Failed to save.'; },
-    });
-  }
-
-  closePanel(): void { this.showPanel = false; this.selected = null; }
 }

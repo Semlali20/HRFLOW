@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
 @Component({
   selector: 'app-salary',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, NgApexchartsModule, TranslateModule, WallClockComponent],
   styles: [`
     .page { padding:0 24px 40px; font-family:'Inter',sans-serif; animation:fadeIn .4s ease both; }
     @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -125,26 +127,26 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
   <!-- ══ Salary Detail Panel ══ -->
   <div class="rp" *ngIf="showDetail && selected">
     <div class="rp-header">
-      <span class="rp-title">Salary Detail</span>
+      <span class="rp-title">{{ 'SALARY.DETAIL_TITLE' | translate }}</span>
       <button class="rp-close" (click)="closeAll()"><i class="bx bx-x"></i></button>
     </div>
     <div class="rp-body">
 
       <!-- Employee Information -->
       <div class="dp-emp-banner">
-        <div class="dp-photo">Image here</div>
+        <div class="dp-photo">{{ 'SALARY.IMAGE_PLACEHOLDER' | translate }}</div>
         <div style="flex:1;">
-          <div class="dp-section">Employee Information</div>
+          <div class="dp-section">{{ 'SALARY.SECTION_EMPLOYEE_INFO' | translate }}</div>
           <div class="dp-field">
-            <span class="dp-lbl"><i class="bx bx-id-card"></i> Employee ID</span>
+            <span class="dp-lbl"><i class="bx bx-id-card"></i> {{ 'SALARY.EMPLOYEE_ID' | translate }}</span>
             <span class="dp-val">{{ selected.empId }}</span>
           </div>
           <div class="dp-field">
-            <span class="dp-lbl"><i class="bx bx-font"></i> Full Name</span>
+            <span class="dp-lbl"><i class="bx bx-font"></i> {{ 'SALARY.FULL_NAME' | translate }}</span>
             <span class="dp-val">{{ selected.name }}</span>
           </div>
           <div class="dp-field" style="border-bottom:none;">
-            <span class="dp-lbl"><i class="bx bx-user-circle"></i> Role</span>
+            <span class="dp-lbl"><i class="bx bx-user-circle"></i> {{ 'SALARY.ROLE' | translate }}</span>
             <span class="dp-val">{{ selected.role }}</span>
           </div>
         </div>
@@ -153,51 +155,51 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <hr class="dp-divider">
 
       <!-- Salary Information -->
-      <div class="dp-section">Salary Information</div>
+      <div class="dp-section">{{ 'SALARY.SECTION_SALARY_INFO' | translate }}</div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> Hourly Rate</span>
+        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.HOURLY_RATE' | translate }}</span>
         <span class="dp-val">{{ selected.hourlyRate }}</span>
       </div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> Annual Salary</span>
+        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.ANNUAL_SALARY' | translate }}</span>
         <span class="dp-val">{{ selected.annualSalary }}</span>
       </div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> Overtime Rate</span>
+        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.OVERTIME_RATE' | translate }}</span>
         <span class="dp-val">{{ selected.overtimeRate }}</span>
       </div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> Bonuses</span>
+        <span class="dp-lbl"><i class="bx bx-dollar-circle"></i> {{ 'SALARY.BONUSES' | translate }}</span>
         <span class="dp-val--highlight">{{ selected.bonuses }}</span>
       </div>
       <div class="dp-field">
-        <span class="dp-lbl"><i class="bx bx-minus-circle"></i> Deductions Amount</span>
+        <span class="dp-lbl"><i class="bx bx-minus-circle"></i> {{ 'SALARY.DEDUCTIONS_AMOUNT' | translate }}</span>
         <span class="dp-val">{{ selected.deductionsAmount }}</span>
       </div>
       <div class="dp-field" style="align-items:flex-start;">
-        <span class="dp-lbl" style="padding-top:6px;"><i class="bx bx-minus-circle"></i> Deductions Included</span>
+        <span class="dp-lbl" style="padding-top:6px;"><i class="bx bx-minus-circle"></i> {{ 'SALARY.DEDUCTIONS_INCLUDED' | translate }}</span>
         <div class="chips-wrap">
           <span class="d-chip" *ngFor="let d of selected.deductionTypes">{{ d }}</span>
         </div>
       </div>
       <div class="dp-field" style="border-bottom:none;">
-        <span class="dp-lbl"><i class="bx bx-calendar"></i> Pay Frequency</span>
+        <span class="dp-lbl"><i class="bx bx-calendar"></i> {{ 'SALARY.PAY_FREQUENCY' | translate }}</span>
         <span class="freq-chip">{{ selected.payFrequency }}</span>
       </div>
 
       <hr class="dp-divider">
 
       <!-- Payroll History -->
-      <div class="dp-section">Payroll History</div>
+      <div class="dp-section">{{ 'SALARY.SECTION_PAYROLL_HISTORY' | translate }}</div>
       <table class="ph-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Paid Hours</th>
-            <th>Gross Pay</th>
-            <th>Deductions</th>
-            <th>Net Pay</th>
-            <th>Status</th>
+            <th>{{ 'SALARY.DATE' | translate }}</th>
+            <th>{{ 'SALARY.PAID_HOURS' | translate }}</th>
+            <th>{{ 'SALARY.GROSS_PAY' | translate }}</th>
+            <th>{{ 'SALARY.DEDUCTIONS' | translate }}</th>
+            <th>{{ 'SALARY.NET_PAY' | translate }}</th>
+            <th>{{ 'SALARY.STATUS' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -217,12 +219,11 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
 
   <!-- ══════════ Page ══════════ -->
   <div class="page">
-    <div class="page-header">
-      <h4 class="page-title">Salary</h4>
-      <div class="header-meta">
-        <span class="header-date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
-        <span class="header-lang"><i class="bx bx-flag"></i> English <i class="bx bx-chevron-down"></i></span>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="page-header" style="flex:1;margin-bottom:0;">
+        <h4 class="page-title">{{ 'SALARY.TITLE' | translate }}</h4>
       </div>
+      <app-wall-clock></app-wall-clock>
     </div>
 
     <div class="top-row">
@@ -230,12 +231,12 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <!-- Salary Overview -->
       <div class="overview-card">
         <div class="card-head">
-          <span class="card-title">Salary Overview</span>
-          <button class="filter-btn">Today <i class="bx bx-chevron-down"></i></button>
+          <span class="card-title">{{ 'SALARY.SECTION_OVERVIEW' | translate }}</span>
+          <button class="filter-btn">{{ 'SALARY.TODAY' | translate }} <i class="bx bx-chevron-down"></i></button>
         </div>
 
         <!-- Employee Contract Distribution (from real data) -->
-        <div style="font-size:13px;font-weight:600;color:#1A2B3C;margin-bottom:14px;">Contract Distribution</div>
+        <div style="font-size:13px;font-weight:600;color:#1A2B3C;margin-bottom:14px;">{{ 'SALARY.CONTRACT_DISTRIBUTION' | translate }}</div>
         <div class="dist-section">
           <div class="dist-legends">
             <div class="dist-lbl-row"><span class="dist-dot" style="background:#3B82F6;"></span><span class="dist-lbl">CDI ({{ totalCount > 0 ? (cdiCount / totalCount * 100 | number:'1.0-0') : 0 }}%)</span></div>
@@ -251,10 +252,10 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
         </div>
 
         <!-- Insight KPIs (derived from real employee counts) -->
-        <div class="insight-lbl">Insight</div>
+        <div class="insight-lbl">{{ 'SALARY.INSIGHT' | translate }}</div>
         <div class="kpi-row">
           <div class="kpi-box kpi-box--highlight">
-            <div class="kpi-lbl">Total Employees</div>
+            <div class="kpi-lbl">{{ 'SALARY.TOTAL_EMPLOYEES' | translate }}</div>
             <div class="kpi-val">{{ totalCount }}</div>
           </div>
           <div class="kpi-box">
@@ -311,9 +312,9 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
             <text x="38" y="60" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">★</text>
           </svg>
         </div>
-        <div class="payroll-lbl">Next Payroll Date</div>
+        <div class="payroll-lbl">{{ 'SALARY.NEXT_PAYROLL' | translate }}</div>
         <div class="payroll-date">—</div>
-        <button class="payroll-btn">Payroll Detail</button>
+        <button class="payroll-btn">{{ 'SALARY.PAYROLL_DETAIL' | translate }}</button>
       </div>
 
     </div>
@@ -321,14 +322,14 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
     <!-- Table -->
     <div class="table-card">
       <div class="tabs-bar">
-        <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ t }}</button>
-        <span class="tabs-right"><i class="bx bx-refresh"></i> {{ rows.length }} employees</span>
+        <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ t | translate }}</button>
+        <span class="tabs-right"><i class="bx bx-refresh"></i> {{ rows.length }} {{ 'SALARY.EMPLOYEES_COUNT' | translate }}</span>
       </div>
 
       <!-- Loading -->
       <div style="padding:48px 0;text-align:center;color:#8FA3B8;font-size:14px;" *ngIf="loading">
         <div style="width:32px;height:32px;border:3px solid #E2E8F0;border-top-color:#2FA8A0;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;"></div>
-        Loading employees…
+        {{ 'SALARY.LOADING_EMPLOYEES' | translate }}
       </div>
 
       <!-- Error -->
@@ -340,21 +341,21 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
       <!-- Empty -->
       <div style="padding:48px 0;text-align:center;color:#8FA3B8;font-size:14px;" *ngIf="!loading && !error && rows.length === 0">
         <i class="bx bx-user-x" style="font-size:36px;display:block;margin-bottom:10px;"></i>
-        No employees found.
+        {{ 'SALARY.NO_EMPLOYEES' | translate }}
       </div>
 
       <div style="overflow-x:auto" *ngIf="!loading && !error && rows.length > 0">
         <table>
           <thead>
             <tr>
-              <th>Employee ID</th>
-              <th>Employee Name</th>
-              <th>Department</th>
-              <th>Contract</th>
-              <th>Gross Pay</th>
-              <th>Deductions</th>
-              <th>Net Pay</th>
-              <th>Status</th>
+              <th>{{ 'SALARY.EMPLOYEE_ID' | translate }}</th>
+              <th>{{ 'SALARY.EMPLOYEE_NAME' | translate }}</th>
+              <th>{{ 'SALARY.DEPARTMENT' | translate }}</th>
+              <th>{{ 'SALARY.CONTRACT' | translate }}</th>
+              <th>{{ 'SALARY.GROSS_PAY' | translate }}</th>
+              <th>{{ 'SALARY.DEDUCTIONS' | translate }}</th>
+              <th>{{ 'SALARY.NET_PAY' | translate }}</th>
+              <th>{{ 'SALARY.STATUS' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -366,7 +367,7 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
               <td class="td-amt">{{ r.gross }}</td>
               <td class="td-amt">{{ r.deductions }}</td>
               <td class="td-amt">{{ r.net }}</td>
-              <td><span class="status-chip chip-unpaid">Pending</span></td>
+              <td><span class="status-chip chip-unpaid">{{ 'SALARY.PENDING' | translate }}</span></td>
             </tr>
           </tbody>
         </table>
@@ -377,8 +378,8 @@ import { CollaborateurService } from 'src/app/core/services/collaborateur.servic
 })
 export class SalaryComponent implements OnInit {
   today = new Date();
-  tabs = ['Employee Salary', 'Bonuses', 'Company Sattlement'];
-  activeTab = 'Employee Salary';
+  tabs = ['SALARY.TAB_EMPLOYEE_SALARY', 'SALARY.TAB_BONUSES', 'SALARY.TAB_SETTLEMENT'];
+  activeTab = 'SALARY.TAB_EMPLOYEE_SALARY';
 
   showDetail = false;
   selected: any = null;
@@ -399,7 +400,7 @@ export class SalaryComponent implements OnInit {
 
   donut: any = {};
 
-  constructor(private collaborateurService: CollaborateurService) {}
+  constructor(private collaborateurService: CollaborateurService, private translate: TranslateService) {}
 
   openDetail(r: any) { this.selected = r; this.showDetail = true; }
   closeAll() { this.showDetail = false; this.selected = null; }
@@ -443,7 +444,7 @@ export class SalaryComponent implements OnInit {
         this.loading = false;
       },
       error: err => {
-        this.error = err?.error?.message || 'Failed to load employees.';
+        this.error = err?.error?.message || this.translate.instant('SALARY.NO_EMPLOYEES');
         this.loading = false;
       }
     });
