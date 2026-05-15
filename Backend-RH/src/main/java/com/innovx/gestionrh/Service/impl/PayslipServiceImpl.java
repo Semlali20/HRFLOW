@@ -43,7 +43,7 @@ public class PayslipServiceImpl implements PayslipService {
         payslip.setCollaborateur(collaborateur);
         payslip.setNetSalary(calcNet(request.getBaseSalary(), request.getBonuses(), request.getDeductions()));
         payslip.setStatus(PayslipStatus.DRAFT);
-        payslip.setIsDeleted(false);
+        payslip.setDeleted(false);
 
         return payslipMapper.toResponse(payslipRepository.save(payslip));
     }
@@ -86,7 +86,7 @@ public class PayslipServiceImpl implements PayslipService {
     @Transactional
     public void softDelete(Long id) {
         Payslip payslip = getOrThrow(id);
-        payslip.setIsDeleted(true);
+        payslip.setDeleted(true);
         payslipRepository.save(payslip);
     }
 

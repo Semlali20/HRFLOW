@@ -14,8 +14,6 @@ public interface PayslipMapper {
     @Mapping(target = "netSalary", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     Payslip toEntity(PayslipRequest request);
 
     @Mapping(target = "collaborateurId", source = "collaborateur.id")
@@ -29,8 +27,6 @@ public interface PayslipMapper {
     @Mapping(target = "collaborateur", ignore = true)
     @Mapping(target = "netSalary", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     void updateEntity(PayslipRequest request, @MappingTarget Payslip payslip);
 }
