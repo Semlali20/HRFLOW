@@ -65,6 +65,9 @@ function iconFor(type: string) {
           {{ 'CHAT.TITLE' | translate }}
           <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
         </h4>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <app-wall-clock></app-wall-clock>
         <div class="header-right">
           <button class="btn btn-secondary" (click)="markAllRead()" [disabled]="unreadCount === 0">
             <i class="bx bx-check-double"></i> {{ 'CHAT.MARK_ALL_READ' | translate }}
@@ -74,7 +77,6 @@ function iconFor(type: string) {
           </button>
         </div>
       </div>
-      <app-wall-clock></app-wall-clock>
     </div>
 
     <div class="card">

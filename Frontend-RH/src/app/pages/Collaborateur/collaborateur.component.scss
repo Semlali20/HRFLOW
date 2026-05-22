@@ -392,3 +392,56 @@
   cursor:pointer; transition:background .15s;
   &:hover { background:#2FA8A0; }
 }
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+  // Header card
+  .emp-header { background: #1E293B; &__title { color: #E2E8F0; } }
+
+  // Stats & chart cards
+  .emp-stats-card, .emp-chart-card { background: #1E293B !important; }
+  .emp-stats-label, .emp-chart-title { color: #E2E8F0; }
+  .emp-stats-total, .emp-stats-item-num { color: #E2E8F0; }
+
+  // Table card
+  .emp-table-card { background: #1E293B !important; }
+  .emp-tabs-bar   { border-bottom-color: #334155; }
+  .emp-tab        { color: #475569; &--active { color: #2FA8A0; border-bottom-color: #2FA8A0; } }
+  .emp-table {
+    thead tr  { background: #162032; }
+    thead th  { color: #475569; border-bottom-color: #334155; }
+    tbody tr:hover { background: #1A2A3A; }
+    tbody td  { color: #94A3B8; border-bottom-color: #273549; }
+  }
+  .emp-td-id, .emp-td-name { color: #E2E8F0; }
+
+  // Detail panel
+  .emp-detail-panel { background: #1E293B; box-shadow: -8px 0 40px rgba(0,0,0,.3); }
+  .edp-header       { border-bottom-color: #334155; }
+  .edp-title        { color: #E2E8F0; }
+  .edp-close-btn    { background: #273549; color: #94A3B8; &:hover { background: #334155; } }
+  .edp-section-title { color: #E2E8F0; border-bottom-color: #334155; }
+  .edp-lbl          { color: #64748B; }
+  .edp-val          { color: #E2E8F0; }
+  .edp-wh-table {
+    thead th { background: #162032; color: #475569; border-bottom-color: #334155; }
+    tbody td { color: #94A3B8; border-bottom-color: #273549; }
+  }
+  .edp-wh-btn { background: #273549; color: #64748B; &:hover { background: #334155; } &--del:hover { background: #3D1E1E; color: #F87171; } }
+
+  // Create / edit modal
+  .emp-create-modal { background: #1E293B; }
+  .ecm-header       { border-bottom-color: #334155; }
+  .ecm-title        { color: #E2E8F0; }
+  .ecm-close-btn    { background: #273549; color: #94A3B8; &:hover { background: #334155; } }
+  .ecm-section-title { color: #E2E8F0; border-bottom-color: #334155; }
+  .ecm-label        { color: #94A3B8; }
+  .ecm-input {
+    background: #273549; border-color: #334155; color: #E2E8F0;
+    &::placeholder { color: #475569; }
+    &:focus { border-color: #2FA8A0; }
+  }
+  .ecm-select     { background: #273549; border-color: #334155; color: #E2E8F0; }
+  .ecm-footer     { border-top-color: #334155; }
+  .ecm-photo-title { color: #E2E8F0; }
+}

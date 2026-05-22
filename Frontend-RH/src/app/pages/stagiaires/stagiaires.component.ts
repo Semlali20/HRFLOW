@@ -78,8 +78,8 @@ export class DocTypeLabelPipe implements PipeTransform {
 
   <!-- Header -->
   <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">
-    <div class="int-header" style="flex:1;margin-bottom:0;">
-      <h4 class="int-header__title">{{ 'INTERNS.TITLE' | translate }}</h4>
+    <div class="page-header" style="flex:1;margin-bottom:0;">
+      <h4 class="page-title">{{ 'INTERNS.TITLE' | translate }}</h4>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
       <app-wall-clock></app-wall-clock>
@@ -510,6 +510,55 @@ export class DocTypeLabelPipe implements PipeTransform {
     .toast-msg { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; padding:.75rem 1.25rem; border-radius:10px; color:#fff; font-size:.875rem; display:flex; align-items:center; box-shadow:0 4px 20px rgba(0,0,0,.15); animation:fadeIn .3s ease; }
     .toast-success { background:#2FA8A0; }
     .toast-error   { background:#ef4444; }
+
+    /* ─── DARK MODE ─── */
+    :host-context([data-theme="dark"]) .int-header { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .int-header__title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .stat-card { background:#111111 !important; border-color:#2A2A2A !important; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .stat-value { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .stat-label { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .int-table-card { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .int-filter-bar { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .int-search-input { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .int-search-input::placeholder { color:#3A5170; }
+    :host-context([data-theme="dark"]) .int-select { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .int-count-badge { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .int-updated { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .int-table thead tr { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) .int-table thead th { color:#6B6B6B !important; border-bottom:2px solid #2FA8A0; }
+    :host-context([data-theme="dark"]) .int-table tbody tr:hover { background:rgba(47,168,160,.06) !important; }
+    :host-context([data-theme="dark"]) .int-table tbody td { color:#A0A0A0 !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .int-table tbody tr:last-child td { border-bottom:none; }
+    :host-context([data-theme="dark"]) .int-name { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .int-main-text { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .int-sub-text { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .int-type-chip { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .int-progress-bar { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) .int-act-btn { background:#111111 !important; border-color:#2A2A2A !important; color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .int-act-btn:hover { background:#1A1A1A !important; color:#A0A0A0 !important; border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .int-act-btn--del:hover { background:#3B0A0A; color:#F87171; border-color:#F87171; }
+    :host-context([data-theme="dark"]) .int-pagination { border-top-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .int-page-info { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .int-page-btn { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .int-page-btn:hover:not([disabled]) { background:#1A1A1A !important; border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .rp { background:#111111 !important; }
+    :host-context([data-theme="dark"]) .rp-white-header { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-wh-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .rp-wh-close { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .rp-wh-close:hover { background:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dr-section-title { color:#FFFFFF !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .dr-label { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .dr-value { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dr-field-label { color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .dr-input { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dr-input::placeholder { color:#555555; }
+    :host-context([data-theme="dark"]) .dr-input:focus { border-color:#2FA8A0 !important; box-shadow:0 0 0 3px rgba(47,168,160,.15) !important; }
+    :host-context([data-theme="dark"]) .dr-footer { border-top-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .dr-btn-cancel { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .dr-btn-cancel:hover { background:#2A2A2A !important; border-color:#3A3A3A !important; }
+    :host-context([data-theme="dark"]) .dr-btn-create { background:#2FA8A0 !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dr-btn-create:hover:not(:disabled) { background:#1B7872 !important; }
+    :host-context([data-theme="dark"]) .doc-card { background:#1A1A1A !important; border-color:#2A2A2A !important; }
   `]
 })
 export class StagiairesComponent implements OnInit {

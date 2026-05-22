@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ElementRef, ViewChild, Input, OnChanges } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ElementRef, ViewChild, Input, OnChanges, HostListener } from '@angular/core';
 import MetisMenu from 'metismenujs';
 import { Router, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -8,6 +8,14 @@ import { MenuItem } from './menu.model';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
 import { PermissionService } from 'src/app/core/services/permission.service';
+
+interface SbSearchItem {
+  label: string;
+  icon: string;
+  route: string;
+  permission?: string;
+  queryParams?: { [key: string]: string };
+}
 
 @Component({
   selector: 'app-sidebar',
@@ -24,9 +32,60 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   orgOpen = true;
   analyticsOpen = true;
   adminOpen = true;
-  showProfileMenu = false;
-  showSearchModal = false;
-  searchQuery = '';
+  showProfileMenu  = false;
+  showSearchModal  = false;
+  searchQuery      = '';
+  activeChip: string | null    = null;
+  recentSearches: SbSearchItem[] = [];
+  highlightedIndex               = -1;
+
+  private readonly RECENT_KEY  = 'wiko_recent_searches';
+  private readonly MAX_RECENT  = 5;
+
+  /** All navigable pages — filtered at runtime by permission + query. */
+  private readonly SB_ALL_ITEMS: SbSearchItem[] = [
+    { label: 'Dashboard',            icon: 'bxs-dashboard',      route: '/dashboard' },
+    { label: 'Notifications',        icon: 'bxs-bell',           route: '/chat' },
+    { label: 'Day-Off Request',      icon: 'bxs-calendar-check', route: '/dayoff' },
+    { label: 'Planning',             icon: 'bxs-calendar-alt',   route: '/planning',        permission: 'PLANNING_READ' },
+    { label: 'Employees',            icon: 'bxs-group',          route: '/collaborateur',   permission: 'EMPLOYEE_READ' },
+    { label: 'Interns',              icon: 'bxs-graduation',     route: '/stagiaires',      permission: 'INTERN_READ' },
+    { label: 'Projects',             icon: 'bxs-briefcase',      route: '/projects-hr',     permission: 'PLANNING_READ' },
+    { label: 'Attendance',           icon: 'bxs-time',           route: '/attendance',      permission: 'EMPLOYEE_READ' },
+    { label: 'Leave Requests',       icon: 'bxs-door-open',      route: '/leave',           permission: 'LEAVE_READ_ALL' },
+    { label: 'Leave Balances',       icon: 'bxs-calendar-heart', route: '/leave/balance',   permission: 'LEAVE_READ_ALL' },
+    { label: 'Recruitment',          icon: 'bxs-user-plus',      route: '/recruitment',     permission: 'CV_READ' },
+    { label: 'Salary',               icon: 'bxs-wallet',         route: '/salary',          permission: 'SALARY_READ' },
+    { label: 'Documents',            icon: 'bxs-folder-open',    route: '/documents',       permission: 'DOCUMENT_READ' },
+    { label: 'Meetings',             icon: 'bxs-conversation',   route: '/meetings',        permission: 'MEETING_READ' },
+    { label: 'Departments',          icon: 'bxs-building-house', route: '/org',             permission: 'DEPARTMENT_READ' },
+    { label: 'Public Holidays',      icon: 'bxs-party',          route: '/public-holidays', permission: 'LEAVE_MANAGE_TYPES' },
+    { label: 'Statistics',           icon: 'bxs-chart',          route: '/statistics',      permission: 'REPORT_READ' },
+    { label: 'Audit Log',            icon: 'bx-history',         route: '/audit',           permission: 'AUDIT_READ' },
+    { label: 'User Management',      icon: 'bxs-user-badge',     route: '/admin/users',     permission: 'USER_MANAGE' },
+    { label: 'Roles & Permissions',  icon: 'bxs-shield',         route: '/admin/roles',     permission: 'ROLE_MANAGE' },
+    { label: 'Settings',             icon: 'bxs-cog',            route: '/settings' },
+    { label: 'File Manager',         icon: 'bxs-folder',         route: '/filemanager',     permission: 'DOCUMENT_READ' },
+  ];
+
+  /** Default quick-action shortcuts shown when the search box is empty. */
+  private readonly SB_DEFAULT_ACTIONS: SbSearchItem[] = [
+    { label: 'Open Settings',        icon: 'bxs-cog',            route: '/settings' },
+    { label: 'Create New Employee',  icon: 'bx-plus-circle',     route: '/collaborateur',  permission: 'EMPLOYEE_READ',  queryParams: { action: 'create' } },
+    { label: 'Create Project',       icon: 'bx-plus-circle',     route: '/projects-hr',    permission: 'PLANNING_READ',  queryParams: { action: 'create' } },
+    { label: 'Create Hiring',        icon: 'bx-plus-circle',     route: '/recruitment',    permission: 'CV_READ',        queryParams: { action: 'create' } },
+  ];
+
+  /** Items shown in the results list — live-filtered as the user types. */
+  get visibleSearchItems(): SbSearchItem[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) {
+      return this.SB_DEFAULT_ACTIONS.filter(i => !i.permission || this.canSee(i.permission));
+    }
+    return this.SB_ALL_ITEMS
+      .filter(i => (!i.permission || this.canSee(i.permission)) && i.label.toLowerCase().includes(q))
+      .slice(0, 8);
+  }
   currentUser: { name: string; email: string; role: string; initials: string } = { name: '—', email: '—', role: '—', initials: '?' };
   @ViewChild('sideMenu') sideMenu: ElementRef;
 
@@ -228,9 +287,96 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     this.showProfileMenu = !this.showProfileMenu;
   }
 
-  openSearch() {
-    this.showSearchModal = true;
-    this.showProfileMenu = false;
+  openSearch(): void {
+    this.showSearchModal  = true;
+    this.showProfileMenu  = false;
+    this.searchQuery      = '';
+    this.activeChip       = null;
+    this.highlightedIndex = -1;
+    this.loadRecentSearches();
+    setTimeout(() => {
+      const el = document.querySelector('.wsm-input') as HTMLInputElement;
+      if (el) el.focus();
+    }, 40);
+  }
+
+  closeSearch(): void {
+    this.showSearchModal = false;
+    this.searchQuery     = '';
+    this.activeChip      = null;
+    this.highlightedIndex = -1;
+  }
+
+  // ── Recent searches ────────────────────────────────────────────────────────
+
+  loadRecentSearches(): void {
+    try { this.recentSearches = JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]'); }
+    catch { this.recentSearches = []; }
+  }
+
+  private saveRecentSearch(item: SbSearchItem): void {
+    this.recentSearches = [item, ...this.recentSearches.filter(s => s.route !== item.route)].slice(0, this.MAX_RECENT);
+    localStorage.setItem(this.RECENT_KEY, JSON.stringify(this.recentSearches));
+  }
+
+  removeRecentSearch(item: SbSearchItem, e: Event): void {
+    e.stopPropagation();
+    this.recentSearches = this.recentSearches.filter(s => s.route !== item.route);
+    localStorage.setItem(this.RECENT_KEY, JSON.stringify(this.recentSearches));
+  }
+
+  clearRecentSearches(): void {
+    this.recentSearches = [];
+    localStorage.removeItem(this.RECENT_KEY);
+  }
+
+  // ── Chip + navigation ──────────────────────────────────────────────────────
+
+  selectChip(chipId: string, route: string): void {
+    this.closeSearch();
+    this.router.navigate([route]);
+  }
+
+  navigateToItem(item: SbSearchItem): void {
+    this.saveRecentSearch(item);
+    this.closeSearch();
+    this.router.navigate([item.route], item.queryParams ? { queryParams: item.queryParams } : {});
+  }
+
+  navigateFromRecent(item: SbSearchItem): void {
+    this.closeSearch();
+    this.router.navigate([item.route]);
+  }
+
+  // ── Keyboard handling ──────────────────────────────────────────────────────
+
+  onSearchKeydown(e: KeyboardEvent): void {
+    const items = this.visibleSearchItems;
+    switch (e.key) {
+      case 'Escape':
+        this.closeSearch(); break;
+      case 'ArrowDown':
+        e.preventDefault();
+        this.highlightedIndex = Math.min(this.highlightedIndex + 1, items.length - 1); break;
+      case 'ArrowUp':
+        e.preventDefault();
+        this.highlightedIndex = Math.max(this.highlightedIndex - 1, 0); break;
+      case 'Enter':
+        const target = items[this.highlightedIndex] ?? items[0];
+        if (target) this.navigateToItem(target); break;
+      default:
+        this.highlightedIndex = -1;
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onGlobalKey(e: KeyboardEvent): void {
+    // ⌘1 or Ctrl+K opens search
+    if ((e.metaKey || e.ctrlKey) && (e.key === '1' || e.key === 'k')) {
+      e.preventDefault();
+      if (this.showSearchModal) this.closeSearch();
+      else this.openSearch();
+    }
   }
 
   doLogout() {

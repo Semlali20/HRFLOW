@@ -139,3 +139,27 @@ left: 15px;
   align-items: center;
   margin-top: 20px;
 }
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+  // Table rows
+  table.table tr th, table.table tr td { border-color: #334155; color: #94A3B8; }
+  table.table-striped tbody tr:nth-of-type(odd) { background-color: #162032; }
+  table.table-striped.table-hover tbody tr:hover { background: #1A2A3A; }
+  // Search + filter controls
+  .search-filter-container .form-control,
+  .search-filter-container .form-select {
+    background-color: #273549;
+    border-color: #334155;
+    color: #E2E8F0;
+  }
+  // Pagination
+  .pagination .page-link {
+    background-color: #1E293B;
+    border-color: #334155;
+    color: #2FA8A0;
+    &:hover { background-color: #273549; color: #38BDB5; }
+  }
+  .pagination .page-item.disabled .page-link { background-color: #162032; color: #475569; }
+  .pagination .page-item.active .page-link   { background-color: #1B7872; border-color: #1B7872; }
+}

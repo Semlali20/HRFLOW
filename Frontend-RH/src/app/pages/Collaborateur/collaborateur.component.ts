@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -479,8 +480,8 @@ interface EmpRow {
 
     <!-- Header -->
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">
-      <div class="emp-header" style="flex:1;margin-bottom:0;">
-        <h4 class="emp-header__title">{{ 'EMPLOYEES.TITLE' | translate }}</h4>
+      <div class="page-header" style="flex:1;margin-bottom:0;">
+        <h4 class="page-title">{{ 'EMPLOYEES.TITLE' | translate }}</h4>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
         <app-wall-clock></app-wall-clock>
@@ -756,11 +757,15 @@ export class CollaborateurComponent implements OnInit {
     private adminService: AdminService,
     private confirmSvc: ConfirmService,
     private translate: TranslateService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.loadData();
     this.loadReferenceData();
+    this.route.queryParams.subscribe(params => {
+      if (params['action'] === 'create') this.openCreate();
+    });
   }
 
   loadReferenceData(): void {

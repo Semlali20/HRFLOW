@@ -190,7 +190,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
     .ch-amber  { background:#FEF3C7; color:#B45309; }
     .ch-red    { background:#FFE4E6; color:#BE123C; }
     .ch-purple { background:#EDE9FE; color:#6D28D9; }
-    .ch-gray   { background:#F1F5F9; color:#64748B; }
+    .ch-gray   { background:#F1F5F9; color:#8FA3B8; }
     .ch-teal   { background:#E8F7F6; color:#1B7872; }
 
     /* Progress */
@@ -351,9 +351,212 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
     .cal-day-empty    { text-align:center; color:#C0CDD8; padding:14px 0;
                         font-size:12px; font-style:italic; }
 
-    .toast { position:fixed; bottom:24px; right:24px; z-index:9999; background:#1A2B3C; color:#fff;
+    .toast { position:fixed; bottom:24px; right:24px; z-index:9999; background:#111111 !important; color:#fff;
              padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500;
              box-shadow:0 8px 24px rgba(0,0,0,.18); animation:rpIn .22s ease both; }
+
+    /* ── Table utility classes (replaces inline styles) ── */
+    .td-gap-pos  { color:#15803D; font-weight:700; }
+    .td-gap-neg  { color:#BE123C; font-weight:700; }
+    .td-reqid    { font-size:12px; font-weight:600; color:#4A6080; }
+    .cal-today-hd  { background:#F0FDF9; }
+    .cal-today-col { background:#FAFFFD; }
+    .cal-day-title-bar {
+      padding:12px 16px 12px 78px; border-bottom:1px solid #F0F3F6;
+      display:flex; align-items:center; gap:10px; background:#FAFBFC;
+    }
+    .cal-day-title-text  { font-size:15px; font-weight:800; color:#1A2B3C; }
+    .cal-day-title-count { margin-left:auto; font-size:12px; color:#8FA3B8; }
+
+    /* ════════════════════════════════════════
+       DARK MODE
+       ════════════════════════════════════════ */
+    :host-context([data-theme="dark"]) { background:#000000; }
+
+    /* ── Header ── */
+    :host-context([data-theme="dark"]) .ph { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .ph-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .ph-sub,
+    :host-context([data-theme="dark"]) .ph-date { color:#6B6B6B !important; }
+
+    /* ── Buttons ── */
+    :host-context([data-theme="dark"]) .btn-ghost { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .btn-ghost:hover { background:#2A2A2A; }
+    :host-context([data-theme="dark"]) .btn-cancel { background:#1A1A1A !important; color:#A0A0A0 !important; }
+
+    /* ── View tabs ── */
+    :host-context([data-theme="dark"]) .view-tabs { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .vt { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .vt:hover:not(.vt--active) { background:#1A1A1A !important; color:#A0A0A0 !important; }
+
+    /* ── KPI cards ── */
+    :host-context([data-theme="dark"]) .kpi { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .kpi-v { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .kpi-l { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .ico-teal   { background:#0D3330; color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .ico-blue   { background:#172554; color:#60A5FA; }
+    :host-context([data-theme="dark"]) .ico-purple { background:#2E1065; color:#A78BFA; }
+    :host-context([data-theme="dark"]) .ico-amber  { background:#451A03; color:#FCD34D; }
+
+    /* ── Calendar wrap & toolbar ── */
+    :host-context([data-theme="dark"]) .cal-wrap { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .cal-toolbar { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-nav-btn { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .cal-nav-btn:hover { border-color:#2FA8A0; color:#2FA8A0; background:#0D3330; }
+    :host-context([data-theme="dark"]) .cal-month-label { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .cal-today-btn { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .cal-today-btn:hover { border-color:#2FA8A0; color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .leg-item { color:#A0A0A0 !important; }
+
+    /* ── Day-of-week header ── */
+    :host-context([data-theme="dark"]) .cal-dow { background:#1A1A1A; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-dow-cell { color:#6B6B6B !important; }
+
+    /* ── Calendar grid cells ── */
+    :host-context([data-theme="dark"]) .cal-cell { border-right-color:#2A2A2A; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-cell:hover { background:#1A1A1A; }
+    :host-context([data-theme="dark"]) .cal-cell--other { background:#0A0A0A; }
+    :host-context([data-theme="dark"]) .cal-cell--other .cal-day-num { color:#444444; }
+    :host-context([data-theme="dark"]) .cal-cell--today { background:#0D2E2C; }
+    :host-context([data-theme="dark"]) .cal-cell--selected { background:#112A2A; }
+    :host-context([data-theme="dark"]) .cal-day-num { color:#C8D6E5; }
+    :host-context([data-theme="dark"]) .cal-more { color:#6B6B6B !important; }
+
+    /* ── Day events panel (below calendar) ── */
+    :host-context([data-theme="dark"]) .day-events-panel { border-top-color:#2A2A2A; }
+    :host-context([data-theme="dark"]) .dep-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dep-date-chip { background:#0D3330; color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .dep-empty { color:#4A6080; }
+    :host-context([data-theme="dark"]) .dep-event { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .dep-event:hover { background:#1A1A1A; }
+    :host-context([data-theme="dark"]) .dep-ev-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dep-ev-meta { color:#6B6B6B !important; }
+
+    /* ── Module section cards ── */
+    :host-context([data-theme="dark"]) .pl-card { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .pl-card-ttl { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .pl-card-bdg { background:#0D3330; color:#2FA8A0; }
+
+    /* ── Inner tabs ── */
+    :host-context([data-theme="dark"]) .itabs { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .itab { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .itab.act { color:#2FA8A0; border-bottom-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .itab:hover:not(.act) { color:#A0A0A0 !important; }
+
+    /* ── Tables ── */
+    :host-context([data-theme="dark"]) .tbl-wrap { background:#111111 !important; border-radius:0 0 12px 12px; overflow:hidden; }
+    :host-context([data-theme="dark"]) table { background:#111111 !important; }
+    :host-context([data-theme="dark"]) thead tr { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) thead th {
+      color:#6B6B6B !important;
+      border-bottom:1px solid #2A2A2A !important;
+      border-top:none;
+    }
+    :host-context([data-theme="dark"]) tbody tr { background:#111111 !important; }
+    :host-context([data-theme="dark"]) tbody tr:hover { background:rgba(47,168,160,.06) !important; }
+    :host-context([data-theme="dark"]) tbody td { color:#A0A0A0 !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) tbody tr:last-child td { border-bottom:none; }
+    :host-context([data-theme="dark"]) .td-b { color:#FFFFFF !important; }
+
+    /* ── Progress bars ── */
+    :host-context([data-theme="dark"]) .prog-bg { background:#1A1A1A !important; }
+
+    /* ── Action buttons ── */
+    :host-context([data-theme="dark"]) .act-btn { color:#4A6080; }
+    :host-context([data-theme="dark"]) .act-btn:hover { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .act-btn.del:hover { background:#3B0A0A; color:#F87171; }
+
+    /* ── List items ── */
+    :host-context([data-theme="dark"]) .list-item { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .li-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .li-sub { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .li-avatar { background:#0D3330; color:#2FA8A0; }
+
+    /* ── Date box ── */
+    :host-context([data-theme="dark"]) .date-box { background:#0D3330; }
+
+    /* ── Budget rows ── */
+    :host-context([data-theme="dark"]) .bgt-row { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .bgt-dept { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .bgt-pct { color:#2FA8A0; }
+
+    /* ── Mentor rows ── */
+    :host-context([data-theme="dark"]) .mentor-row { border-bottom-color:#2A2A2A !important; }
+
+    /* ── State / empty boxes ── */
+    :host-context([data-theme="dark"]) .state-box { color:#4A6080; }
+    :host-context([data-theme="dark"]) .spinner { border-color:#2A2A2A !important; border-top-color:#2FA8A0; }
+
+    /* ── Right panel ── */
+    :host-context([data-theme="dark"]) .rp { background:#111111 !important; box-shadow:-8px 0 40px rgba(0,0,0,.6) !important; }
+    :host-context([data-theme="dark"]) .rp-hd { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-t { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .rp-cls { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .rp-cls:hover { background:#243E58; }
+    :host-context([data-theme="dark"]) .rp-sec { color:#FFFFFF !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-row { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-lbl { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .rp-val { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .rp-ft { border-top-color:#243E58; }
+
+    /* ── Create form ── */
+    :host-context([data-theme="dark"]) .cf-lbl { color:#C8D6E5; }
+    :host-context([data-theme="dark"]) .cf-in { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .cf-in:focus { border-color:#2FA8A0; box-shadow:0 0 0 3px rgba(47,168,160,.15); }
+    :host-context([data-theme="dark"]) .cf-in::placeholder { color:#3A5170; }
+    :host-context([data-theme="dark"]) .cf-sel { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .cf-sel:focus { border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .cf-sel option { background:#111111 !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .cf-ta { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .cf-ta:focus { border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .cf-err { background:#2D0F0F; border-color:#5B1818; color:#F87171; }
+
+    /* ── Calendar view switcher ── */
+    :host-context([data-theme="dark"]) .cal-vsw { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) .cal-vsw-btn { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .cal-vsw-btn.act { background:#243E58; color:#2FA8A0; box-shadow:0 1px 4px rgba(0,0,0,.4); }
+    :host-context([data-theme="dark"]) .cal-vsw-btn:hover:not(.act) { color:#A0A0A0 !important; }
+
+    /* ── Weekly view ── */
+    :host-context([data-theme="dark"]) .cal-week-header { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-tg { border-right-color:#243E58; }
+    :host-context([data-theme="dark"]) .cal-week-day-hd { border-right-color:#243E58; }
+    :host-context([data-theme="dark"]) .cal-wdh-name { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .cal-wdh-num { color:#C8D6E5; }
+    :host-context([data-theme="dark"]) .cal-allday-row { background:#172030; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-allday-tg { border-right-color:#243E58; color:#3A5170; }
+    :host-context([data-theme="dark"]) .cal-allday-cell { border-right-color:#1E3448; }
+    :host-context([data-theme="dark"]) .cal-time-row { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-tg-cell { border-right-color:#243E58; color:#3A5170; }
+    :host-context([data-theme="dark"]) .cal-day-col { border-right-color:#1E3448; }
+    :host-context([data-theme="dark"]) .cal-day-col:hover { background:#172030; }
+
+    /* ── Daily view ── */
+    :host-context([data-theme="dark"]) .cal-day-allday { background:#172030; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-day-allday-lbl { color:#3A5170; }
+    :host-context([data-theme="dark"]) .cal-day-row { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-day-row:hover { background:#172030; }
+    :host-context([data-theme="dark"]) .cal-day-tg { border-right-color:#243E58; color:#3A5170; }
+    :host-context([data-theme="dark"]) .cal-day-empty { color:#3A5170; }
+
+    /* ── Table utility dark overrides ── */
+    :host-context([data-theme="dark"]) .td-gap-pos  { color:#4ADE80; }
+    :host-context([data-theme="dark"]) .td-gap-neg  { color:#F87171; }
+    :host-context([data-theme="dark"]) .td-reqid    { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .cal-today-hd  { background:#0D2E2C; }
+    :host-context([data-theme="dark"]) .cal-today-col { background:#0A2422; }
+    :host-context([data-theme="dark"]) .cal-day-title-bar { background:#172030; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .cal-day-title-text  { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .cal-day-title-count { color:#6B6B6B !important; }
+
+    /* ── Chip colours in dark mode ── */
+    :host-context([data-theme="dark"]) .ch-green  { background:#052E16; color:#4ADE80; }
+    :host-context([data-theme="dark"]) .ch-blue   { background:#172554; color:#93C5FD; }
+    :host-context([data-theme="dark"]) .ch-amber  { background:#451A03; color:#FCD34D; }
+    :host-context([data-theme="dark"]) .ch-red    { background:#3B0A0A; color:#FCA5A5; }
+    :host-context([data-theme="dark"]) .ch-purple { background:#2E1065; color:#C4B5FD; }
+    :host-context([data-theme="dark"]) .ch-gray   { background:#1E2D3D; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .ch-teal   { background:#0D3330; color:#2FA8A0; }
   `],
   template: `
   <div class="backdrop" *ngIf="showPanel" (click)="closePanel()"></div>
@@ -525,21 +728,17 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
   <div class="page">
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
-      <div class="ph" style="flex:1;margin-bottom:0;">
-        <div class="ph-left">
-          <div class="ph-icon"><i class="bx bxs-calendar-check"></i></div>
-          <div>
-            <h4 class="ph-title">{{ 'PLANNING.PLANNING_HEADER' | translate }}</h4>
-            <div class="ph-sub">HR Strategic Planning &amp; Calendar</div>
-          </div>
-        </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="page-header" style="flex:1;margin-bottom:0;">
+        <h4 class="page-title">{{ 'PLANNING.PLANNING_HEADER' | translate }}</h4>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-top:10px;">
+        <app-wall-clock></app-wall-clock>
         <div class="ph-right">
           <button class="btn-ghost" style="border:1.5px solid #E2E8F0" (click)="exportData()"><i class="bx bx-export"></i> Export</button>
           <button class="btn-prim" (click)="openCreate()"><i class="bx bx-plus"></i> New Event</button>
         </div>
       </div>
-      <app-wall-clock></app-wall-clock>
     </div>
 
     <!-- KPI strip -->
@@ -662,7 +861,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <i class="bx bx-calendar-event" style="color:#1B7872;"></i>
               Events for
               <span class="dep-date-chip">{{ selectedDay | date:'EEEE, MMMM d, y' }}</span>
-              <span style="color:#8FA3B8;font-weight:400;font-size:13px;margin-left:4px;">
+              <span style="color:#6B6B6B !important;font-weight:400;font-size:13px;margin-left:4px;">
                 ({{ selectedDayEvents.length }} event{{ selectedDayEvents.length !== 1 ? 's' : '' }})
               </span>
             </div>
@@ -695,7 +894,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <div class="cal-week-header">
               <div class="cal-tg"></div>
               <div class="cal-week-day-hd" *ngFor="let wd of weekDays"
-                   [style.background]="isToday(wd.date) ? '#F0FDF9' : ''">
+                   [class.cal-today-hd]="isToday(wd.date)">
                 <div class="cal-wdh-name">{{ wd.date | date:'EEE' }}</div>
                 <div class="cal-wdh-num" [class.today]="isToday(wd.date)">{{ wd.date.getDate() }}</div>
               </div>
@@ -718,7 +917,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <div class="cal-time-row" *ngFor="let h of calHours">
                 <div class="cal-tg-cell">{{ fmtHour(h) }}:00</div>
                 <div class="cal-day-col" *ngFor="let wd of weekDays"
-                     [style.background]="isToday(wd.date) ? '#FAFFFD' : ''"
+                     [class.cal-today-col]="isToday(wd.date)"
                      (click)="drillDay(wd.date, h)">
                   <div class="cal-ev-block" *ngFor="let ev of wd.eventsByHour[h]"
                        [style.background]="typeColor(ev.type)+'22'"
@@ -737,15 +936,10 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
         <ng-container *ngIf="calView==='daily'">
           <div class="cal-day-wrap">
             <!-- Day title bar -->
-            <div style="padding:12px 16px 12px 78px;border-bottom:1px solid #F0F3F6;
-                        display:flex;align-items:center;gap:10px;background:#FAFBFC">
-              <span style="font-size:15px;font-weight:800;color:#1A2B3C">
-                {{ calDayDate | date:'EEEE' }}
-              </span>
+            <div class="cal-day-title-bar">
+              <span class="cal-day-title-text">{{ calDayDate | date:'EEEE' }}</span>
               <span class="dep-date-chip">{{ calDayDate | date:'MMMM d, y' }}</span>
-              <span style="margin-left:auto;font-size:12px;color:#8FA3B8">
-                {{ dayTotalEvents }} event{{ dayTotalEvents !== 1 ? 's' : '' }}
-              </span>
+              <span class="cal-day-title-count">{{ dayTotalEvents }} event{{ dayTotalEvents !== 1 ? 's' : '' }}</span>
             </div>
             <!-- All-day events -->
             <div class="cal-day-allday" *ngIf="dayAllDayEvents.length > 0">
@@ -800,12 +994,12 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <table>
               <thead><tr><th>{{ 'PLANNING.TH_DEPARTMENT' | translate }}</th><th>{{ 'PLANNING.TH_CURRENT_HC' | translate }}</th><th>{{ 'PLANNING.TH_PLANNED_HC' | translate }}</th><th>{{ 'PLANNING.TH_GAP' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
               <tbody>
-                <tr *ngIf="headcountPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_HC_PLANS' | translate }}</td></tr>
+                <tr *ngIf="headcountPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_HC_PLANS' | translate }}</td></tr>
                 <tr *ngFor="let r of headcountPlans" (click)="openDetail(r,'workforce')">
                   <td class="td-b">{{ r.dept }}</td>
                   <td>{{ r.current }}</td>
                   <td>{{ r.planned }}</td>
-                  <td [style.color]="r.gap >= 0 ? '#15803D' : '#BE123C'" style="font-weight:700">{{ r.gap > 0 ? '+' : '' }}{{ r.gap }}</td>
+                  <td [class.td-gap-pos]="r.gap >= 0" [class.td-gap-neg]="r.gap < 0">{{ r.gap > 0 ? '+' : '' }}{{ r.gap }}</td>
                   <td><span class="chip ch-green">{{ 'PLANNING.STATUS_ACTIVE' | translate }}</span></td>
                 </tr>
               </tbody>
@@ -817,7 +1011,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="b.pct"></div></div></div>
               <span class="bgt-pct">{{ b.pct }}%</span>
             </div>
-            <div *ngIf="departmentBudgets.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_DEPT_BUDGET' | translate }}</div>
+            <div *ngIf="departmentBudgets.length===0" style="color:#6B6B6B !important;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_DEPT_BUDGET' | translate }}</div>
           </div>
         </div>
         <div class="pl-card pl-card-pad">
@@ -844,7 +1038,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <table>
               <thead><tr><th>{{ 'PLANNING.TH_EMPLOYEE' | translate }}</th><th>{{ 'PLANNING.TH_SKILL_GAP' | translate }}</th><th>{{ 'PLANNING.TH_PRIORITY' | translate }}</th><th>{{ 'PLANNING.TH_DEADLINE' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th><th></th></tr></thead>
               <tbody>
-                <tr *ngIf="trainingNeeds.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_TRAINING_NEEDS' | translate }}</td></tr>
+                <tr *ngIf="trainingNeeds.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_TRAINING_NEEDS' | translate }}</td></tr>
                 <tr *ngFor="let r of trainingNeeds" (click)="openDetail(r,'training')">
                   <td class="td-b">{{ r.employee }}</td>
                   <td>{{ r.skill }}</td>
@@ -862,7 +1056,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <table>
               <thead><tr><th>{{ 'PLANNING.TH_DATE' | translate }}</th><th>{{ 'PLANNING.TH_SESSION' | translate }}</th><th>{{ 'PLANNING.TH_TRAINER' | translate }}</th><th>{{ 'PLANNING.TH_DURATION' | translate }}</th></tr></thead>
               <tbody>
-                <tr *ngIf="trainingSessions.length===0"><td colspan="4" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_SESSIONS' | translate }}</td></tr>
+                <tr *ngIf="trainingSessions.length===0"><td colspan="4" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_SESSIONS' | translate }}</td></tr>
                 <tr *ngFor="let s of trainingSessions">
                   <td><div class="date-box"><span class="db-day">{{ s.day }}</span><span class="db-mon">{{ s.month }}</span></div></td>
                   <td class="td-b">{{ s.name }}</td>
@@ -882,7 +1076,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               </div>
               <span style="font-size:13px;font-weight:700;color:#1B7872;">{{ p.pct }}%</span>
             </div>
-            <div *ngIf="pdiProgress.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_PDI' | translate }}</div>
+            <div *ngIf="pdiProgress.length===0" style="color:#6B6B6B !important;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_PDI' | translate }}</div>
           </div>
         </div>
         <div class="pl-card pl-card-pad">
@@ -912,7 +1106,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <table>
               <thead><tr><th>{{ 'PLANNING.TH_EMPLOYEE' | translate }}</th><th>{{ 'PLANNING.TH_CURRENT_ROLE' | translate }}</th><th>{{ 'PLANNING.TH_TARGET_ROLE' | translate }}</th><th>{{ 'PLANNING.TH_PROGRESS' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
               <tbody>
-                <tr *ngIf="idpPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_IDP' | translate }}</td></tr>
+                <tr *ngIf="idpPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_IDP' | translate }}</td></tr>
                 <tr *ngFor="let r of idpPlans" (click)="openDetail(r,'career')">
                   <td class="td-b">{{ r.employee }}</td>
                   <td style="font-size:12.5px;">{{ r.currentRole }}</td>
@@ -932,7 +1126,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <table>
               <thead><tr><th>{{ 'PLANNING.TH_MILESTONE' | translate }}</th><th>{{ 'PLANNING.TH_DATE' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
               <tbody>
-                <tr *ngIf="careerMilestones.length===0"><td colspan="3" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_MILESTONES' | translate }}</td></tr>
+                <tr *ngIf="careerMilestones.length===0"><td colspan="3" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_MILESTONES' | translate }}</td></tr>
                 <tr *ngFor="let m of careerMilestones">
                   <td class="td-b">{{ m.title }}</td>
                   <td>{{ m.date }}</td>
@@ -951,7 +1145,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
                 <div class="li-sub">{{ m.menteeRole }}</div>
               </div>
             </div>
-            <div *ngIf="mentorships.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_MENTORSHIP' | translate }}</div>
+            <div *ngIf="mentorships.length===0" style="color:#6B6B6B !important;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_MENTORSHIP' | translate }}</div>
           </div>
         </div>
         <div class="pl-card pl-card-pad">
@@ -960,7 +1154,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <div class="li-avatar">{{ m.mentorInitials }}</div>
             <div class="li-main"><div class="li-title">{{ m.mentor }}</div><div class="li-sub">→ {{ m.mentee }}</div></div>
           </div>
-          <div *ngIf="mentorships.length===0" style="color:#8FA3B8;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_PAIRS' | translate }}</div>
+          <div *ngIf="mentorships.length===0" style="color:#6B6B6B !important;text-align:center;padding:20px;">{{ 'PLANNING.EMPTY_PAIRS' | translate }}</div>
         </div>
       </div>
     </ng-container>
@@ -977,9 +1171,9 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <table>
               <thead><tr><th>{{ 'PLANNING.TH_REQ_ID' | translate }}</th><th>{{ 'PLANNING.TH_POSITION' | translate }}</th><th>{{ 'PLANNING.TH_DEPARTMENT' | translate }}</th><th>{{ 'PLANNING.TH_TARGET_DATE' | translate }}</th><th>{{ 'PLANNING.TH_STAGE' | translate }}</th><th></th></tr></thead>
               <tbody>
-                <tr *ngIf="hiringRequests.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#8FA3B8;">{{ 'PLANNING.EMPTY_HIRING' | translate }}</td></tr>
+                <tr *ngIf="hiringRequests.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_HIRING' | translate }}</td></tr>
                 <tr *ngFor="let r of hiringRequests" (click)="openDetail(r,'recruitment')">
-                  <td style="font-size:12px;font-weight:600;color:#4A6080;">{{ r.reqId }}</td>
+                  <td class="td-reqid">{{ r.reqId }}</td>
                   <td class="td-b">{{ r.position }}</td>
                   <td>{{ r.dept }}</td>
                   <td style="font-size:12.5px;">{{ r.targetDate }}</td>

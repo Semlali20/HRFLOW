@@ -65,12 +65,12 @@
       <i class="bx bx-bell"></i>
       <span *ngIf="unreadCount > 0" class="tb-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
 
-      <div class="tb-dropdown tb-notif-panel" (click)="$event.stopPropagation()">
+
+<div class="tb-dropdown tb-notif-panel" (click)="$event.stopPropagation()">
         <div class="tb-notif-head">
           <span class="tb-notif-title">{{ 'TOPBAR.NOTIFICATIONS' | translate }}
             <span *ngIf="unreadCount > 0" class="tb-notif-count">{{ unreadCount }}</span>
           </span>
-          <button class="tb-notif-markall" (click)="markAllRead()">{{ 'TOPBAR.MARK_ALL_READ' | translate }}</button>
         </div>
         <div class="tb-notif-list">
           <div *ngIf="notifications.length === 0" class="tb-notif-empty">

@@ -53,11 +53,14 @@
     "THEME_TEAL": "Teal",
     "THEME_TEAL_DESC": "Teal theme",
     "HELP_SUPPORT": "Help & Support",
-    "SETTING": "Setting"
+    "SETTING": "Setting",
+    "REFRESH": "Refresh"
   },
   "SIDEBAR": {
     "SEARCH_PLACEHOLDER": "Quick search...",
     "SEARCH_MODAL_PLACEHOLDER": "Search or jump to...",
+    "RESULTS": "RESULTS",
+    "CLEAR_ALL": "Clear all",
     "SECTION_MAIN": "MAIN",
     "SECTION_GENERAL": "GENERAL",
     "EMPLOYEE_MANAGER": "Employee Manager",
@@ -311,9 +314,9 @@
     "TAB_BALANCES": "Leave Balances",
     "TAB_TYPES": "Leave Types",
     "YEAR_LABEL": "Year:",
-    "MY_BALANCES_TITLE": "My Balances — {year}",
+    "MY_BALANCES_TITLE": "My Balances for",
     "LOADING": "Loading…",
-    "NO_BALANCES": "No balances available for {year}",
+    "NO_BALANCES": "No balances available for",
     "NO_BALANCES_HINT": "Click 'Initialize Balances' to create balances for the year.",
     "TABLE_LEAVE_TYPE": "Leave Type",
     "TABLE_YEAR": "Year",

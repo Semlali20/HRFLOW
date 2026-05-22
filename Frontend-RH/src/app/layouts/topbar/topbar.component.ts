@@ -130,8 +130,17 @@ export class TopbarComponent implements OnInit, OnDestroy {
         this.languageService.setLanguage(lang);
     }
 
+    refreshing = false;
+
     markAllRead(): void {
         this.notificationService.markAllRead().subscribe();
+    }
+
+    refreshNotifications(): void {
+        if (this.refreshing) return;
+        this.refreshing = true;
+        this.notificationService.loadUnread();
+        setTimeout(() => { this.refreshing = false; }, 800);
     }
 
     notifTypeClass(type: string): string {

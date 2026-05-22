@@ -138,3 +138,20 @@
   flex-shrink: 0;
   padding-top: 2px;
 }
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+  .notif-title      { color: #E2E8F0; }
+  .mark-all-btn     { border-color: #2FA8A0; color: #2FA8A0; &:hover { background: #1B3A38; } }
+  .notif-card       { background: #1E293B; }
+  .notif-tabs-bar   { border-bottom-color: #334155; }
+  .notif-tab        { color: #475569; &.active { color: #2FA8A0; border-bottom-color: #2FA8A0; } }
+  .tab-count        { background: #273549; color: #64748B; }
+  .notif-item {
+    border-bottom-color: #273549;
+    &:hover  { background: #1A2A3A; }
+    &.unread { background: #1B3A38; }
+  }
+  .notif-msg-title  { color: #E2E8F0; }
+  .notif-msg-sub, .notif-time { color: #475569; }
+}

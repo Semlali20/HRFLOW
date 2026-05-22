@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -192,6 +193,51 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .ms-emp-name{font-size:13px;color:#1A2B3C;flex:1;}
     .ms-empty{padding:20px;text-align:center;color:#8FA3B8;font-size:13px;}
     .ms-footer{padding:8px 14px;border-top:1px solid #F0F3F6;font-size:12px;color:#8FA3B8;background:#FAFBFC;}
+
+    /* ── Dark Mode ── */
+    :host-context([data-theme="dark"]) .rp{background:#111111 !important;box-shadow:-8px 0 40px rgba(0,0,0,.5) !important}
+    :host-context([data-theme="dark"]) .rp-header{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .rp-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .rp-close{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .rp-close:hover{background:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .edit-project-btn{background:#2FA8A0 !important}
+    :host-context([data-theme="dark"]) .dp-project-name{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .dp-field{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .dp-field-lbl{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .dp-field-val{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .dp-service-chip{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .dp-tabs{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .dp-tab{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .dp-tab.active{color:#2FA8A0 !important;border-bottom-color:#2FA8A0 !important}
+    :host-context([data-theme="dark"]) .dp-activity-table thead th{color:#6B6B6B !important;border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .dp-activity-table tbody td{color:#A0A0A0 !important;border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .dp-service-tag{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .cp-section-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .cp-sub{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .cp-field-lbl{color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .cp-input{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .cp-input:focus{border-color:#2FA8A0 !important;box-shadow:0 0 0 3px rgba(47,168,160,.15) !important}
+    :host-context([data-theme="dark"]) .cp-input::placeholder{color:#555555 !important}
+    :host-context([data-theme="dark"]) .cp-select{background-color:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .cp-select:focus{border-color:#2FA8A0 !important}
+    :host-context([data-theme="dark"]) .cp-chip{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .cp-emp-chip{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .cp-footer{border-top-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .ms-trigger{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .ms-trigger:hover,:host-context([data-theme="dark"]) .ms-trigger:focus{border-color:#2FA8A0 !important;box-shadow:0 0 0 3px rgba(47,168,160,.15) !important}
+    :host-context([data-theme="dark"]) .ms-count{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .ms-panel{background:#111111 !important;border-color:#2A2A2A !important;box-shadow:0 8px 28px rgba(0,0,0,.5) !important}
+    :host-context([data-theme="dark"]) .ms-search-wrap{background:#0A0A0A !important;border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .ms-search-input{color:#FFFFFF !important;background:transparent !important}
+    :host-context([data-theme="dark"]) .ms-search-input::placeholder{color:#555555 !important}
+    :host-context([data-theme="dark"]) .ms-option{color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .ms-option:hover{background:rgba(47,168,160,.08) !important}
+    :host-context([data-theme="dark"]) .ms-option.selected{background:rgba(47,168,160,.1) !important}
+    :host-context([data-theme="dark"]) .ms-checkbox{background:#1A1A1A !important;border-color:#3A3A3A !important}
+    :host-context([data-theme="dark"]) .ms-checkbox.checked{background:#2FA8A0 !important;border-color:#2FA8A0 !important}
+    :host-context([data-theme="dark"]) .ms-emp-name{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .ms-empty{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .ms-footer{background:#0A0A0A !important;border-top-color:#2A2A2A !important;color:#6B6B6B !important}
   `],
   template: `
   <!-- ══ Employee multi-select floating panel (outside .rp to escape overflow+transform) ══ -->
@@ -671,9 +717,12 @@ export class ProjectsHrComponent implements OnInit {
   // Background colors for avatar chips
   private readonly BG_COLORS = ['#BFDBFE','#DDD6FE','#FDE68A','#BBF7D0','#FECACA','#E0F2FE','#FCE7F3'];
 
-  constructor(private collaborateurService: CollaborateurService, private confirmSvc: ConfirmService, private translate: TranslateService) {}
+  constructor(private collaborateurService: CollaborateurService, private confirmSvc: ConfirmService, private translate: TranslateService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['action'] === 'create') this.openCreate();
+    });
     // Load real employees for assignee / manager dropdowns
     this.collaborateurService.getAll().subscribe({
       next: data => {

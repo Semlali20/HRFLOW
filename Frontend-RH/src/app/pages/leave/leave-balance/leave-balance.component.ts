@@ -66,7 +66,7 @@ const BASE = `${environment.apiUrl}/leaves`;
     .f-input:focus{border-color:#2FA8A0;box-shadow:0 0 0 3px rgba(47,168,160,.1)}
     .info-box{background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:14px 16px;font-size:13px;color:#15803D;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px}
     .info-box i{font-size:18px;flex-shrink:0;margin-top:1px}
-    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#1A2B3C;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both}
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#111111 !important;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both}
     .tab-bar{display:flex;gap:4px;background:#F1F5F9;border-radius:10px;padding:4px;margin-bottom:18px;width:fit-content}
     .tab-btn{padding:8px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#4A6080;transition:all .15s}
     .tab-btn.active{background:#fff;color:#1A2B3C;box-shadow:0 2px 8px rgba(22,34,51,.08)}
@@ -78,10 +78,57 @@ const BASE = `${environment.apiUrl}/leaves`;
     .toggle-sub{font-size:12px;color:#8FA3B8;margin-top:1px}
     .chip-bool-yes{display:inline-flex;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700;background:#DCFCE7;color:#15803D}
     .chip-bool-no{display:inline-flex;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700;background:#F1F5F9;color:#8FA3B8}
-    .big-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:290px;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .big-action-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1B7872;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
     .big-action-btn:hover{background:#1A9690}
-    .big-action-btn i{font-size:18px}
+    .big-action-btn i{font-size:15px}
     .action-row{display:flex;justify-content:flex-end;margin-bottom:18px}
+
+    /* ─── DARK MODE ─── */
+    :host-context([data-theme="dark"]) { background:#0F1825; }
+    :host-context([data-theme="dark"]) .page-header { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .page-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .btn-secondary { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .btn-secondary:hover:not(:disabled) { background:#243E58; }
+    :host-context([data-theme="dark"]) .filter-bar { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .f-label { color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .f-select { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .f-select:focus { border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .tab-bar { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) .tab-btn { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .tab-btn.active { background:#111111 !important; color:#FFFFFF !important; box-shadow:0 2px 8px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .card { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .card-head { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .card-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) thead tr { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) thead th { color:#6B6B6B !important; border-bottom:1px solid #2A2A2A !important; }
+    :host-context([data-theme="dark"]) tbody tr { background:#111111 !important; }
+    :host-context([data-theme="dark"]) tbody tr:hover { background:rgba(47,168,160,.06) !important; }
+    :host-context([data-theme="dark"]) tbody td { color:#A0A0A0 !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) tbody tr:last-child td { border-bottom:none; }
+    :host-context([data-theme="dark"]) .td-type { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .td-num { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .td-num--used { color:#FCD34D; }
+    :host-context([data-theme="dark"]) .td-num--rem  { color:#4ADE80; }
+    :host-context([data-theme="dark"]) .bar-wrap { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) .state-box { color:#4A6080; }
+    :host-context([data-theme="dark"]) .spinner { border-color:#2A2A2A !important; border-top-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .toggle-row { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .toggle-lbl { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .toggle-sub { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .chip-bool-yes { background:#052E16; color:#4ADE80; }
+    :host-context([data-theme="dark"]) .chip-bool-no  { background:#1A1A1A !important; color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .rp { background:#111111 !important; box-shadow:-8px 0 40px rgba(0,0,0,.6) !important; }
+    :host-context([data-theme="dark"]) .rp-header { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .rp-close { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .rp-close:hover { background:#243E58; }
+    :host-context([data-theme="dark"]) .rp-footer { border-top-color:#243E58; }
+    :host-context([data-theme="dark"]) .f-lbl { color:#C8D6E5; }
+    :host-context([data-theme="dark"]) .f-input { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .f-input:focus { border-color:#2FA8A0; box-shadow:0 0 0 3px rgba(47,168,160,.15); }
+    :host-context([data-theme="dark"]) .info-box { background:#052E16; border-color:#166534; color:#4ADE80; }
+    :host-context([data-theme="dark"]) .btn-danger { background:#3B0A0A; color:#F87171; }
+    :host-context([data-theme="dark"]) .btn-danger:hover:not(:disabled) { background:#5B1818; }
   `],
   template: `
   <div class="backdrop" *ngIf="showInit || showTypeForm" (click)="showInit=false; closeTypeForm()"></div>
@@ -203,7 +250,7 @@ const BASE = `${environment.apiUrl}/leaves`;
 
       <div class="card">
         <div class="card-head">
-          <span class="card-title">{{ 'LEAVE_BALANCE.MY_BALANCES_TITLE' | translate:{year: selectedYear} }}</span>
+          <span class="card-title">{{ 'LEAVE_BALANCE.MY_BALANCES_TITLE' | translate }} {{ selectedYear }}</span>
         </div>
 
         <div class="state-box" *ngIf="loading"><div class="spinner"></div>{{ 'LEAVE_BALANCE.LOADING' | translate }}</div>
@@ -211,7 +258,7 @@ const BASE = `${environment.apiUrl}/leaves`;
           <i class="bx bx-error-circle"></i>{{ error }}
         </div>
         <div class="state-box" *ngIf="!loading && !error && balances.length===0">
-          <i class="bx bx-calendar-minus"></i>{{ 'LEAVE_BALANCE.NO_BALANCES' | translate:{year: selectedYear} }}
+          <i class="bx bx-calendar-minus"></i>{{ 'LEAVE_BALANCE.NO_BALANCES' | translate }} {{ selectedYear }}
           <br><small style="margin-top:8px;display:block">{{ 'LEAVE_BALANCE.NO_BALANCES_HINT' | translate }}</small>
         </div>
 
@@ -265,7 +312,7 @@ const BASE = `${environment.apiUrl}/leaves`;
             <tbody>
               <tr *ngFor="let t of leaveTypes">
                 <td style="font-weight:600;color:#1A2B3C">{{ t.name }}</td>
-                <td style="color:#8FA3B8;font-size:12.5px">{{ t.description || '—' }}</td>
+                <td style="color:#6B6B6B !important;font-size:12.5px">{{ t.description || '—' }}</td>
                 <td class="td-num">{{ t.defaultDaysPerYear }}</td>
                 <td class="td-num">{{ t.maxDaysPerYear ?? '—' }}</td>
                 <td><span [class]="t.carryOver ? 'chip-bool-yes' : 'chip-bool-no'">{{ t.carryOver ? ('LEAVE_BALANCE.YES' | translate) : ('LEAVE_BALANCE.NO' | translate) }}</span></td>

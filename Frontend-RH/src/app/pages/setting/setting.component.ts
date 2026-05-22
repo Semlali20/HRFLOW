@@ -158,13 +158,46 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .notif-list { flex:1; display:flex; flex-direction:column; gap:0; }
     .notif-row { display:flex; align-items:flex-start; gap:14px; padding:12px 0; border-bottom:1px solid #F8FAFC; }
     .notif-row:last-child { border-bottom:none; }
+
+    /* ── Dark Mode ── */
+    :host-context([data-theme="dark"]) .tabs-bar{background:#111111 !important;border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .tab-btn{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .tab-btn.active{color:#FFFFFF !important;border-bottom-color:#2FA8A0}
+    :host-context([data-theme="dark"]) .tab-btn:hover:not(.active){color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .content-card{background:#111111 !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) .section-head{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .divider{border-top-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .form-row{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .fr-label{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .fr-desc{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .form-input{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .form-input:disabled{background:#1A1A1A !important;color:#4A6080}
+    :host-context([data-theme="dark"]) .toggle-row{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .toggle-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .toggle-desc{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .toggle-slider{background:#243E58}
+    :host-context([data-theme="dark"]) .save-bar{background:#111111 !important;border-top-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .theme-card{background:#1A1A1A !important;border-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .theme-card:hover{border-color:#2FA8A0}
+    :host-context([data-theme="dark"]) .theme-card.selected{border-color:#2FA8A0;box-shadow:0 0 0 4px rgba(47,168,160,.15)}
+    :host-context([data-theme="dark"]) .theme-mockup{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .theme-card-name{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .theme-card-desc{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .theme-section-desc{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .integration-item{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .integration-name{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .integration-desc{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .notif-row{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .form-label{color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .logo-name{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .logo-hint{color:#6B6B6B !important}
   `],
   template: `
   <div class="page">
 
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
-      <div style="flex:1;display:flex;align-items:center;padding:14px 20px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(22,34,51,.08);">
-        <h4 style="font-size:22px;font-weight:700;color:#1A2B3C;margin:0;">Settings</h4>
+      <div class="page-header" style="flex:1;margin-bottom:0;">
+        <h4 class="page-title">Settings</h4>
       </div>
       <app-wall-clock></app-wall-clock>
     </div>
@@ -500,7 +533,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
           <div class="fr-right">
             <div style="border:2px dashed #E8EDF2;border-radius:10px;padding:32px;text-align:center;transition:border-color .2s"
               [style.border-color]="importFile ? '#2FA8A0' : '#E8EDF2'">
-              <i class="bx bx-spreadsheet" style="font-size:2.5rem;color:#8FA3B8;display:block;margin-bottom:12px"></i>
+              <i class="bx bx-spreadsheet" style="font-size:2.5rem;color:#6B6B6B !important;display:block;margin-bottom:12px"></i>
               <p style="font-size:13px;color:#4A6080;margin:0 0 16px">
                 {{ importFile ? importFile.name : ('SETTING.DRAG_FILE' | translate) }}
               </p>

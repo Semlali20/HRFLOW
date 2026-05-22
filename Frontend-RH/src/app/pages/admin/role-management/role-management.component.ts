@@ -19,9 +19,9 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       .page-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(22,34,51,.08); margin-bottom:18px }
       .page-title  { font-size:22px; font-weight:700; color:#1A2B3C; margin:0 }
       .action-row  { display:flex; justify-content:flex-end; margin-bottom:18px }
-      .big-action-btn { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 24px; background:#1B7872; color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; transition:background .15s }
+      .big-action-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; background:#1B7872; color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; transition:background .15s; white-space:nowrap }
       .big-action-btn:hover { background:#1A9690 }
-      .big-action-btn i { font-size:18px }
+      .big-action-btn i { font-size:15px }
 
       /* ── Layout ── */
       .layout { display:grid; grid-template-columns:380px 1fr; gap:18px; align-items:start }
@@ -49,11 +49,11 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       .rc-info { flex:1; min-width:0 }
       .rc-name { font-size:13px; font-weight:700; color:#1A2B3C; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
       .role-card.active .rc-name { color:#1B7872 }
-      .rc-desc { font-size:11.5px; color:#94A3B8; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+      .rc-desc { font-size:11.5px; color:#A0A0A0 !important; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
       .rc-foot { display:flex; align-items:center; justify-content:space-between; padding:7px 14px 9px 18px; border-top:1px solid #F5F7FA }
       .role-card.active .rc-foot { border-top-color:#D1FAF4 }
-      .rc-badge { display:inline-flex; align-items:center; gap:5px; background:#F1F5F9; color:#64748B; border-radius:20px; padding:3px 10px; font-size:11px; font-weight:700 }
+      .rc-badge { display:inline-flex; align-items:center; gap:5px; background:#F1F5F9; color:#8FA3B8; border-radius:20px; padding:3px 10px; font-size:11px; font-weight:700 }
       .rc-badge i { font-size:12px }
       .role-card.active .rc-badge { background:#D1FAF4; color:#1B7872 }
       .btn-del { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid #FEE2E2; background:#FFF5F5; color:#BE123C; border-radius:7px; cursor:pointer; font-size:11px; font-weight:600; font-family:'Inter',sans-serif; transition:all .12s }
@@ -62,7 +62,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
       /* ── Permission panel ── */
       .perms-empty { padding:60px 24px; text-align:center; color:#8FA3B8; font-size:13px; display:flex; flex-direction:column; align-items:center; gap:12px }
-      .perms-empty i { font-size:44px; color:#E2E8F0 }
+      .perms-empty i { font-size:44px; color:#FFFFFF !important }
       .perms-empty p { margin:0; line-height:1.6 }
 
       .perms-body { padding:12px 14px; display:flex; flex-direction:column; gap:10px; height:calc(100vh - 290px); overflow-y:auto; overflow-x:hidden; }
@@ -81,7 +81,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       .mod-badge { font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; flex-shrink:0 }
       .mod-badge-all     { background:#E8F7F6; color:#1B7872 }
       .mod-badge-partial { background:#FEF3C7; color:#92400E }
-      .mod-badge-none    { background:#F1F5F9; color:#94A3B8 }
+      .mod-badge-none    { background:#F1F5F9; color:#A0A0A0 !important }
 
       .mod-toggle-btn { display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:#2FA8A0; background:none; border:1px solid #C8EDE9; border-radius:6px; padding:4px 10px; cursor:pointer; transition:background .12s; flex-shrink:0; white-space:nowrap }
       .mod-toggle-btn:hover { background:#E8F7F6 }
@@ -112,7 +112,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       .perm-text { flex:1; min-width:0; overflow:hidden; }
       .perm-name { font-size:12px; font-weight:600; color:#1A2B3C; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
       .perm-row.perm-on .perm-name { color:#1B7872; }
-      .perm-desc { font-size:11px; color:#94A3B8; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .perm-desc { font-size:11px; color:#A0A0A0 !important; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
       /* ── Footer ── */
       .perms-footer { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-top:1px solid #F0F3F6; background:#FAFBFC; border-radius:0 0 14px 14px; }
@@ -132,21 +132,66 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       .rm-drawer-head { display:flex; align-items:center; gap:12px; padding:18px 24px 16px; border-bottom:1px solid #F0F3F6; flex-shrink:0 }
       .rm-drawer-icon { width:36px; height:36px; border-radius:10px; background:#E8F7F6; color:#1B7872; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0 }
       .rm-drawer-title { font-size:16px; font-weight:700; color:#1A2B3C; flex:1 }
-      .rm-drawer-close { width:30px; height:30px; border:none; background:#F1F5F9; border-radius:7px; cursor:pointer; font-size:17px; color:#64748B; display:flex; align-items:center; justify-content:center }
+      .rm-drawer-close { width:30px; height:30px; border:none; background:#F1F5F9; border-radius:7px; cursor:pointer; font-size:17px; color:#8FA3B8; display:flex; align-items:center; justify-content:center }
       .rm-drawer-close:hover { background:#E2E8F0 }
-      .rm-drawer-body { flex:1; overflow-y:auto; padding:24px; scrollbar-width:thin; scrollbar-color:#E2E8F0 transparent }
+      .rm-drawer-body { flex:1; overflow-y:auto; padding:24px; scrollbar-width:thin; scrollbar-color:#FFFFFF !important transparent }
       .rm-drawer-foot { padding:14px 24px 20px; border-top:1px solid #F0F3F6; display:flex; justify-content:flex-end; gap:10px; flex-shrink:0 }
       .f-field { margin-bottom:18px }
       .f-lbl { display:block; font-size:12.5px; font-weight:600; color:#1A2B3C; margin-bottom:6px }
       .f-input { width:100%; padding:10px 14px; border:1.5px solid #E2E8F0; border-radius:9px; font-size:13px; color:#1A2B3C; outline:none; box-sizing:border-box; font-family:'Inter',sans-serif; transition:border .15s }
       .f-input:focus { border-color:#2FA8A0; box-shadow:0 0 0 3px rgba(47,168,160,.1) }
-      .f-hint { font-size:12px; color:#94A3B8; margin-top:5px }
+      .f-hint { font-size:12px; color:#A0A0A0 !important; margin-top:5px }
 
       /* ── States ── */
       .state-box { padding:48px 0; text-align:center; color:#8FA3B8; font-size:14px }
       .spinner { width:32px; height:32px; border:3px solid #E2E8F0; border-top-color:#2FA8A0; border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 12px }
       @keyframes spin { to { transform:rotate(360deg) } }
-      .toast { position:fixed; bottom:24px; right:24px; z-index:9999; background:#1A2B3C; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.2) }
+      .toast { position:fixed; bottom:24px; right:24px; z-index:9999; background:#111111 !important; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.2) }
+
+      /* ── Dark Mode ── */
+      :host-context([data-theme="dark"]) .page-header{background:#111111 !important;box-shadow:none !important}
+      :host-context([data-theme="dark"]) .page-title{color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .card{background:#111111 !important;box-shadow:none !important}
+      :host-context([data-theme="dark"]) .card-head{border-bottom-color:#2A2A2A !important}
+      :host-context([data-theme="dark"]) .card-title{color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .role-list::-webkit-scrollbar-track{background:#1A1A1A !important}
+      :host-context([data-theme="dark"]) .role-list::-webkit-scrollbar-thumb{background:#243E58}
+      :host-context([data-theme="dark"]) .role-card{background:#111111 !important;border-color:#2A2A2A !important}
+      :host-context([data-theme="dark"]) .role-card:hover{border-color:#2FA8A0;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+      :host-context([data-theme="dark"]) .role-card.active{background:#1A1A1A !important;border-color:#1B7872}
+      :host-context([data-theme="dark"]) .rc-name{color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .role-card.active .rc-name{color:#2FA8A0}
+      :host-context([data-theme="dark"]) .rc-desc{color:#6B6B6B !important}
+      :host-context([data-theme="dark"]) .rc-foot{border-top-color:#2A2A2A !important}
+      :host-context([data-theme="dark"]) .role-card.active .rc-foot{border-top-color:#1B3A38}
+      :host-context([data-theme="dark"]) .rc-badge{background:#1A1A1A !important;color:#A0A0A0 !important}
+      :host-context([data-theme="dark"]) .role-card.active .rc-badge{background:rgba(47,168,160,.15) !important;color:#2FA8A0}
+      :host-context([data-theme="dark"]) .mod-header{background:#1A1A1A !important}
+      :host-context([data-theme="dark"]) .mod-header--sel{background:#1A1A1A !important}
+      :host-context([data-theme="dark"]) .mod-label{color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .mod-badge-none{background:#1A1A1A !important;color:#6B6B6B !important}
+      :host-context([data-theme="dark"]) .mod-badge-partial{background:#2D2210;color:#FCD34D}
+      :host-context([data-theme="dark"]) .perm-row{background:#1A1A1A !important;border-color:#2A2A2A !important}
+      :host-context([data-theme="dark"]) .perm-row:hover{background:rgba(47,168,160,.06) !important;border-color:#2FA8A0}
+      :host-context([data-theme="dark"]) .perm-row.perm-on{background:rgba(47,168,160,.15) !important;border-color:#1B7872}
+      :host-context([data-theme="dark"]) .perm-check{border-color:#2A2A2A !important;background:#1A1A1A !important}
+      :host-context([data-theme="dark"]) .perm-name{color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .perm-desc{color:#6B6B6B !important}
+      :host-context([data-theme="dark"]) .perm-row.perm-on .perm-name{color:#2FA8A0}
+      :host-context([data-theme="dark"]) .perms-footer{background:#1A1A1A !important;border-top-color:#2A2A2A !important;border-radius:0 0 14px 14px}
+      :host-context([data-theme="dark"]) .footer-stat{color:#6B6B6B !important}
+      :host-context([data-theme="dark"]) .perms-empty i{color:#243E58}
+      :host-context([data-theme="dark"]) .perms-empty p{color:#6B6B6B !important}
+      :host-context([data-theme="dark"]) .rm-drawer{background:#111111 !important;box-shadow:-8px 0 40px rgba(0,0,0,.6) !important}
+      :host-context([data-theme="dark"]) .rm-drawer-head{border-bottom-color:#2A2A2A !important}
+      :host-context([data-theme="dark"]) .rm-drawer-icon{background:rgba(47,168,160,.15) !important;color:#2FA8A0}
+      :host-context([data-theme="dark"]) .rm-drawer-title{color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .rm-drawer-close{background:#1A1A1A !important;color:#A0A0A0 !important}
+      :host-context([data-theme="dark"]) .rm-drawer-foot{border-top-color:#2A2A2A !important}
+      :host-context([data-theme="dark"]) .f-lbl{color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .f-hint{color:#6B6B6B !important}
+      :host-context([data-theme="dark"]) .f-input{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+      :host-context([data-theme="dark"]) .btn-secondary{background:#1A1A1A !important;color:#A0A0A0 !important}
     `],
     template: `
     <div class="toast" *ngIf="toast">{{ toast }}</div>
@@ -184,10 +229,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     <div class="page">
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
         <div class="page-header" style="flex:1;margin-bottom:0;">
-          <h4 class="page-title">
-            <i class="bx bx-shield-alt-2" style="color:#2FA8A0;font-size:20px"></i>
-            {{ 'ROLE_MANAGEMENT.TITLE' | translate }}
-          </h4>
+          <h4 class="page-title">{{ 'ROLE_MANAGEMENT.TITLE' | translate }}</h4>
         </div>
         <app-wall-clock></app-wall-clock>
       </div>
@@ -238,9 +280,9 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
             </div>
 
             <div *ngIf="roles.length === 0"
-                 style="padding:40px 20px;text-align:center;color:#94A3B8;font-size:13px">
+                 style="padding:40px 20px;text-align:center;color:#A0A0A0 !important;font-size:13px">
               <i class="bx bx-shield-quarter"
-                 style="font-size:36px;color:#E2E8F0;display:block;margin-bottom:8px"></i>
+                 style="font-size:36px;color:#FFFFFF !important;display:block;margin-bottom:8px"></i>
               {{ 'ROLE_MANAGEMENT.NO_ROLES' | translate }}
             </div>
           </div>

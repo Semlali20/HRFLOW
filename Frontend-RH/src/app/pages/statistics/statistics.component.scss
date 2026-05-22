@@ -190,3 +190,33 @@
 @media (max-width: 480px) {
   .kpi-grid { grid-template-columns: 1fr; }
 }
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+  .stat-header        { background: #111111 !important; box-shadow: none !important; }
+  .stat-title         { color: #FFFFFF !important; }
+  .stat-sub           { color: #6B6B6B !important; }
+  .stat-date          { color: #6B6B6B !important; }
+  .stat-section-title { color: #FFFFFF !important;
+    i { color: #2FA8A0; }
+  }
+  .kpi-card           { background: #111111 !important; box-shadow: none !important;
+    &--teal   { border-left-color: #2FA8A0; }
+    &--purple { border-left-color: #818CF8; }
+    &--amber  { border-left-color: #FBBF24; }
+    &--green  { border-left-color: #34D399; }
+    &--blue   { border-left-color: #60A5FA; }
+    &--pink   { border-left-color: #F472B6; }
+  }
+  .kpi-label          { color: #6B6B6B !important; }
+  .kpi-value          { color: #FFFFFF !important; }
+  .chart-card         { background: #111111 !important; box-shadow: none !important; }
+  .chart-title        { color: #FFFFFF !important; }
+  // KPI icon backgrounds for dark mode
+  .kpi-card--teal   { .kpi-icon { background: rgba(47,168,160,.15) !important; color: #2FA8A0; } }
+  .kpi-card--purple { .kpi-icon { background: #1E1B3A !important; color: #818CF8; } }
+  .kpi-card--amber  { .kpi-icon { background: #2D2210 !important; color: #FBBF24; } }
+  .kpi-card--green  { .kpi-icon { background: #14291F !important; color: #34D399; } }
+  .kpi-card--blue   { .kpi-icon { background: #1A2640 !important; color: #60A5FA; } }
+  .kpi-card--pink   { .kpi-icon { background: #2D1624 !important; color: #F472B6; } }
+}

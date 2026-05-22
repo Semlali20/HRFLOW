@@ -1,42 +1,87 @@
 <!-- ── Backdrop for search modal ── -->
-<div class="wiko-search-backdrop" *ngIf="showSearchModal" (click)="showSearchModal=false"></div>
+<div class="wiko-search-backdrop" *ngIf="showSearchModal" (click)="closeSearch()"></div>
 
 <!-- ── Search Modal ── -->
 <div class="wiko-search-modal" *ngIf="showSearchModal">
+
+  <!-- Header: input + close -->
   <div class="wsm-header">
     <div class="wsm-search-row">
       <i class="bx bx-search wsm-search-icon"></i>
-      <input #searchInput type="text" [(ngModel)]="searchQuery" [placeholder]="'SIDEBAR.SEARCH_MODAL_PLACEHOLDER' | translate" class="wsm-input" autofocus />
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        [placeholder]="'SIDEBAR.SEARCH_MODAL_PLACEHOLDER' | translate"
+        class="wsm-input"
+        (keydown)="onSearchKeydown($event)"
+        autocomplete="off"
+        autofocus />
     </div>
-    <button class="wsm-close-btn" (click)="showSearchModal=false"><i class="bx bx-x"></i></button>
+    <kbd class="wsm-esc-hint">ESC</kbd>
+    <button class="wsm-close-btn" (click)="closeSearch()"><i class="bx bx-x"></i></button>
   </div>
+
   <div class="wsm-divider"></div>
-  <div class="wsm-chips-row">
-    <button class="wsm-chip"><i class="bx bxs-user"></i> {{ 'SIDEBAR.CHIP_EMPLOYEE' | translate }}</button>
-    <button class="wsm-chip"><i class="bx bxs-folder"></i> {{ 'SIDEBAR.CHIP_PROJECT' | translate }}</button>
-    <button class="wsm-chip"><i class="bx bxs-time"></i> {{ 'SIDEBAR.CHIP_ATTENDANCE' | translate }}</button>
-    <button class="wsm-chip"><i class="bx bxs-calendar-check"></i> {{ 'SIDEBAR.CHIP_DAYOFF' | translate }}</button>
-    <button class="wsm-chip"><i class="bx bxs-wallet"></i> {{ 'SIDEBAR.CHIP_SALARY' | translate }}</button>
+
+  <!-- Chips — hidden while typing -->
+  <ng-container *ngIf="!searchQuery">
+    <div class="wsm-chips-row">
+      <button class="wsm-chip" (click)="selectChip('employee',   '/collaborateur')"><i class="bx bxs-user"></i> {{ 'SIDEBAR.CHIP_EMPLOYEE' | translate }}</button>
+      <button class="wsm-chip" (click)="selectChip('project',    '/projects-hr')">  <i class="bx bxs-folder"></i> {{ 'SIDEBAR.CHIP_PROJECT' | translate }}</button>
+      <button class="wsm-chip" (click)="selectChip('attendance', '/attendance')">   <i class="bx bxs-time"></i> {{ 'SIDEBAR.CHIP_ATTENDANCE' | translate }}</button>
+      <button class="wsm-chip" (click)="selectChip('dayoff',     '/dayoff')">       <i class="bx bxs-calendar-check"></i> {{ 'SIDEBAR.CHIP_DAYOFF' | translate }}</button>
+      <button class="wsm-chip" (click)="selectChip('salary',     '/salary')">       <i class="bx bxs-wallet"></i> {{ 'SIDEBAR.CHIP_SALARY' | translate }}</button>
+    </div>
+    <div class="wsm-chips-row wsm-chips-row--2">
+      <button class="wsm-chip" (click)="selectChip('leave',       '/leave')">       <i class="bx bxs-door-open"></i> {{ 'SIDEBAR.CHIP_LEAVE' | translate }}</button>
+      <button class="wsm-chip" (click)="selectChip('recruitment', '/recruitment')"> <i class="bx bxs-user-plus"></i> {{ 'SIDEBAR.CHIP_RECRUITMENT' | translate }}</button>
+    </div>
+  </ng-container>
+
+  <!-- Results / Quick Actions -->
+  <div class="wsm-section-title">
+    {{ searchQuery ? ('SIDEBAR.RESULTS' | translate) : ('SIDEBAR.QUICK_ACTIONS' | translate) }}
   </div>
-  <div class="wsm-chips-row wsm-chips-row--2">
-    <button class="wsm-chip"><i class="bx bxs-door-open"></i> {{ 'SIDEBAR.CHIP_LEAVE' | translate }}</button>
-    <button class="wsm-chip"><i class="bx bxs-user-plus"></i> {{ 'SIDEBAR.CHIP_RECRUITMENT' | translate }}</button>
+
+  <!-- Items list -->
+  <ul class="wsm-action-list" *ngIf="visibleSearchItems.length > 0">
+    <li *ngFor="let item of visibleSearchItems; let i = index">
+      <a class="wsm-action-item"
+         [class.wsm-action-item--active]="i === highlightedIndex"
+         (click)="navigateToItem(item)"
+         (mouseenter)="highlightedIndex = i">
+        <i class="bx {{ item.icon }}"></i>
+        <span>{{ item.label }}</span>
+        <i class="bx bx-chevron-right wsm-item-arrow"></i>
+      </a>
+    </li>
+  </ul>
+
+  <!-- No results state -->
+  <div class="wsm-no-results" *ngIf="searchQuery && visibleSearchItems.length === 0">
+    <i class="bx bx-search-alt"></i>
+    <span>No results for <strong>"{{ searchQuery }}"</strong></span>
   </div>
-  <div class="wsm-section-title">{{ 'SIDEBAR.QUICK_ACTIONS' | translate }}</div>
-  <ul class="wsm-action-list">
-    <li><a routerLink="/settings" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bxs-cog"></i> {{ 'SIDEBAR.ACTION_SETTINGS' | translate }}</a></li>
-    <li><a routerLink="/collaborateur" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> {{ 'SIDEBAR.ACTION_NEW_EMPLOYEE' | translate }}</a></li>
-    <li><a routerLink="/projects-hr" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> {{ 'SIDEBAR.ACTION_NEW_PROJECT' | translate }}</a></li>
-    <li><a routerLink="/recruitment" (click)="showSearchModal=false" class="wsm-action-item"><i class="bx bx-plus-circle"></i> {{ 'SIDEBAR.ACTION_NEW_HIRING' | translate }}</a></li>
-  </ul>
-  <div class="wsm-section-title">{{ 'SIDEBAR.RECENT_SEARCHES' | translate }}</div>
-  <ul class="wsm-recent-list">
-    <li class="wsm-recent-item"><i class="bx bx-time-five"></i> Marleen Queen</li>
-    <li class="wsm-recent-item"><i class="bx bx-time-five"></i> Project on</li>
-    <li class="wsm-recent-item"><i class="bx bx-time-five"></i> Project three</li>
-    <li class="wsm-recent-item"><i class="bx bx-time-five"></i> Tuesday, 12 Jan</li>
-    <li class="wsm-recent-item"><i class="bx bx-time-five"></i> Request Day</li>
-  </ul>
+
+  <!-- Recent searches — hidden while typing -->
+  <ng-container *ngIf="!searchQuery && recentSearches.length > 0">
+    <div class="wsm-section-title wsm-section-title--row">
+      <span>{{ 'SIDEBAR.RECENT_SEARCHES' | translate }}</span>
+      <button class="wsm-clear-recent" (click)="clearRecentSearches()">{{ 'SIDEBAR.CLEAR_ALL' | translate }}</button>
+    </div>
+    <ul class="wsm-recent-list">
+      <li *ngFor="let item of recentSearches"
+          class="wsm-recent-item"
+          (click)="navigateFromRecent(item)">
+        <i class="bx {{ item.icon }}"></i>
+        <span class="wsm-recent-text">{{ item.label }}</span>
+        <button class="wsm-recent-remove" (click)="removeRecentSearch(item, $event)" title="Remove">
+          <i class="bx bx-x"></i>
+        </button>
+      </li>
+    </ul>
+  </ng-container>
+
 </div>
 
 <!-- ── Profile Menu popup ── -->

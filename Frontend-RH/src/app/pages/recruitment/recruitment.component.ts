@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -85,7 +86,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .btn-save:disabled{opacity:.5;cursor:default;}
     .btn-cancel{padding:10px 20px;background:#F1F5F9;color:#4A6080;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;}
 
-    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#1A2B3C;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both;}
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#111111 !important;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both;}
 
     /* ── Upload Panel ── */
     .upload-form{display:flex;flex-direction:column;gap:14px;}
@@ -97,9 +98,9 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .file-drop{border:2px dashed #D1D5DB;border-radius:10px;padding:24px;text-align:center;cursor:pointer;color:#8FA3B8;font-size:13px;transition:border .15s;}
     .file-drop:hover{border-color:#2FA8A0;color:#2FA8A0;}
     .file-selected{font-size:12.5px;color:#1B7872;font-weight:600;margin-top:6px;}
-    .big-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:290px;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .big-action-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1B7872;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
     .big-action-btn:hover{background:#1A9690}
-    .big-action-btn i{font-size:18px}
+    .big-action-btn i{font-size:15px}
     .action-row{display:flex;justify-content:flex-end;margin-bottom:18px}
 
     /* ── Chart section ── */
@@ -113,6 +114,56 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .legend-name{color:#4A6080;flex:1;}
     .legend-count{font-weight:700;color:#1A2B3C;}
     .legend-pct{color:#8FA3B8;font-size:11.5px;margin-left:6px;}
+
+    /* ─── DARK MODE ─── */
+    :host-context([data-theme="dark"]) .page { background:#0F1825; }
+    :host-context([data-theme="dark"]) .page-header { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .page-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .stat-card { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .stat-label { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .stat-value { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .kanban-col { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) .col-header { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .col-title { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .col-count { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .k-card { background:#111111 !important; border-color:#2A2A2A !important; box-shadow:0 2px 8px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .k-card:hover { border-color:#2FA8A0; box-shadow:0 4px 16px rgba(47,168,160,.15); }
+    :host-context([data-theme="dark"]) .k-name { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .k-email { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .k-offer { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .k-date { color:#4A6080; }
+    :host-context([data-theme="dark"]) .stage-NEW                { background:#172554; color:#93C5FD; }
+    :host-context([data-theme="dark"]) .stage-REVIEWING          { background:#451A03; color:#FCD34D; }
+    :host-context([data-theme="dark"]) .stage-SHORTLISTED        { background:#052E16; color:#6EE7B7; }
+    :host-context([data-theme="dark"]) .stage-INTERVIEW_SCHEDULED{ background:#2E1065; color:#C4B5FD; }
+    :host-context([data-theme="dark"]) .stage-OFFERED            { background:#052E16; color:#4ADE80; }
+    :host-context([data-theme="dark"]) .stage-REJECTED           { background:#3B0A0A; color:#FCA5A5; }
+    :host-context([data-theme="dark"]) .state-box { color:#4A6080; }
+    :host-context([data-theme="dark"]) .rp { background:#111111 !important; box-shadow:-8px 0 40px rgba(0,0,0,.6) !important; }
+    :host-context([data-theme="dark"]) .rp-header { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .rp-close { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .rp-close:hover { background:#243E58; }
+    :host-context([data-theme="dark"]) .rp-footer { border-top-color:#243E58; }
+    :host-context([data-theme="dark"]) .dp-section { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dp-field { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .dp-lbl { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .dp-val { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dp-divider { border-top-color:#243E58; }
+    :host-context([data-theme="dark"]) .stage-select { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .stage-select:focus { border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .btn-cancel { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .form-lbl { color:#C8D6E5; }
+    :host-context([data-theme="dark"]) .form-input { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .form-input::placeholder { color:#3A5170; }
+    :host-context([data-theme="dark"]) .form-input:focus { border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .file-drop { border-color:#2A2A2A !important; color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .file-drop:hover { border-color:#2FA8A0; color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .chart-card { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .chart-card-title { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .chart-card-sub { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .legend-name { color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .legend-count { color:#FFFFFF !important; }
   `],
   template: `
   <!-- Detail Panel backdrop -->
@@ -153,7 +204,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       </div>
       <div class="dp-field" *ngIf="!selected.offer">
         <span class="dp-lbl"><i class="bx bx-info-circle"></i> {{ 'RECRUITMENT.OFFER' | translate }}</span>
-        <span class="dp-val" style="color:#8FA3B8;font-weight:400">{{ 'RECRUITMENT.NO_SPECIFIC_OFFER' | translate }}</span>
+        <span class="dp-val" style="color:#6B6B6B !important;font-weight:400">{{ 'RECRUITMENT.NO_SPECIFIC_OFFER' | translate }}</span>
       </div>
 
       <hr class="dp-divider">
@@ -341,9 +392,14 @@ export class RecruitmentComponent implements OnInit {
   showUpload = false;
   uploadForm: { name: string; email: string; offerId: number | null; file: File | null } = this.emptyUpload();
 
-  constructor(private cvService: CvService, private translate: TranslateService) {}
+  constructor(private cvService: CvService, private translate: TranslateService, private route: ActivatedRoute) {}
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.load();
+    this.route.queryParams.subscribe(params => {
+      if (params['action'] === 'create') this.showUpload = true;
+    });
+  }
 
   load(): void {
     this.loading = true;

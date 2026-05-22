@@ -94,10 +94,42 @@ const BASE_POS  = `${environment.apiUrl}/positions`;
     .confirm-title{font-size:15px;font-weight:700;color:#1A2B3C;margin:0 0 8px}
     .confirm-msg{font-size:13px;color:#4A6080;margin:0 0 22px;line-height:1.5}
     .confirm-actions{display:flex;justify-content:flex-end;gap:10px}
-    .big-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:290px;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .big-action-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1B7872;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
     .big-action-btn:hover{background:#1A9690}
-    .big-action-btn i{font-size:18px}
+    .big-action-btn i{font-size:15px}
     .action-row{display:flex;justify-content:flex-end;margin-bottom:18px}
+
+    /* ── Dark Mode ── */
+    :host-context([data-theme="dark"]) .tabs-bar{background:#111111 !important;border-bottom-color:#2A2A2A !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) .tab-btn{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .tab-btn.active{color:#FFFFFF !important;border-bottom-color:#2FA8A0 !important}
+    :host-context([data-theme="dark"]) .tab-btn:hover:not(.active){color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .count-badge{background:rgba(47,168,160,.15) !important;color:#2FA8A0 !important}
+    :host-context([data-theme="dark"]) .td-name{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .td-code{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .chip-active{background:rgba(21,128,61,.2) !important;color:#4ade80 !important}
+    :host-context([data-theme="dark"]) .chip-inactive{background:#1A1A1A !important;color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .act-btn{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .act-btn:hover{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .act-btn--del:hover{background:#3B0A0A !important;color:#F87171 !important}
+    :host-context([data-theme="dark"]) .state-box{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .rp{background:#111111 !important;box-shadow:-8px 0 40px rgba(0,0,0,.5) !important}
+    :host-context([data-theme="dark"]) .rp-header{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .rp-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .rp-close{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .rp-close:hover{background:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .rp-footer{border-top-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .f-label{color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .f-input{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .f-select{background-color:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .f-textarea{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .f-input:focus,:host-context([data-theme="dark"]) .f-select:focus,:host-context([data-theme="dark"]) .f-textarea:focus{border-color:#2FA8A0 !important;box-shadow:0 0 0 3px rgba(47,168,160,.15) !important}
+    :host-context([data-theme="dark"]) .f-check-row{color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .confirm-box{background:#111111 !important;box-shadow:0 20px 60px rgba(0,0,0,.6) !important}
+    :host-context([data-theme="dark"]) .confirm-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .confirm-msg{color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .btn-secondary{background:#1A1A1A !important;border:1px solid #2A2A2A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .btn-secondary:hover:not(:disabled){background:#2A2A2A !important}
   `],
   template: `
   <div class="backdrop" *ngIf="showPanel || confirmItem" (click)="closeAll()"></div>

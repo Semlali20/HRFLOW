@@ -66,6 +66,35 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .page-btn.active { background:#2FA8A0; color:#fff; border-color:#2FA8A0; }
     .page-btn:hover:not(.active) { background:#F8FAFC; }
     .page-btn:disabled { opacity:.4; cursor:default; }
+
+    /* ── Dark Mode ── */
+    :host-context([data-theme="dark"]) .page-header{background:#111111 !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) .page-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .page-date{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .filters-card{background:#111111 !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) .filter-label{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .filter-input{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .reset-btn{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .table-card{background:#111111 !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) thead tr{background:#1A1A1A !important}
+    :host-context([data-theme="dark"]) thead th{color:#6B6B6B !important;border-bottom:1px solid #2A2A2A !important}
+    :host-context([data-theme="dark"]) tbody tr{background:#111111 !important}
+    :host-context([data-theme="dark"]) tbody tr:hover{background:rgba(47,168,160,.06) !important}
+    :host-context([data-theme="dark"]) tbody td{color:#A0A0A0 !important;border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .module-badge{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .action-CREATE{background:#14291F;color:#6EE7B7}
+    :host-context([data-theme="dark"]) .action-UPDATE{background:#1E3A5F;color:#93C5FD}
+    :host-context([data-theme="dark"]) .action-DELETE{background:#3B1219;color:#FCA5A5}
+    :host-context([data-theme="dark"]) .action-IMPORT{background:#2D2210;color:#FCD34D}
+    :host-context([data-theme="dark"]) .action-LOGIN{background:rgba(47,168,160,.15) !important;color:#5EEAD4}
+    :host-context([data-theme="dark"]) .action-LOGOUT{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .action-STAGE_CHANGE{background:#2E1B5E;color:#C4B5FD}
+    :host-context([data-theme="dark"]) .action-UPDATE_ROLES{background:#2D2210;color:#FCD34D}
+    :host-context([data-theme="dark"]) .action-UPDATE_PERMISSIONS{background:#2D1A0E;color:#FDBA74}
+    :host-context([data-theme="dark"]) .pagination-row{border-top-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .pagination-info{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .page-btn{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .page-btn:hover:not(.active){background:rgba(47,168,160,.06) !important}
   `],
   template: `
   <div class="page">

@@ -75,3 +75,27 @@
 ::ng-deep .custom-ng-select .ng-dropdown-panel {
   background-color: white;
 }
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+  // ng-select container + dropdown
+  .ng-select {
+    --ng-select-bg-color: #273549;
+    --ng-select-border-color: #334155;
+    --ng-select-selected-item-bg-color: #1E293B;
+  }
+  .custom-ng-select .ng-select-container,
+  ::ng-deep .custom-ng-select .ng-select-container {
+    background-color: #273549;
+    border-color: #334155;
+    color: #E2E8F0;
+  }
+  .custom-ng-select .ng-dropdown-panel,
+  ::ng-deep .custom-ng-select .ng-dropdown-panel {
+    background-color: #1E293B;
+    border-color: #334155;
+    color: #E2E8F0;
+  }
+  // Date-picker day hover (keep readable on colored bg)
+  .custom-day.focused { background-color: #273549; }
+}

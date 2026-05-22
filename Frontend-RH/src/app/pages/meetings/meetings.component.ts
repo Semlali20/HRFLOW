@@ -97,11 +97,53 @@ const STATUS_CHIP: Record<string,string> = {
     .confirm-msg{font-size:13px;color:#4A6080;margin:0 0 22px;line-height:1.5}
     .confirm-actions{display:flex;justify-content:flex-end;gap:10px}
 
-    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#1A2B3C;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both}
-    .big-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:290px;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#111111 !important;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both}
+    .big-action-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1B7872;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
     .big-action-btn:hover{background:#1A9690}
-    .big-action-btn i{font-size:18px}
+    .big-action-btn i{font-size:15px}
     .action-row{display:flex;justify-content:flex-end;margin-bottom:18px}
+
+    /* ── Dark Mode ── */
+    :host-context([data-theme="dark"]) .page-header{background:#111111 !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) .page-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .filter-bar{background:#111111 !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) .filter-select{background-color:#1A1A1A !important;border-color:#2A2A2A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .card{background:#111111 !important;box-shadow:none !important}
+    :host-context([data-theme="dark"]) .card-head{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .card-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .count-badge{background:#1A1A1A !important;color:#2FA8A0}
+    :host-context([data-theme="dark"]) thead tr{background:#1A1A1A !important}
+    :host-context([data-theme="dark"]) thead th{color:#6B6B6B !important;border-bottom:1px solid #2A2A2A !important}
+    :host-context([data-theme="dark"]) tbody tr{background:#111111 !important}
+    :host-context([data-theme="dark"]) tbody tr:hover{background:rgba(47,168,160,.06) !important}
+    :host-context([data-theme="dark"]) tbody td{color:#A0A0A0 !important;border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .td-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .chip-blue{background:#1E3A5F;color:#93C5FD}
+    :host-context([data-theme="dark"]) .chip-teal{background:rgba(47,168,160,.15) !important;color:#5EEAD4}
+    :host-context([data-theme="dark"]) .chip-green{background:#14291F;color:#6EE7B7}
+    :host-context([data-theme="dark"]) .chip-red{background:#3B1219;color:#FCA5A5}
+    :host-context([data-theme="dark"]) .chip-amber{background:#2D2210;color:#FCD34D}
+    :host-context([data-theme="dark"]) .rp{background:#111111 !important;box-shadow:-8px 0 40px rgba(0,0,0,.6) !important}
+    :host-context([data-theme="dark"]) .rp-header{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .rp-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .rp-close{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .rp-footer{border-top-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .detail-section{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .detail-divider{border-top-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .detail-field{border-bottom-color:#2A2A2A !important}
+    :host-context([data-theme="dark"]) .detail-lbl{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .detail-val{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .f-label{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .f-input{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .f-select{background-color:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .f-textarea{background:#1A1A1A !important;border-color:#2A2A2A !important;color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .confirm-box{background:#111111 !important}
+    :host-context([data-theme="dark"]) .confirm-title{color:#FFFFFF !important}
+    :host-context([data-theme="dark"]) .confirm-msg{color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .btn-secondary{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .act-btn{color:#6B6B6B !important}
+    :host-context([data-theme="dark"]) .act-btn:hover{background:#1A1A1A !important;color:#A0A0A0 !important}
+    :host-context([data-theme="dark"]) .act-btn--del:hover{background:#3B1219;color:#FCA5A5}
   `],
   template: `
   <div class="backdrop" *ngIf="showPanel || showForm || confirmItem" (click)="closeAll()"></div>

@@ -53,10 +53,13 @@
     "THEME_TEAL": "Turquoise",
     "THEME_TEAL_DESC": "Thème turquoise",
     "HELP_SUPPORT": "Aide & Support",
-    "SETTING": "Paramètres"
+    "SETTING": "Paramètres",
+    "REFRESH": "Rafraîchir"
   },
   "SIDEBAR": {
     "SEARCH_PLACEHOLDER": "Recherche rapide...",
+    "RESULTS": "RÉSULTATS",
+    "CLEAR_ALL": "Tout effacer",
     "SEARCH_MODAL_PLACEHOLDER": "Rechercher ou naviguer...",
     "SECTION_MAIN": "PRINCIPAL",
     "SECTION_GENERAL": "GÉNÉRAL",
@@ -311,9 +314,9 @@
     "TAB_BALANCES": "Soldes de congés",
     "TAB_TYPES": "Types de congés",
     "YEAR_LABEL": "Année :",
-    "MY_BALANCES_TITLE": "Mes soldes — {year}",
+    "MY_BALANCES_TITLE": "Mes soldes pour",
     "LOADING": "Chargement…",
-    "NO_BALANCES": "Aucun solde disponible pour {year}",
+    "NO_BALANCES": "Aucun solde disponible pour",
     "NO_BALANCES_HINT": "Cliquez « Initialiser les soldes » pour créer les soldes de l'année.",
     "TABLE_LEAVE_TYPE": "Type de congé",
     "TABLE_YEAR": "Année",

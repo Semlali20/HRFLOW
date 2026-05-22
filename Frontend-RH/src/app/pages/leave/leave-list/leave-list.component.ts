@@ -76,9 +76,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     .btn-approve:disabled{opacity:.5;cursor:default;}
 
     .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#1A2B3C;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both;}
-    .big-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:290px;padding:14px;background:#1B7872;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .big-action-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#1B7872;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
     .big-action-btn:hover{background:#1A9690}
-    .big-action-btn i{font-size:18px}
+    .big-action-btn i{font-size:15px}
     .action-row{display:flex;justify-content:flex-end;margin-bottom:18px}
 
     /* ── Create form ── */
@@ -100,6 +100,70 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     .btn-submit:hover{background:#1A9690;}
     .btn-submit:disabled{opacity:.5;cursor:default;}
     .type-spinner{width:18px;height:18px;border:2px solid #E2E8F0;border-top-color:#2FA8A0;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+
+    /* ════════════════════════════════════════
+       DARK MODE
+       ════════════════════════════════════════ */
+    :host-context([data-theme="dark"]) .page-header { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .page-title  { color:#FFFFFF !important; }
+
+    :host-context([data-theme="dark"]) .table-card  { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    :host-context([data-theme="dark"]) .tabs-bar    { background:#111111 !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .tab         { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .tab.active  { color:#2FA8A0 !important; border-bottom-color:#2FA8A0 !important; }
+
+    /* All-employees dropdown */
+    :host-context([data-theme="dark"]) .filter-select {
+      background:#1A1A1A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B6B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 8px center !important;
+      border-color:#2A2A2A !important;
+      color:#A0A0A0 !important;
+    }
+    :host-context([data-theme="dark"]) .filter-select option { background:#1A1A1A; color:#A0A0A0; }
+
+    /* Table */
+    :host-context([data-theme="dark"]) thead tr { background:#1A1A1A !important; }
+    :host-context([data-theme="dark"]) thead th { color:#6B6B6B !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) tbody tr { background:#111111 !important; }
+    :host-context([data-theme="dark"]) tbody tr:hover { background:rgba(47,168,160,.06) !important; }
+    :host-context([data-theme="dark"]) tbody td { color:#A0A0A0 !important; border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) tbody tr:last-child td { border-bottom:none; }
+    :host-context([data-theme="dark"]) .td-name { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .td-id   { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .role-chip { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .act-btn  { background:#1A1A1A !important; color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .act-btn:hover { background:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .act-btn.approve:hover { background:rgba(21,128,61,.15) !important; color:#4ade80 !important; }
+    :host-context([data-theme="dark"]) .act-btn.reject:hover  { background:rgba(190,18,60,.15) !important; color:#f87171 !important; }
+
+    /* Detail panel */
+    :host-context([data-theme="dark"]) .rp { background:#111111 !important; box-shadow:-8px 0 40px rgba(0,0,0,.5); }
+    :host-context([data-theme="dark"]) .rp-header { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-title  { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .rp-close  { background:#1A1A1A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .rp-close:hover { background:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .rp-footer { border-top-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .dp-section { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dp-field  { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .dp-lbl    { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .dp-val    { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .dp-divider { border-top-color:#2A2A2A !important; }
+
+    /* Create form */
+    :host-context([data-theme="dark"]) .f-lbl { color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .f-input,
+    :host-context([data-theme="dark"]) .f-select,
+    :host-context([data-theme="dark"]) .f-textarea {
+      background:#1A1A1A !important;
+      border-color:#2A2A2A !important;
+      color:#FFFFFF !important;
+    }
+    :host-context([data-theme="dark"]) .f-select {
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B6B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+    }
+    :host-context([data-theme="dark"]) .f-select option { background:#1A1A1A; color:#FFFFFF; }
+    :host-context([data-theme="dark"]) .f-input::placeholder { color:#444444 !important; }
+    :host-context([data-theme="dark"]) .btn-cancel { background:#1A1A1A !important; color:#A0A0A0 !important; border:1px solid #2A2A2A; }
+    :host-context([data-theme="dark"]) .state-box  { color:#6B6B6B !important; }
   `],
   template: `
   <!-- ── Create Panel ── -->
@@ -234,7 +298,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   <div class="page">
     <div class="page-header">
       <h4 class="page-title">{{ 'LEAVE.TITLE' | translate }}</h4>
-      <span class="header-date"><i class="bx bx-calendar-alt"></i> {{ today | date:'EEEE, MMMM d, y' }}</span>
     </div>
     <!-- Action row -->
     <div class="action-row">

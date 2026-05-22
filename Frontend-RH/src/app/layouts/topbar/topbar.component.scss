@@ -373,12 +373,64 @@
   border: 2px solid #fff;
 }
 
+// ── Notification action strip (outside / above the dropdown box) ─────────────
+.tb-notif-actions {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: -10px;
+  flex-direction: row;
+  gap: 6px;
+  z-index: 2001;
+  animation: tbSlide .18s cubic-bezier(.34, 1.3, .64, 1) both;
+}
+
+.tb-icon-btn--open .tb-notif-actions {
+  display: flex;
+}
+
+.tb-na-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  border-radius: 8px;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .18s;
+  box-shadow: 0 2px 8px rgba(10, 20, 35, .08);
+
+  i { font-size: 14px; line-height: 1; }
+
+  &:hover:not(:disabled) {
+    background: #F0FDF9;
+    color: #2FA8A0;
+    border-color: #2FA8A0;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+@keyframes tbSpin {
+  to { transform: rotate(360deg); }
+}
+.tb-spin { animation: tbSpin .7s linear infinite; display: inline-block; }
+
 // Notifications panel
-.tb-notif-panel { min-width: 340px; right: -10px; }
+// top is pushed down to clear the action strip (10px gap + ~33px strip height + 8px gap = 51px)
+.tb-notif-panel { min-width: 340px; right: -10px; top: calc(100% + 10px); }
 .tb-notif-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 14px 16px 12px;
   border-bottom: 1px solid #F0F3F6;
 }
@@ -397,17 +449,6 @@
   font-size: 11px;
   font-weight: 700;
   padding: 1px 7px;
-}
-.tb-notif-markall {
-  font-size: 12px;
-  font-weight: 600;
-  color: #2FA8A0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  padding: 0;
-  &:hover { color: #1B7872; }
 }
 .tb-notif-list {
   max-height: 280px;
@@ -553,4 +594,176 @@
   transition: background .15s;
   i { font-size: 16px; }
   &:hover { background: #FFE4E6; }
+}
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+
+  .tb-bar {
+    background: #111111;
+    border-bottom-color: #2A2A2A;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .4);
+  }
+
+  .tb-logo-name { color: #FFFFFF; }
+
+  // Icon buttons (lang, theme, notif)
+  .tb-icon-btn {
+    background: #1A1A1A;
+    border-color: #2A2A2A;
+    color: #A0A0A0;
+
+    &:hover { background: #222222; border-color: #3A3A3A; color: #FFFFFF; }
+
+    &--open {
+      background: rgba(47, 168, 160, .1);
+      border-color: #2FA8A0;
+      color: #2FA8A0;
+    }
+  }
+
+  .tb-badge { border-color: #111111; }
+
+  // Profile pill
+  .tb-profile {
+    background: #1A1A1A;
+    border-color: #2A2A2A;
+
+    &:hover { background: #222222; border-color: #3A3A3A; }
+
+    &--open {
+      background: rgba(47, 168, 160, .1);
+      border-color: #2FA8A0;
+    }
+  }
+  .tb-profile-name { color: #FFFFFF; }
+  .tb-profile-role { color: #6B6B6B; }
+  .tb-chevron      { color: #6B6B6B; }
+
+  // ── Shared dropdown shell ────────────────────────────────────────────────────
+  .tb-dropdown {
+    background: #111111;
+    border-color: #2A2A2A;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  }
+
+  // ── Language / theme bubble wrappers (transparent bg) ───────────────────────
+  .tb-lang-bubbles,
+  .tb-theme-bubbles {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  // ── Notification action strip ────────────────────────────────────────────────
+  .tb-na-btn {
+    background: #1A1A1A;
+    border-color: #2A2A2A;
+    color: #A0A0A0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+    &:hover:not(:disabled) { background: #222222; color: #2FA8A0; border-color: #2FA8A0; }
+  }
+
+  // ── Notifications dropdown ───────────────────────────────────────────────────
+  .tb-notif-head      { border-bottom-color: #2A2A2A; }
+  .tb-notif-title     { color: #FFFFFF; }
+
+  .tb-notif-item {
+    border-bottom-color: #1A1A1A;
+    &:hover   { background: rgba(47, 168, 160, .06); }
+    &--unread { background: rgba(47, 168, 160, .08); }
+    &:last-child { border-bottom: none; }
+  }
+
+  .tb-notif-msg   { color: #FFFFFF; }
+  .tb-notif-sub   { color: #6B6B6B; }
+  .tb-notif-time  { color: #555555; }
+  .tb-notif-empty { color: #555555; }
+
+  .tb-notif-foot {
+    border-top-color: #2A2A2A;
+    a { color: #2FA8A0; &:hover { color: #38BDB5; } }
+  }
+
+  // ── Profile dropdown ─────────────────────────────────────────────────────────
+  .tb-profile-header  { border-bottom-color: #2A2A2A; }
+  .tb-profile-hname   { color: #FFFFFF; }
+  .tb-profile-hrole   { color: #6B6B6B; }
+  .tb-profile-menu    { border-bottom-color: #2A2A2A; }
+
+  .tb-profile-item {
+    color: #A0A0A0;
+    i { color: #555555; }
+    &:hover { background: #1A1A1A; i { color: #2FA8A0; } }
+  }
+
+  .tb-logout-btn {
+    background: rgba(190, 18, 60, .15);
+    color: #FDA4AF;
+    &:hover { background: rgba(190, 18, 60, .25); }
+  }
+
+  // ── Language bubble (flag circle) ────────────────────────────────────────────
+  .tb-bubble--lang {
+    background: #1A1A1A;
+    &.tb-bubble--active { border-color: #2FA8A0; }
+  }
+
+  // ── Theme bubbles ────────────────────────────────────────────────────────────
+  .tb-bubble--light { background: #2D2A1A; color: #D97706; }
+  .tb-bubble--dark  { background: #0A0A0A; color: #94A3B8; }
+  .tb-bubble--teal  { background: rgba(47, 168, 160, .15); color: #2FA8A0; }
+}
+
+// ── Teal / accent theme ───────────────────────────────────────────────────────
+:host-context([data-theme="teal"]) {
+
+  .tb-bar {
+    background: linear-gradient(90deg, #0E4F4A 0%, #1B7872 100%);
+    border-bottom-color: #1B7872;
+    box-shadow: 0 2px 16px rgba(27, 120, 114, .35);
+  }
+
+  .tb-logo-name { color: #fff; }
+
+  .tb-icon-btn {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .18);
+    color: rgba(255, 255, 255, .85);
+
+    &:hover { background: rgba(255, 255, 255, .2); border-color: rgba(255, 255, 255, .3); color: #fff; }
+
+    &--open {
+      background: rgba(255, 255, 255, .25);
+      border-color: rgba(255, 255, 255, .5);
+      color: #fff;
+    }
+  }
+
+  .tb-badge { border-color: #1B7872; }
+
+  .tb-profile {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .18);
+
+    &:hover { background: rgba(255, 255, 255, .2); border-color: rgba(255, 255, 255, .3); }
+
+    &--open {
+      background: rgba(255, 255, 255, .25);
+      border-color: rgba(255, 255, 255, .5);
+    }
+  }
+
+  .tb-profile-name { color: #fff; }
+  .tb-profile-role { color: rgba(255, 255, 255, .65); }
+  .tb-chevron      { color: rgba(255, 255, 255, .55); }
+
+  // ── Notification action strip ────────────────────────────────────────────────
+  .tb-na-btn {
+    background: rgba(255, 255, 255, .15);
+    border-color: rgba(255, 255, 255, .25);
+    color: rgba(255, 255, 255, .85);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+    &:hover:not(:disabled) { background: rgba(255, 255, 255, .25); color: #fff; border-color: rgba(255, 255, 255, .5); }
+  }
 }

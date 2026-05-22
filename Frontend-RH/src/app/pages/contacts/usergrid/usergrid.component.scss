@@ -103,3 +103,30 @@
     }
   }
 }
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+  .settings-card {
+    background-color: #1E293B;
+    box-shadow: 0 2px 10px rgba(0,0,0,.4);
+    color: #E2E8F0;
+
+    .form-group {
+      label { color: #94A3B8; }
+      input, select {
+        background-color: #273549;
+        border-color: #334155;
+        color: #E2E8F0;
+        &:focus { border-color: #2FA8A0; }
+      }
+      .new-resp-container button {
+        background-color: #1B7872;
+        &:hover { background-color: #2FA8A0; }
+      }
+    }
+    .validate-button {
+      background-color: #1B7872;
+      &:hover { background-color: #2FA8A0; }
+    }
+  }
+}

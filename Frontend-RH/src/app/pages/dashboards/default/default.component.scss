@@ -286,3 +286,52 @@
 .wdm-id   { font-weight:600; color:#1A2B3C; }
 .wdm-name { font-weight:500; color:#1A2B3C; }
 .wdm-device-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:600; &--mobile { background:#DBEAFE; color:#1E40AF; } &--desktop { background:#FEF3C7; color:#92400E; } &--nfc { background:#EDE9FE; color:#5B21B6; } }
+
+// ── Dark Mode ─────────────────────────────────────────────────────────────────
+:host-context([data-theme="dark"]) {
+  // Titles & numbers
+  .dash-header__title, .kpi-score-num, .emp-total-num, .emp-gender-count,
+  .emp-proj-num, .att-pct-num, .gender-legend-val, .wdm-total-num,
+  .wdm-breakdown-num { color: #E2E8F0; }
+  .emp-projects-section { border-top-color: #334155; }
+
+  // Dropdown
+  .att-period-dropdown {
+    background: #1E293B; box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    button { color: #94A3B8; &:hover { background: #273549; color: #E2E8F0; } &.active { background: #1B3A38; } }
+  }
+
+  // Tabs bar
+  .dash-tabs-bar        { border-bottom-color: #334155; }
+  .dash-tab             { color: #475569; &--active { color: #2FA8A0; border-bottom-color: #2FA8A0; } }
+  .dash-tabs__updated   { color: #475569; }
+
+  // Main table
+  .wiko-table {
+    thead tr  { background: #162032; }
+    thead th  { color: #475569; border-bottom-color: #334155; }
+    tbody tr:hover { background: #1A2A3A; }
+    tbody td  { color: #94A3B8; border-bottom-color: #273549; }
+    &__id, &__name { color: #E2E8F0; }
+  }
+  .wiko-action-btn {
+    background: #273549; color: #64748B;
+    &:hover { background: #334155; color: #E2E8F0; }
+    &--del:hover { background: #3D1E1E; color: #F87171; }
+  }
+
+  // Modal
+  .wiko-modal         { background: #1E293B; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+  .wiko-modal__header, .wdm-total-row, .wdm-breakdown-row, .wdm-tabs { border-bottom-color: #334155; border-top-color: #334155; }
+  .wiko-modal__title  { color: #E2E8F0; }
+  .wiko-modal__close  { background: #273549; color: #94A3B8; &:hover { background: #334155; } }
+  .wdm-total-icon, .wdm-breakdown-icon { background: #273549; i { color: #64748B; } }
+  .wdm-total-label, .wdm-breakdown-label { color: #64748B; }
+  .wdm-tab  { color: #475569; &--active { color: #2FA8A0; border-bottom-color: #2FA8A0; } }
+  .wdm-table {
+    thead th  { background: #162032; color: #475569; border-bottom-color: #334155; }
+    tbody tr:hover { background: #1A2A3A; }
+    tbody td  { color: #94A3B8; border-bottom-color: #273549; }
+  }
+  .wdm-id, .wdm-name { color: #E2E8F0; }
+}
