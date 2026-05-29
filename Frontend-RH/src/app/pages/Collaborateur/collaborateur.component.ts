@@ -887,7 +887,7 @@ export class CollaborateurComponent implements OnInit {
       nom: emp.nom,
       prenom: emp.prenom,
       email: emp.email,
-      sexe: emp.sexe ?? '',
+      sexe: this.normalizeGender(emp.sexe) ?? '',
       CIN: emp.CIN ?? '',
       nationalite: emp.Nationalité ?? '',
       CATEGORIE: emp.CATEGORIE ?? '',

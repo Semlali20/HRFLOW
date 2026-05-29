@@ -48,6 +48,7 @@ export class DefaultComponent implements OnInit {
   tableTabs  = ['DASHBOARD.TAB_ATTENDANCE', 'DASHBOARD.TAB_PROJECTS', 'DASHBOARD.TAB_PERFORMANCE', 'DASHBOARD.TAB_DAYOFF'];
   activeTab  = 'DASHBOARD.TAB_ATTENDANCE';
   tableRows: any[] = [];
+  private allEmployees: any[] = [];
 
   // Today Used Devices (static UI element — no backend)
   showDevicesModal = false;
@@ -108,6 +109,7 @@ export class DefaultComponent implements OnInit {
 
   setTab(tab: string): void {
     this.activeTab = tab;
+    this.loadTableRows();
   }
 
   getHeatColor(val: number): string {
@@ -123,6 +125,7 @@ export class DefaultComponent implements OnInit {
     // Load employees from /Collaborateurs
     this.collaborateurService.getAll().subscribe({
       next: data => {
+        this.allEmployees = data;
         this.totalCollaborateurs = data.length;
         this.maleCount = data.filter(e => {
           const s = ((e as any).Sexe ?? (e as any).sexe ?? '').toUpperCase();
@@ -143,6 +146,7 @@ export class DefaultComponent implements OnInit {
         this.projectsDone = this.totalCollaborateurs;
         this.buildProjChart(deptCounts.length > 0 ? deptCounts : [0]);
         this.buildGenderChart(this.malePct, this.femalePct);
+        this.loadTableRows();
       },
       error: () => {}
     });
@@ -180,6 +184,62 @@ export class DefaultComponent implements OnInit {
     });
   }
 
+  private loadTableRows(): void {
+    const today = this.localDateKey(new Date());
+    const deptPalette = ['marketing', 'technology', 'hr', 'finance', 'default'];
+    const deptColorMap = new Map<string, string>();
+    let colorIdx = 0;
+    const deptClass = (dept: string): string => {
+      const key = dept.toLowerCase().trim();
+      if (key.includes('tech') || key.includes('it') || key.includes('info')) return 'technology';
+      if (key.includes('hr') || key.includes('human') || key.includes('rh')) return 'hr';
+      if (key.includes('fin') || key.includes('compt') || key.includes('account')) return 'finance';
+      if (key.includes('market') || key.includes('comm') || key.includes('vente')) return 'marketing';
+      if (!deptColorMap.has(dept)) deptColorMap.set(dept, deptPalette[colorIdx++ % deptPalette.length]);
+      return deptColorMap.get(dept)!;
+    };
+    const statusClass = (s: string): string =>
+      s === 'APPROVED' || s === 'PRESENT' ? 'attend' : s === 'PENDING' || s === 'ON LEAVE' ? 'dayoff' : 'sick';
+
+    if (this.activeTab === 'DASHBOARD.TAB_DAYOFF') {
+      this.tableRows = this.cachedLeaves.map(lv => ({
+        id: String(lv.id ?? '—'),
+        name: lv.requester?.name ?? '—',
+        dept: lv.leaveType?.name ?? '—',
+        deptClass: 'technology',
+        status: lv.status,
+        statusClass: statusClass(lv.status),
+        checkIn: lv.startDate ?? '—',
+        checkOut: lv.endDate ?? '—',
+      }));
+    } else {
+      const onLeaveToday = new Set<number>();
+      const todayDate = new Date(today + 'T00:00:00');
+      for (const lv of this.cachedLeaves.filter(l => l.status === 'APPROVED')) {
+        const start = new Date(lv.startDate + 'T00:00:00');
+        const end   = new Date(lv.endDate   + 'T00:00:00');
+        if (todayDate >= start && todayDate <= end && lv.requester?.id != null) {
+          onLeaveToday.add(lv.requester.id);
+        }
+      }
+      this.tableRows = this.allEmployees.map(e => {
+        const dept = ((e.Département ?? e.département ?? '') as string).trim() || '—';
+        const empId = e._backendId ?? e.matricule;
+        const isOnLeave = onLeaveToday.has(empId);
+        return {
+          id: String(e.matricule ?? '—'),
+          name: `${e.prenom ?? ''} ${e.nom ?? ''}`.trim() || '—',
+          dept,
+          deptClass: deptClass(dept),
+          status: isOnLeave ? 'ON LEAVE' : 'PRESENT',
+          statusClass: isOnLeave ? 'dayoff' : 'attend',
+          checkIn: isOnLeave ? '—' : '09:00',
+          checkOut: isOnLeave ? '—' : '17:00',
+        };
+      });
+    }
+  }
+
   private buildSeedHeatmap(): void {
     const seed = new Date().getDate();
     this.heatmapData = Array.from({ length: 7 }, (_, row) =>
@@ -208,6 +268,7 @@ export class DefaultComponent implements OnInit {
         this.cachedLeaves = leaves;
         this.computeAttendance(leaves);
         this.buildHeatmapForPeriod(leaves);
+        this.loadTableRows();
       },
       error: () => {}
     });

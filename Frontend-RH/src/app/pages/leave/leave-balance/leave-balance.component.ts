@@ -26,8 +26,8 @@ const BASE = `${environment.apiUrl}/leaves`;
     .btn-primary{background:#1B7872 !important;color:#fff !important;border-color:#1B7872 !important}.btn-primary:hover:not(:disabled){background:#155f5a !important;border-color:#155f5a !important}
     .btn-secondary{background:#F1F5F9;color:#4A6080}.btn-secondary:hover:not(:disabled){background:#E2E8F0}
     .filter-bar{display:flex;gap:12px;align-items:center;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(22,34,51,.08);padding:12px 18px;margin-bottom:18px}
-    .f-select{padding:8px 32px 8px 12px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13px;color:#4A6080;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238FA3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;appearance:none;outline:none;cursor:pointer}
-    .f-select:focus{border-color:#2FA8A0}
+    .yr-select{width:auto;padding:6px 28px 6px 12px;border:1.5px solid #E2E8F0;border-radius:999px;font-size:13px;font-weight:500;color:#4A6080;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238FA3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;appearance:none;outline:none;cursor:pointer;flex-shrink:0}
+    .yr-select:focus{border-color:#2FA8A0;box-shadow:0 0 0 3px rgba(47,168,160,.1)}
     .f-label{font-size:13px;font-weight:600;color:#4A6080;white-space:nowrap}
     .card{background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(22,34,51,.08);overflow:hidden}
     .card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #F0F3F6}
@@ -66,6 +66,18 @@ const BASE = `${environment.apiUrl}/leaves`;
     .f-input:focus{border-color:#2FA8A0;box-shadow:0 0 0 3px rgba(47,168,160,.1)}
     .info-box{background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:14px 16px;font-size:13px;color:#15803D;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px}
     .info-box i{font-size:18px;flex-shrink:0;margin-top:1px}
+    .example-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;margin-bottom:20px}
+    .example-box-title{font-size:12px;font-weight:700;color:#2FA8A0;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.05em}
+    .example-box-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #F0F3F6}
+    .example-box-row:last-child{border-bottom:none}
+    .ex-lbl{font-size:11.5px;font-weight:600;color:#8FA3B8}
+    .ex-val{font-size:12px;color:#1A2B3C;font-weight:500}
+    .f-optional{font-size:11px;font-weight:400;color:#8FA3B8;margin-left:4px}
+    .f-required{color:#EF4444;margin-left:2px}
+    .f-hint{font-size:11.5px;color:#8FA3B8;margin-top:4px}
+    .f-err-box{background:#FFF5F5;border:1px solid #FFE4E6;color:#BE123C;border-radius:8px;padding:9px 14px;font-size:12.5px;margin-top:8px;display:flex;align-items:center;gap:7px}
+    .f-select{width:100%;padding:10px 14px;border:1.5px solid #E2E8F0;border-radius:9px;font-size:13.5px;color:#4A6080;font-family:'Inter',sans-serif;appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238FA3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;box-sizing:border-box;outline:none;cursor:pointer}
+    .f-select:focus{border-color:#2FA8A0;box-shadow:0 0 0 3px rgba(47,168,160,.1)}
     .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#111111 !important;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both}
     .tab-bar{display:flex;gap:4px;background:#F1F5F9;border-radius:10px;padding:4px;margin-bottom:18px;width:fit-content}
     .tab-btn{padding:8px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#4A6080;transition:all .15s}
@@ -91,8 +103,8 @@ const BASE = `${environment.apiUrl}/leaves`;
     :host-context([data-theme="dark"]) .btn-secondary:hover:not(:disabled) { background:#243E58; }
     :host-context([data-theme="dark"]) .filter-bar { background:#111111 !important; box-shadow:0 4px 20px rgba(0,0,0,.3); }
     :host-context([data-theme="dark"]) .f-label { color:#A0A0A0 !important; }
-    :host-context([data-theme="dark"]) .f-select { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
-    :host-context([data-theme="dark"]) .f-select:focus { border-color:#2FA8A0; }
+    :host-context([data-theme="dark"]) .yr-select { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#A0A0A0 !important; }
+    :host-context([data-theme="dark"]) .yr-select:focus { border-color:#2FA8A0; }
     :host-context([data-theme="dark"]) .tab-bar { background:#1A1A1A !important; }
     :host-context([data-theme="dark"]) .tab-btn { color:#6B6B6B !important; }
     :host-context([data-theme="dark"]) .tab-btn.active { background:#111111 !important; color:#FFFFFF !important; box-shadow:0 2px 8px rgba(0,0,0,.3); }
@@ -125,10 +137,19 @@ const BASE = `${environment.apiUrl}/leaves`;
     :host-context([data-theme="dark"]) .rp-footer { border-top-color:#243E58; }
     :host-context([data-theme="dark"]) .f-lbl { color:#C8D6E5; }
     :host-context([data-theme="dark"]) .f-input { background:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .f-select { background-color:#1A1A1A !important; border-color:#2A2A2A !important; color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .f-select option { background:#1A1A1A; color:#FFFFFF; }
     :host-context([data-theme="dark"]) .f-input:focus { border-color:#2FA8A0; box-shadow:0 0 0 3px rgba(47,168,160,.15); }
     :host-context([data-theme="dark"]) .info-box { background:#052E16; border-color:#166534; color:#4ADE80; }
     :host-context([data-theme="dark"]) .btn-danger { background:#3B0A0A; color:#F87171; }
     :host-context([data-theme="dark"]) .btn-danger:hover:not(:disabled) { background:#5B1818; }
+    :host-context([data-theme="dark"]) .example-box { background:#1A1A1A !important; border-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .ex-lbl { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .ex-val { color:#FFFFFF !important; }
+    :host-context([data-theme="dark"]) .example-box-row { border-bottom-color:#2A2A2A !important; }
+    :host-context([data-theme="dark"]) .f-hint { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .f-optional { color:#6B6B6B !important; }
+    :host-context([data-theme="dark"]) .f-err-box { background:#3B0A0A !important; border-color:#7F1D1D !important; color:#F87171 !important; }
   `],
   template: `
   <div class="backdrop" *ngIf="showInit || showTypeForm" (click)="showInit=false; closeTypeForm()"></div>
@@ -139,34 +160,49 @@ const BASE = `${environment.apiUrl}/leaves`;
       <button class="rp-close" (click)="showInit=false"><i class="bx bx-x"></i></button>
     </div>
     <div class="rp-body">
-      <div class="info-box">
-        <i class="bx bx-info-circle"></i>
-        {{ 'LEAVE_BALANCE.FIELD_USER_ID_HINT' | translate }}
+
+      <!-- Example hint box -->
+      <div class="example-box">
+        <div class="example-box-title"><i class="bx bx-bulb"></i> Example</div>
+        <div class="example-box-row"><span class="ex-lbl">Employee ID</span><span class="ex-val">Leave empty → all employees</span></div>
+        <div class="example-box-row"><span class="ex-lbl">Leave Type</span><span class="ex-val">Annual Leave</span></div>
+        <div class="example-box-row"><span class="ex-lbl">Year</span><span class="ex-val">{{ currentYear }}</span></div>
+        <div class="example-box-row"><span class="ex-lbl">Days</span><span class="ex-val">30 days allocated</span></div>
+      </div>
+
+      <div class="f-field">
+        <label class="f-lbl">Employee ID <span class="f-optional">(optional — leave empty for all)</span></label>
+        <input class="f-input" type="number" [(ngModel)]="initForm.userId" placeholder="e.g. 12" />
       </div>
       <div class="f-field">
-        <label class="f-lbl">{{ 'LEAVE_BALANCE.FIELD_USER_ID' | translate }}</label>
-        <input class="f-input" type="number" [(ngModel)]="initForm.userId" [placeholder]="'LEAVE_BALANCE.FIELD_USER_ID_HINT' | translate" />
-      </div>
-      <div class="f-field">
-        <label class="f-lbl">{{ 'LEAVE_BALANCE.FIELD_LEAVE_TYPE' | translate }}</label>
-        <select class="f-input" [(ngModel)]="initForm.leaveTypeId">
-          <option [ngValue]="null">—</option>
+        <label class="f-lbl">Leave Type <span class="f-required">*</span></label>
+        <select class="f-select" [(ngModel)]="initForm.leaveTypeId">
+          <option [ngValue]="null">— Select a leave type —</option>
           <option *ngFor="let t of leaveTypes" [ngValue]="t.id">{{ t.name }}</option>
         </select>
       </div>
       <div class="f-field">
-        <label class="f-lbl">{{ 'LEAVE_BALANCE.FIELD_YEAR' | translate }}</label>
-        <input class="f-input" type="number" [(ngModel)]="initForm.year" [min]="2020" [max]="2030" />
+        <label class="f-lbl">Year <span class="f-required">*</span></label>
+        <input class="f-input" type="number" [(ngModel)]="initForm.year" [min]="2020" [max]="2030" placeholder="e.g. {{ currentYear }}" />
       </div>
       <div class="f-field">
-        <label class="f-lbl">{{ 'LEAVE_BALANCE.FIELD_DAYS_ALLOCATED' | translate }}</label>
-        <input class="f-input" type="number" [(ngModel)]="initForm.totalDays" [min]="1" [max]="365" />
+        <label class="f-lbl">Days Allocated <span class="f-required">*</span></label>
+        <input class="f-input" type="number" [(ngModel)]="initForm.totalDays" [min]="1" [max]="365" placeholder="e.g. 30" />
+        <div class="f-hint">Number of leave days granted for this year</div>
+      </div>
+
+      <div class="f-err-box" *ngIf="initError">
+        <i class="bx bx-error-circle"></i> {{ initError }}
       </div>
     </div>
     <div class="rp-footer">
-      <button class="btn btn-secondary" (click)="showInit=false">{{ 'LEAVE_BALANCE.CANCEL' | translate }}</button>
-      <button class="btn btn-primary" [disabled]="initializing" (click)="initBalance()">
-        <i class="bx bx-refresh"></i>{{ initializing ? ('LEAVE_BALANCE.INITIALIZING' | translate) : ('LEAVE_BALANCE.INITIALIZE' | translate) }}
+      <button class="btn btn-secondary" (click)="showInit=false">Cancel</button>
+      <button class="btn btn-primary"
+              [disabled]="initializing || !initForm.leaveTypeId || !initForm.year || initForm.totalDays < 1"
+              (click)="initBalance()">
+        <i class="bx" [class.bx-refresh]="!initializing" [class.bx-loader-alt]="initializing"
+           [style.animation]="initializing ? 'spin .7s linear infinite' : 'none'"></i>
+        {{ initializing ? 'Initializing…' : 'Initialize Balances' }}
       </button>
     </div>
   </div>
@@ -222,7 +258,7 @@ const BASE = `${environment.apiUrl}/leaves`;
       <h4 class="page-title">{{ 'LEAVE_BALANCE.TITLE' | translate }}</h4>
     </div>
     <div class="action-row">
-      <button class="big-action-btn" *ngIf="activeTab==='balances'" (click)="showInit=true; initForm.year=currentYear">
+      <button class="big-action-btn" *ngIf="activeTab==='balances'" (click)="openInit()">
         <i class="bx bx-plus"></i> {{ 'LEAVE_BALANCE.BTN_INIT_BALANCES' | translate }}
       </button>
       <button class="big-action-btn" *ngIf="activeTab==='types'" (click)="openTypeCreate()">
@@ -243,7 +279,7 @@ const BASE = `${environment.apiUrl}/leaves`;
     <ng-container *ngIf="activeTab==='balances'">
       <div class="filter-bar">
         <span class="f-label">{{ 'LEAVE_BALANCE.YEAR_LABEL' | translate }}</span>
-        <select class="f-select" [(ngModel)]="selectedYear" (change)="load()">
+        <select class="yr-select" [(ngModel)]="selectedYear" (change)="load()">
           <option *ngFor="let y of years" [value]="y">{{ y }}</option>
         </select>
       </div>
@@ -350,6 +386,7 @@ export class LeaveBalanceComponent implements OnInit {
 
   showInit     = false;
   initializing = false;
+  initError: string | null = null;
   initForm     = {
     userId:      null as number | null,
     leaveTypeId: null as number | null,
@@ -392,8 +429,9 @@ export class LeaveBalanceComponent implements OnInit {
   }
 
   initBalance(): void {
+    this.initError = null;
     if (!this.initForm.leaveTypeId || !this.initForm.year || this.initForm.totalDays < 1) {
-      this.showToast(this.translate.instant('LEAVE_BALANCE.TOAST_REQUIRED_FIELDS'));
+      this.initError = 'Please fill in Leave Type, Year, and Days Allocated.';
       return;
     }
     this.initializing = true;
@@ -407,11 +445,12 @@ export class LeaveBalanceComponent implements OnInit {
       next: () => {
         this.initializing = false;
         this.showInit = false;
+        this.initError = null;
         this.selectedYear = this.initForm.year;
         this.load();
-        this.showToast(this.translate.instant('LEAVE_BALANCE.TOAST_BALANCE_INIT'));
+        this.showToast('Balances initialized successfully!');
       },
-      error: e => { this.initializing = false; this.showToast(e?.error?.message || this.translate.instant('LEAVE_BALANCE.TOAST_ERROR')); }
+      error: e => { this.initializing = false; this.initError = e?.error?.message || 'Failed to initialize balances. Please try again.'; }
     });
   }
 
@@ -421,6 +460,12 @@ export class LeaveBalanceComponent implements OnInit {
   }
 
   min100(v: number): number { return Math.min(v, 100); }
+
+  openInit(): void {
+    this.initForm = { userId: null, leaveTypeId: null, year: this.currentYear, totalDays: 0 };
+    this.initError = null;
+    this.showInit = true;
+  }
 
   openTypeCreate(): void { this.editingType = null; this.typeForm = this.emptyTypeForm(); this.showTypeForm = true; }
   openTypeEdit(t: any): void { this.editingType = t; this.typeForm = { ...t }; this.showTypeForm = true; }

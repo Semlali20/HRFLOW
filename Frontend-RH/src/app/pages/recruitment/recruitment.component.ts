@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -84,6 +84,8 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .rp-footer{padding:14px 22px;border-top:1px solid #F0F3F6;flex-shrink:0;display:flex;justify-content:flex-end;gap:10px;}
     .btn-save{padding:10px 24px;background:#1B7872;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;}
     .btn-save:disabled{opacity:.5;cursor:default;}
+    .btn-intern-fwd{width:100%;padding:11px 16px;background:#0D9488;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;}
+    .btn-intern-fwd:hover{background:#0F766E;}
     .btn-cancel{padding:10px 20px;background:#F1F5F9;color:#4A6080;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;}
 
     .toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#111111 !important;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rpIn .22s ease both;}
@@ -220,9 +222,14 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       </div>
 
     </div>
-    <div class="rp-footer">
-      <button class="btn-cancel" (click)="closeAll()">{{ 'RECRUITMENT.CANCEL' | translate }}</button>
-      <button class="btn-save" [disabled]="saving" (click)="saveStage()">{{ 'RECRUITMENT.SAVE' | translate }}</button>
+    <div class="rp-footer" style="flex-direction:column;gap:8px;align-items:stretch;">
+      <button *ngIf="editStage === 'OFFERED'" class="btn-intern-fwd" (click)="forwardToIntern()">
+        <i class="bx bx-user-plus"></i> Add as Intern
+      </button>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn-cancel" (click)="closeAll()">{{ 'RECRUITMENT.CANCEL' | translate }}</button>
+        <button class="btn-save" [disabled]="saving" (click)="saveStage()">{{ 'RECRUITMENT.SAVE' | translate }}</button>
+      </div>
     </div>
   </div>
 
@@ -392,7 +399,7 @@ export class RecruitmentComponent implements OnInit {
   showUpload = false;
   uploadForm: { name: string; email: string; offerId: number | null; file: File | null } = this.emptyUpload();
 
-  constructor(private cvService: CvService, private translate: TranslateService, private route: ActivatedRoute) {}
+  constructor(private cvService: CvService, private translate: TranslateService, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
     this.load();
@@ -479,6 +486,32 @@ export class RecruitmentComponent implements OnInit {
     this.selected = null;
     this.showUpload = false;
     this.uploadForm = this.emptyUpload();
+  }
+
+  forwardToIntern(): void {
+    if (!this.selected) return;
+    const nameParts = this.selected.candidateName.trim().split(' ');
+    const firstName = nameParts[0] ?? '';
+    const lastName  = nameParts.slice(1).join(' ') || nameParts[0];
+    this.router.navigate(['/stagiaires'], {
+      state: {
+        prefill: {
+          firstName,
+          lastName,
+          internshipSubject: this.selected.offer?.name ?? '',
+          school: '',
+          supervisorName: '',
+          cin: '',
+          dateOfBirth: '',
+          startDate: '',
+          endDate: '',
+          departmentId: null,
+          internshipType: 'PFE',
+          status: 'PENDING',
+          version: 0
+        }
+      }
+    });
   }
 
   stageColor(s: KanbanStage): string {

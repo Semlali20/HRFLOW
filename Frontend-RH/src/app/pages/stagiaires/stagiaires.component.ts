@@ -2,6 +2,7 @@ import { Component, OnInit, Pipe, PipeTransform, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -607,9 +608,12 @@ export class StagiairesComponent implements OnInit {
     ];
   }
 
-  constructor(private http: HttpClient, private confirmSvc: ConfirmService, private translate: TranslateService) {}
+  constructor(private http: HttpClient, private confirmSvc: ConfirmService, private translate: TranslateService, private router: Router) {}
 
   ngOnInit(): void {
+    const nav = this.router.getCurrentNavigation();
+    const prefill = nav?.extras?.state?.['prefill'] ?? history.state?.prefill;
+
     forkJoin({
       depts: this.http.get<any>(this.DEPT).pipe(
         map(res => (res?.data ?? res?.content ?? (Array.isArray(res) ? res : []))),
@@ -618,6 +622,13 @@ export class StagiairesComponent implements OnInit {
     }).subscribe(({ depts }) => {
       this.departments = depts;
       this.load();
+      if (prefill) {
+        this.form = { ...this.emptyForm(), ...prefill };
+        this.createMode = true;
+        this.editMode = false;
+        this.selected = null;
+        this.panelOpen = true;
+      }
     });
   }
 
