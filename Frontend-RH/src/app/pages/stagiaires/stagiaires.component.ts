@@ -1,12 +1,13 @@
-import { Component, OnInit, Pipe, PipeTransform, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, Pipe, PipeTransform, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { forkJoin, of, Subject } from 'rxjs';
+import { catchError, map, takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { ConfirmService } from 'src/app/shared/confirm.service';
+import { ReferenceDataService } from 'src/app/core/services/reference-data.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
@@ -39,8 +40,7 @@ interface InternDocument {
   version: number;
 }
 
-const STATUSES = ['PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'EXTENDED'];
-const INTERNSHIP_TYPES = ['PFE', 'PFA', 'DECOUVERTE', 'IMMERSION', 'ALTERNANCE', 'SUMMER', 'OTHER'];
+// STATUSES and INTERNSHIP_TYPES are now sourced from ReferenceDataService
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: '#f59e0b', ACTIVE: '#2FA8A0', COMPLETED: '#10b981',
@@ -92,7 +92,7 @@ export class DocTypeLabelPipe implements PipeTransform {
 
   <!-- Stats row -->
   <div class="stat-row">
-    <div class="stat-card" *ngFor="let s of statCards">
+    <div class="stat-card" *ngFor="let s of statCards; trackBy: trackByIndex">
       <div class="stat-icon-wrap" [style.background]="s.color + '18'">
         <i [class]="s.icon" [style.color]="s.color"></i>
       </div>
@@ -116,14 +116,14 @@ export class DocTypeLabelPipe implements PipeTransform {
       <div class="int-select-wrap">
         <select class="int-select" [(ngModel)]="filterStatus" (ngModelChange)="load()">
           <option value="">{{ 'INTERNS.FILTER_ALL_STATUSES' | translate }}</option>
-          <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+          <option *ngFor="let s of statuses; trackBy: trackByIndex" [value]="s">{{ s }}</option>
         </select>
         <i class="bx bx-chevron-down int-select-arrow"></i>
       </div>
       <div class="int-select-wrap">
         <select class="int-select" [(ngModel)]="filterType" (ngModelChange)="applyFilter()">
           <option value="">{{ 'INTERNS.FILTER_ALL_TYPES' | translate }}</option>
-          <option *ngFor="let t of internshipTypes" [value]="t">{{ t }}</option>
+          <option *ngFor="let t of internshipTypes; trackBy: trackByIndex" [value]="t">{{ t }}</option>
         </select>
         <i class="bx bx-chevron-down int-select-arrow"></i>
       </div>
@@ -159,7 +159,7 @@ export class DocTypeLabelPipe implements PipeTransform {
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let intern of filtered" (click)="openDetail(intern)">
+          <tr *ngFor="let intern of filtered; trackBy: trackById" (click)="openDetail(intern)">
             <td>
               <div class="int-name-cell">
                 <div class="int-avatar" [style.background]="getColor(intern.status)+'18'" [style.color]="getColor(intern.status)">
@@ -255,7 +255,7 @@ export class DocTypeLabelPipe implements PipeTransform {
       </div>
       <div class="dr-section-title">{{ 'INTERNS.DETAIL_STATUS' | translate }}</div>
       <div class="d-flex gap-2 flex-wrap mb-4">
-        <button *ngFor="let s of statuses" class="dr-status-btn"
+        <button *ngFor="let s of statuses; trackBy: trackByIndex" class="dr-status-btn"
           [style.background]="selected.status === s ? getColor(s) : getColor(s)+'18'"
           [style.color]="selected.status === s ? '#fff' : getColor(s)"
           [style.border-color]="selected.status === s ? getColor(s) : getColor(s)+'44'"
@@ -302,14 +302,14 @@ export class DocTypeLabelPipe implements PipeTransform {
             <label class="dr-field-label">{{ 'INTERNS.FORM_FIELD_TYPE' | translate }}</label>
             <select class="dr-input" [(ngModel)]="form.internshipType" name="internshipType">
               <option value="">Select type</option>
-              <option *ngFor="let t of internshipTypes" [value]="t">{{ t }}</option>
+              <option *ngFor="let t of internshipTypes; trackBy: trackByIndex" [value]="t">{{ t }}</option>
             </select>
           </div>
           <div class="dr-field">
             <label class="dr-field-label">{{ 'INTERNS.FORM_FIELD_DEPT' | translate }}</label>
             <select class="dr-input" [(ngModel)]="form.departmentId" name="departmentId">
               <option [ngValue]="null">Select department</option>
-              <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
+              <option *ngFor="let d of departments; trackBy: trackById" [ngValue]="d.id">{{ d.name }}</option>
             </select>
           </div>
           <div class="dr-field dr-field--full">
@@ -331,7 +331,7 @@ export class DocTypeLabelPipe implements PipeTransform {
           <div class="dr-field" *ngIf="editMode">
             <label class="dr-field-label">{{ 'INTERNS.FORM_FIELD_STATUS' | translate }}</label>
             <select class="dr-input" [(ngModel)]="form.status" name="status">
-              <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+              <option *ngFor="let s of statuses; trackBy: trackByIndex" [value]="s">{{ s }}</option>
             </select>
           </div>
         </div>
@@ -361,7 +361,7 @@ export class DocTypeLabelPipe implements PipeTransform {
       <div class="spinner-border spinner-border-sm text-primary"></div>
     </div>
     <div *ngIf="!docsLoading">
-      <div class="mb-3" *ngFor="let doc of documents">
+      <div class="mb-3" *ngFor="let doc of documents; trackBy: trackById">
         <div class="doc-card">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
@@ -562,7 +562,9 @@ export class DocTypeLabelPipe implements PipeTransform {
     :host-context([data-theme="dark"]) .doc-card { background:#1A1A1A !important; border-color:#2A2A2A !important; }
   `]
 })
-export class StagiairesComponent implements OnInit {
+export class StagiairesComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   today = new Date();
 
   private readonly BASE = `${environment.apiUrl}/interns`;
@@ -596,8 +598,8 @@ export class StagiairesComponent implements OnInit {
 
   form: any = this.emptyForm();
 
-  readonly statuses = STATUSES;
-  readonly internshipTypes = INTERNSHIP_TYPES;
+  get statuses(): string[] { return this.refData.internStatuses.map(s => s.value); }
+  get internshipTypes(): string[] { return this.refData.internshipTypes.map(t => t.value); }
 
   get statCards() {
     return [
@@ -608,7 +610,10 @@ export class StagiairesComponent implements OnInit {
     ];
   }
 
-  constructor(private http: HttpClient, private confirmSvc: ConfirmService, private translate: TranslateService, private router: Router) {}
+  constructor(private http: HttpClient, private confirmSvc: ConfirmService, private translate: TranslateService, private router: Router, private refData: ReferenceDataService) {}
+
+  trackById(_: number, item: any): any { return item.id ?? _; }
+  trackByIndex(index: number): number { return index; }
 
   ngOnInit(): void {
     const nav = this.router.getCurrentNavigation();
@@ -619,7 +624,7 @@ export class StagiairesComponent implements OnInit {
         map(res => (res?.data ?? res?.content ?? (Array.isArray(res) ? res : []))),
         catchError(() => of([]))
       )
-    }).subscribe(({ depts }) => {
+    }).pipe(takeUntil(this.destroy$)).subscribe(({ depts }) => {
       this.departments = depts;
       this.load();
       if (prefill) {
@@ -632,6 +637,11 @@ export class StagiairesComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   load(): void {
     this.loading = true;
     let params = new HttpParams()
@@ -642,7 +652,8 @@ export class StagiairesComponent implements OnInit {
 
     this.http.get<any>(this.BASE, { params }).pipe(
       map(res => res?.content ?? res?.data ?? (Array.isArray(res) ? res : [])),
-      catchError(() => of([]))
+      catchError(() => of([])),
+      takeUntil(this.destroy$)
     ).subscribe(items => {
       this.interns = items;
       this.applyFilter();

@@ -77,7 +77,7 @@
       <div class="charts-grid charts-grid--2">
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_GENDER' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="genderChart.chart"
             [series]="genderChart.series"
             [chart]="genderChart.chart"
             [labels]="genderChart.labels"
@@ -90,7 +90,7 @@
         </div>
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_CONTRACT' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="contractChart.chart"
             [series]="contractChart.series"
             [chart]="contractChart.chart"
             [labels]="contractChart.labels"
@@ -105,7 +105,7 @@
       <div class="charts-grid charts-grid--2">
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_DEPARTMENT' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="departmentChart.chart"
             [series]="departmentChart.series"
             [chart]="departmentChart.chart"
             [xaxis]="departmentChart.xaxis"
@@ -119,7 +119,7 @@
         </div>
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_SENIORITY' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="seniorityChart.chart"
             [series]="seniorityChart.series"
             [chart]="seniorityChart.chart"
             [xaxis]="seniorityChart.xaxis"
@@ -143,7 +143,7 @@
       <div class="charts-grid charts-grid--2">
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_LEAVE_STATUS' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="leaveStatusChart.chart"
             [series]="leaveStatusChart.series"
             [chart]="leaveStatusChart.chart"
             [labels]="leaveStatusChart.labels"
@@ -156,7 +156,7 @@
         </div>
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_LEAVE_TYPE' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="leaveTypeChart.chart"
             [series]="leaveTypeChart.series"
             [chart]="leaveTypeChart.chart"
             [xaxis]="leaveTypeChart.xaxis"
@@ -180,7 +180,7 @@
       <div class="charts-grid charts-grid--1">
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_SALARY_STATUS' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="salaryStatusChart.chart"
             [series]="salaryStatusChart.series"
             [chart]="salaryStatusChart.chart"
             [xaxis]="salaryStatusChart.xaxis"
@@ -204,7 +204,7 @@
       <div class="charts-grid charts-grid--2">
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_INTERN_TYPE' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="internTypeChart.chart"
             [series]="internTypeChart.series"
             [chart]="internTypeChart.chart"
             [labels]="internTypeChart.labels"
@@ -217,7 +217,7 @@
         </div>
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_INTERN_STATUS' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="internStatusChart.chart"
             [series]="internStatusChart.series"
             [chart]="internStatusChart.chart"
             [labels]="internStatusChart.labels"
@@ -240,7 +240,7 @@
       <div class="charts-grid charts-grid--1">
         <div class="chart-card">
           <div class="chart-title">{{ 'STATISTICS.CHART_RECRUITMENT' | translate }}</div>
-          <apx-chart
+          <apx-chart *ngIf="recruitmentChart.chart"
             [series]="recruitmentChart.series"
             [chart]="recruitmentChart.chart"
             [xaxis]="recruitmentChart.xaxis"

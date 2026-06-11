@@ -1,6 +1,8 @@
 package com.innovx.gestionrh.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.HashSet;
@@ -25,9 +27,12 @@ public class Role extends BaseEntity {
     @Version
     private Long version;
 
+    @NotBlank(message = "Role name is required")
+    @Size(max = 80, message = "Role name must not exceed 80 characters")
     @Column(name = "name", nullable = false, length = 80)
     private String name;
 
+    @Size(max = 255, message = "Description must not exceed 255 characters")
     @Column(name = "description", length = 255)
     private String description;
 

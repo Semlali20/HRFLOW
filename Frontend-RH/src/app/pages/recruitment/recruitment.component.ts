@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,8 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { CvService, CvApplication, KanbanStage, KANBAN_STAGES } from '../cv/cv.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-recruitment',
@@ -213,7 +215,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
       <div class="dp-section">{{ 'RECRUITMENT.KANBAN_STAGE' | translate }}</div>
       <select class="stage-select" [(ngModel)]="editStage">
-        <option *ngFor="let s of stages" [value]="s">{{ s }}</option>
+        <option *ngFor="let s of stages; trackBy: trackByIndex" [value]="s">{{ s }}</option>
       </select>
 
       <div class="dp-field" style="margin-top:12px;">
@@ -253,7 +255,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
           <label class="form-lbl">{{ 'RECRUITMENT.FIELD_STAGE_OFFER' | translate }}</label>
           <select class="stage-select" [(ngModel)]="uploadForm.offerId">
             <option [ngValue]="null">{{ 'RECRUITMENT.NO_SPECIFIC_OFFER' | translate }}</option>
-            <option *ngFor="let o of offers" [ngValue]="o.id">{{ o.title }} — {{ o.department }}</option>
+            <option *ngFor="let o of offers; trackBy: trackById" [ngValue]="o.id">{{ o.title }} — {{ o.department }}</option>
           </select>
         </div>
         <div class="form-field">
@@ -294,7 +296,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
     <!-- Stats -->
     <div class="stats-row">
-      <div class="stat-card" *ngFor="let s of stages">
+      <div class="stat-card" *ngFor="let s of stages; trackBy: trackByIndex">
         <div class="stat-label">{{ s | titlecase }}</div>
         <div class="stat-value">{{ countStage(s) }}</div>
       </div>
@@ -306,7 +308,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         <div class="chart-card-title">{{ 'RECRUITMENT.STAGE_DISTRIBUTION' | translate }}</div>
         <div class="chart-card-sub">{{ applications.length }} {{ 'RECRUITMENT.TOTAL_APPLICATIONS' | translate }}</div>
         <apx-chart
-          *ngIf="donut.series && donut.series.length"
+          *ngIf="donut.chart"
           [series]="donut.series"
           [chart]="donut.chart"
           [labels]="donut.labels"
@@ -322,13 +324,32 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         <div class="chart-card-title">{{ 'RECRUITMENT.BY_STAGE' | translate }}</div>
         <div class="chart-card-sub">{{ 'RECRUITMENT.BREAKDOWN_PER_STAGE' | translate }}</div>
         <div class="chart-legend">
-          <div class="legend-item" *ngFor="let s of stages">
+          <div class="legend-item" *ngFor="let s of stages; trackBy: trackByIndex">
             <span class="legend-dot" [style.background]="stageColor(s)"></span>
             <span class="legend-name">{{ stageName(s) }}</span>
             <span class="legend-count">{{ countStage(s) }}</span>
             <span class="legend-pct">({{ pct(s) }}%)</span>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Pipeline Stats Bar -->
+    <div *ngIf="!loading && !error && applications.length > 0" class="pipeline-stats d-flex gap-2 flex-wrap mb-3" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <div *ngFor="let stat of pipelineStats; trackBy: trackByIndex"
+           class="pipeline-stage-card text-center"
+           [style.border-color]="stat.color"
+           [style.border-width]="activeStageFilter === stat.stage ? '2.5px' : '1.5px'"
+           [style.background]="activeStageFilter === stat.stage ? stat.color + '18' : '#fff'"
+           style="cursor:pointer;min-width:90px;padding:10px 16px;border-style:solid;border-radius:10px;text-align:center;box-shadow:0 2px 8px rgba(22,34,51,.06);transition:all .15s;"
+           (click)="filterByStatus(stat.stage)">
+        <div style="font-size:22px;font-weight:800;color:#1A2B3C;line-height:1.1;">{{ stat.count }}</div>
+        <div style="font-size:11px;color:#8FA3B8;font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.04em;">{{ stageName(stat.stage) }}</div>
+      </div>
+      <div *ngIf="activeStageFilter"
+           style="cursor:pointer;padding:10px 16px;border:1.5px dashed #CBD5E0;border-radius:10px;display:flex;align-items:center;gap:6px;font-size:12px;color:#8FA3B8;"
+           (click)="activeStageFilter = null">
+        <i class="bx bx-x"></i> Clear filter
       </div>
     </div>
 
@@ -345,13 +366,13 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
     <!-- Kanban -->
     <div class="kanban-board" *ngIf="!loading && !error">
-      <div class="kanban-col" *ngFor="let stage of stages">
+      <div class="kanban-col" *ngFor="let stage of filteredStages; trackBy: trackByIndex">
         <div class="col-header">
           <span class="col-title">{{ stageName(stage) }}</span>
           <span class="col-count">{{ countStage(stage) }}</span>
         </div>
         <div class="col-body">
-          <div class="k-card" *ngFor="let app of byStage(stage)" (click)="openDetail(app)">
+          <div class="k-card" *ngFor="let app of byStage(stage); trackBy: trackById" (click)="openDetail(app)">
             <div class="k-name">{{ app.candidateName }}</div>
             <div class="k-email">{{ app.candidateEmail }}</div>
             <div class="k-meta">
@@ -368,7 +389,9 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
   </div>
   `
 })
-export class RecruitmentComponent implements OnInit {
+export class RecruitmentComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
 
   today = new Date();
   stages: KanbanStage[] = [...KANBAN_STAGES];
@@ -396,26 +419,53 @@ export class RecruitmentComponent implements OnInit {
   editStage: KanbanStage = 'NEW';
   editNotes = '';
 
+  // ── Pipeline filter ──
+  activeStageFilter: KanbanStage | null = null;
+
+  get pipelineStats() {
+    return this.stages.map(stage => ({
+      stage,
+      count: this.countStage(stage),
+      color: this.stageColor(stage)
+    }));
+  }
+
+  filterByStatus(stage: KanbanStage): void {
+    this.activeStageFilter = this.activeStageFilter === stage ? null : stage;
+  }
+
+  get filteredStages(): KanbanStage[] {
+    return this.activeStageFilter ? [this.activeStageFilter] : this.stages;
+  }
+
   showUpload = false;
   uploadForm: { name: string; email: string; offerId: number | null; file: File | null } = this.emptyUpload();
 
   constructor(private cvService: CvService, private translate: TranslateService, private route: ActivatedRoute, private router: Router) {}
 
+  trackById(_: number, item: any): any { return item.id ?? _; }
+  trackByIndex(index: number): number { return index; }
+
   ngOnInit(): void {
     this.load();
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['action'] === 'create') this.showUpload = true;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   load(): void {
     this.loading = true;
     this.error = null;
-    this.cvService.getAllApplications().subscribe({
+    this.cvService.getAllApplications().pipe(takeUntil(this.destroy$)).subscribe({
       next: data => { this.applications = data; this.loading = false; this.buildDonut(); },
       error: err => { this.error = err?.error?.message || 'Failed to load applications.'; this.loading = false; }
     });
-    this.cvService.getAllOffers().subscribe({
+    this.cvService.getAllOffers().pipe(takeUntil(this.destroy$)).subscribe({
       next: data => this.offers = data,
       error: () => {}
     });

@@ -11,6 +11,8 @@ export class AuthenticationService {
 
     private readonly BASE_URL = `${environment.apiUrl}/auth`;
     private readonly STORAGE_KEY = 'authUser';
+    private readonly REMEMBER_EMAIL_KEY = 'rememberedEmail';
+    private readonly REMEMBER_PWD_KEY   = 'rememberedCredential';
 
     /** Emits whenever permissions are silently refreshed from the backend. */
     private readonly _permissionsRefreshed$ = new Subject<void>();
@@ -18,7 +20,7 @@ export class AuthenticationService {
 
     constructor(private http: HttpClient, private router: Router) {}
 
-    loginUser(email: string, password: string): Observable<AuthUser> {
+    loginUser(email: string, password: string, rememberMe = false): Observable<AuthUser> {
         return this.http.post<any>(`${this.BASE_URL}/login`, { email, password }).pipe(
             map(response => ({
                 accessToken: response.accessToken,
@@ -33,7 +35,9 @@ export class AuthenticationService {
                 permissions: response.permissions ?? [],
             } as AuthUser)),
             tap(user => {
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+                // rememberMe=true  → localStorage  (persists after browser close)
+                // rememberMe=false → sessionStorage (cleared on browser close)
+                this.storeAuthData(user, rememberMe);
             }),
             catchError(err => {
                 console.error('Login failed:', err);
@@ -73,6 +77,9 @@ export class AuthenticationService {
     logout(): void {
         this.http.post(`${this.BASE_URL}/logout`, {}).subscribe({ error: () => {} });
         this.clearAuthData();
+        // Remove any legacy plain-text password key left by old code
+        localStorage.removeItem('rememberedPassword');
+        localStorage.removeItem(this.REMEMBER_PWD_KEY);
         this.router.navigate(['/account/auth/login']);
     }
 
@@ -85,7 +92,9 @@ export class AuthenticationService {
 
     getAuthenticatedUser(): AuthUser | null {
         try {
-            const stored = localStorage.getItem(this.STORAGE_KEY);
+            // Check localStorage first (remembered sessions), then sessionStorage
+            const stored = localStorage.getItem(this.STORAGE_KEY)
+                        ?? sessionStorage.getItem(this.STORAGE_KEY);
             return stored ? JSON.parse(stored) : null;
         } catch {
             return null;
@@ -146,12 +155,59 @@ export class AuthenticationService {
         );
     }
 
-    storeAuthData(user: AuthUser): void {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+    /**
+     * Persist auth data.
+     * @param user      The authenticated user object.
+     * @param remember  true  → localStorage  (survives browser close)
+     *                  false → sessionStorage (cleared on browser close)
+     *                  undefined → keep existing storage location (e.g. on token refresh)
+     */
+    storeAuthData(user: AuthUser, remember?: boolean): void {
+        const data = JSON.stringify(user);
+        if (remember === true) {
+            sessionStorage.removeItem(this.STORAGE_KEY);
+            localStorage.setItem(this.STORAGE_KEY, data);
+        } else if (remember === false) {
+            localStorage.removeItem(this.STORAGE_KEY);
+            sessionStorage.setItem(this.STORAGE_KEY, data);
+        } else {
+            // Token refresh — write back to whichever storage already holds the key
+            if (localStorage.getItem(this.STORAGE_KEY) !== null) {
+                localStorage.setItem(this.STORAGE_KEY, data);
+            } else {
+                sessionStorage.setItem(this.STORAGE_KEY, data);
+            }
+        }
     }
 
     clearAuthData(): void {
         localStorage.removeItem(this.STORAGE_KEY);
+        sessionStorage.removeItem(this.STORAGE_KEY);
+    }
+
+    /** Save email + password for "Remember me" pre-fill (password is base64-obfuscated). */
+    saveRememberedCredentials(email: string, password: string): void {
+        localStorage.setItem(this.REMEMBER_EMAIL_KEY, email);
+        localStorage.setItem(this.REMEMBER_PWD_KEY, btoa(unescape(encodeURIComponent(password))));
+    }
+
+    clearRememberedEmail(): void {
+        localStorage.removeItem(this.REMEMBER_EMAIL_KEY);
+        localStorage.removeItem(this.REMEMBER_PWD_KEY);
+    }
+
+    getRememberedEmail(): string | null {
+        return localStorage.getItem(this.REMEMBER_EMAIL_KEY);
+    }
+
+    getRememberedPassword(): string | null {
+        const raw = localStorage.getItem(this.REMEMBER_PWD_KEY);
+        if (!raw) return null;
+        try {
+            return decodeURIComponent(escape(atob(raw)));
+        } catch {
+            return null;
+        }
     }
 
     forgotPassword(email: string): Observable<any> {

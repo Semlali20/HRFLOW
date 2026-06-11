@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { forkJoin } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { forkJoin, Subject } from 'rxjs';
+import { map, catchError, takeUntil } from 'rxjs/operators';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
@@ -180,7 +180,7 @@ const CAT_LABELS: Record<string,string> = {
         <label class="f-label">{{ 'DOCUMENTS.FIELD_EMPLOYEE' | translate }}</label>
         <select class="f-select" [(ngModel)]="form.employeeId">
           <option [ngValue]="null">{{ 'DOCUMENTS.SELECT_EMPLOYEE' | translate }}</option>
-          <option *ngFor="let e of employees" [ngValue]="e._backendId ?? e.matricule">
+          <option *ngFor="let e of employees; trackBy: trackById" [ngValue]="e._backendId ?? e.matricule">
             {{ e.prenom }} {{ e.nom }}
           </option>
         </select>
@@ -189,7 +189,7 @@ const CAT_LABELS: Record<string,string> = {
         <label class="f-label">{{ 'DOCUMENTS.FIELD_CATEGORY' | translate }}</label>
         <select class="f-select" [(ngModel)]="form.category">
           <option value="">{{ 'DOCUMENTS.SELECT_CATEGORY' | translate }}</option>
-          <option *ngFor="let c of categories" [value]="c">{{ catLabel(c) }}</option>
+          <option *ngFor="let c of categories; trackBy: trackByIndex" [value]="c">{{ catLabel(c) }}</option>
         </select>
       </div>
       <div class="f-field">
@@ -249,11 +249,11 @@ const CAT_LABELS: Record<string,string> = {
       </div>
       <select class="filter-select" [(ngModel)]="filterCategory">
         <option value="">{{ 'DOCUMENTS.FILTER_ALL_CATEGORIES' | translate }}</option>
-        <option *ngFor="let c of categories" [value]="c">{{ catLabel(c) }}</option>
+        <option *ngFor="let c of categories; trackBy: trackByIndex" [value]="c">{{ catLabel(c) }}</option>
       </select>
       <select class="filter-select" [(ngModel)]="filterEmployeeId" (ngModelChange)="onEmployeeFilter($event)">
         <option [ngValue]="null">{{ 'DOCUMENTS.FILTER_ALL_EMPLOYEES' | translate }}</option>
-        <option *ngFor="let e of employees" [ngValue]="e._backendId ?? e.matricule">
+        <option *ngFor="let e of employees; trackBy: trackById" [ngValue]="e._backendId ?? e.matricule">
           {{ e.prenom }} {{ e.nom }}
         </option>
       </select>
@@ -279,7 +279,7 @@ const CAT_LABELS: Record<string,string> = {
             <th>{{ 'DOCUMENTS.TABLE_EXPIRY' | translate }}</th><th>{{ 'DOCUMENTS.TABLE_ACTIONS' | translate }}</th>
           </tr></thead>
           <tbody>
-            <tr *ngFor="let d of filteredDocs">
+            <tr *ngFor="let d of filteredDocs; trackBy: trackById">
               <td class="td-name">{{ d.employee?.name || '—' }}</td>
               <td class="td-file">{{ d.originalFilename }}</td>
               <td><span class="chip chip-{{d.category}}">{{ catLabel(d.category) }}</span></td>
@@ -302,7 +302,9 @@ const CAT_LABELS: Record<string,string> = {
   </div>
   `
 })
-export class DocumentsComponent implements OnInit {
+export class DocumentsComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
 
   documents: any[] = [];
   employees: any[] = [];
@@ -329,7 +331,7 @@ export class DocumentsComponent implements OnInit {
       docs:      this.http.get<any>(BASE_DOCS).pipe(map(r => r?.content ?? r?.data ?? (Array.isArray(r) ? r : []))),
       expiring:  this.http.get<any>(`${BASE_DOCS}/expiring`).pipe(map(r => r?.content ?? r?.data ?? (Array.isArray(r) ? r : []))),
       employees: this.collabService.getAll(),
-    }).subscribe({
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ docs, expiring, employees }) => {
         this.documents    = docs;
         this.expiringCount = expiring.length;
@@ -341,6 +343,8 @@ export class DocumentsComponent implements OnInit {
     this.loading = true;
   }
 
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+
   load(): void {
     this.loading = true;
     const url = this.filterEmployeeId
@@ -348,9 +352,13 @@ export class DocumentsComponent implements OnInit {
       : BASE_DOCS;
     this.http.get<any>(url).pipe(
       map(r => r?.content ?? r?.data ?? (Array.isArray(r) ? r : [])),
-      catchError(e => { this.error = e?.error?.message || 'Erreur de chargement'; this.loading = false; return []; })
+      catchError(e => { this.error = e?.error?.message || 'Erreur de chargement'; this.loading = false; return []; }),
+      takeUntil(this.destroy$)
     ).subscribe(d => { this.documents = d; this.loading = false; });
   }
+
+  trackById(_: number, item: any): any { return item.id ?? item._backendId ?? item.matricule ?? _; }
+  trackByIndex(index: number): number { return index; }
 
   onEmployeeFilter(employeeId: number | null): void {
     this.filterEmployeeId = employeeId;

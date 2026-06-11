@@ -12,7 +12,11 @@ import java.time.Instant;
  */
 @Entity
 @Table(name = "refresh_tokens",
-       uniqueConstraints = @UniqueConstraint(name = "uk_refresh_token_value", columnNames = "token"))
+       uniqueConstraints = @UniqueConstraint(name = "uk_refresh_token_value", columnNames = "token"),
+       indexes = {
+               @Index(name = "idx_rt_user_id",     columnList = "user_id"),
+               @Index(name = "idx_rt_expiry_date", columnList = "expiry_date")
+       })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

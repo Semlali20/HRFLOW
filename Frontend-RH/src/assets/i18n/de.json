@@ -336,5 +336,9 @@
         }
       }
     }
+  },
+  "ONBOARDING": {
+    "TITLE": "Onboarding",
+    "LOAD_ERROR": "Prozesse konnten nicht geladen werden"
   }
 }

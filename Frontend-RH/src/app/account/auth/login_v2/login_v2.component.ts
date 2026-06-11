@@ -27,11 +27,12 @@ export class LoginComponent1 implements OnInit {
       return;
     }
 
-    const savedEmail = localStorage.getItem('rememberedEmail');
-    const savedPassword = localStorage.getItem('rememberedPassword');
-    if (savedEmail && savedPassword) {
+    // Pre-fill saved credentials if "Remember me" was checked last time
+    const savedEmail = this.authService.getRememberedEmail();
+    const savedPassword = this.authService.getRememberedPassword();
+    if (savedEmail) {
       this.email = savedEmail;
-      this.password = savedPassword;
+      this.password = savedPassword ?? '';
       this.rememberMe = true;
     }
   }
@@ -48,16 +49,14 @@ export class LoginComponent1 implements OnInit {
 
     this.isLoading = true;
 
-    this.authService.loginUser(this.email, this.password).subscribe({
+    this.authService.loginUser(this.email, this.password, this.rememberMe).subscribe({
       next: async (user) => {
         this.isLoading = false;
 
         if (this.rememberMe) {
-          localStorage.setItem('rememberedEmail', this.email);
-          localStorage.setItem('rememberedPassword', this.password);
+          this.authService.saveRememberedCredentials(this.email, this.password);
         } else {
-          localStorage.removeItem('rememberedEmail');
-          localStorage.removeItem('rememberedPassword');
+          this.authService.clearRememberedEmail();
         }
 
         const name = [user.firstname, user.lastname].filter(Boolean).join(' ');

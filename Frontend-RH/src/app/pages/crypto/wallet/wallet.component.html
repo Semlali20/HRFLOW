@@ -164,7 +164,7 @@
 
                     <div>
                         <div id="overview-chart" class="apex-charts" dir="ltr"></div>
-                        <apx-chart class="apex-charts" dir="ltr" [series]="OveviewChart.series"
+                        <apx-chart *ngIf="OveviewChart.chart" class="apex-charts" dir="ltr" [series]="OveviewChart.series"
                             [chart]="OveviewChart.chart" [colors]="OveviewChart.colors" [stroke]="OveviewChart.stroke"
                             [dataLabels]="OveviewChart.dataLabels" [fill]="OveviewChart.fill"
                             [xaxis]="OveviewChart.xaxis">

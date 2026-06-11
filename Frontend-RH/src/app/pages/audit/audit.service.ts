@@ -36,28 +36,67 @@ export class AuditService {
         return this.http.get<AuditPage>(this.BASE, { params }).pipe(catchError(this.handleError));
     }
 
-    getByUser(email: string): Observable<AuditLog[]> {
+    getByUser(email: string, page = 0, size = 50): Observable<AuditPage> {
         if (!email) return throwError(() => new Error('email is required'));
-        return this.http.get<AuditLog[]>(`${this.BASE}/user/${encodeURIComponent(email)}`).pipe(catchError(this.handleError));
-    }
-
-    getByModule(module: string): Observable<AuditLog[]> {
-        if (!module) return throwError(() => new Error('module is required'));
-        return this.http.get<AuditLog[]>(`${this.BASE}/module/${module}`).pipe(catchError(this.handleError));
-    }
-
-    getByAction(action: string): Observable<AuditLog[]> {
-        if (!action) return throwError(() => new Error('action is required'));
-        return this.http.get<any>(`${this.BASE}/action/${action}`).pipe(
-            map(res => res?.content ?? res?.data ?? (Array.isArray(res) ? res : [])),
+        const params = new HttpParams().set('page', String(page)).set('size', String(size));
+        return this.http.get<AuditPage>(`${this.BASE}/user/${encodeURIComponent(email)}`, { params }).pipe(
             catchError(this.handleError)
         );
     }
 
-    getByDateRange(from: string, to: string): Observable<AuditLog[]> {
+    getByModule(module: string, page = 0, size = 50): Observable<AuditPage> {
+        if (!module) return throwError(() => new Error('module is required'));
+        const params = new HttpParams().set('page', String(page)).set('size', String(size));
+        return this.http.get<AuditPage>(`${this.BASE}/module/${module}`, { params }).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    getByAction(action: string, page = 0, size = 50): Observable<AuditPage> {
+        if (!action) return throwError(() => new Error('action is required'));
+        const params = new HttpParams().set('page', String(page)).set('size', String(size));
+        return this.http.get<AuditPage>(`${this.BASE}/action/${action}`, { params }).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    getByDateRange(from: string, to: string, page = 0, size = 50): Observable<AuditPage> {
         if (!from || !to) return throwError(() => new Error('from and to are required'));
-        const params = new HttpParams().set('from', from).set('to', to);
-        return this.http.get<AuditLog[]>(`${this.BASE}/range`, { params }).pipe(catchError(this.handleError));
+        const params = new HttpParams()
+            .set('from', from)
+            .set('to', to)
+            .set('page', String(page))
+            .set('size', String(size));
+        return this.http.get<AuditPage>(`${this.BASE}/range`, { params }).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    /**
+     * Combined search — passes whichever filters are provided as query params.
+     * Maps onto GET /audit/search on the backend (added in a previous batch).
+     */
+    searchLogs(filters: {
+        email?: string;
+        module?: string;
+        action?: string;
+        from?: string;
+        to?: string;
+        page?: number;
+        size?: number;
+    }): Observable<AuditPage> {
+        let params = new HttpParams();
+        if (filters.email)  params = params.set('email',  filters.email);
+        if (filters.module) params = params.set('module', filters.module);
+        if (filters.action) params = params.set('action', filters.action);
+        if (filters.from)   params = params.set('from',   filters.from);
+        if (filters.to)     params = params.set('to',     filters.to);
+        params = params
+            .set('page', String(filters.page ?? 0))
+            .set('size', String(filters.size ?? 50));
+        return this.http.get<AuditPage>(`${this.BASE}/search`, { params }).pipe(
+            catchError(this.handleError)
+        );
     }
 
     private handleError(err: any): Observable<never> {

@@ -2,6 +2,13 @@
    WIKO HR — Dashboard
    ================================================================ */
 
+/* ── Expiring Contracts Chip ── */
+.exp-chip {
+  &--danger { background: #FEE2E2; color: #BE123C; }
+  &--warn   { background: #FEF3C7; color: #92400E; }
+  &--ok     { background: #DCFCE7; color: #15803D; }
+}
+
 .dash-container {
   padding: 0 20px 20px;
   animation: fadeInUp .4s ease both;

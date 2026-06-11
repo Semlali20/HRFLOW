@@ -158,15 +158,15 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
           <div class="dp-emp-info-title">{{ 'ATTENDANCE.SECTION_EMPLOYEE_INFO' | translate }}</div>
           <div class="dp-field">
             <span class="dp-field-lbl"><i class="bx bx-id-card"></i> {{ 'ATTENDANCE.EMPLOYEE_ID' | translate }}</span>
-            <span class="dp-field-val">12345678901234</span>
+            <span class="dp-field-val">{{ selected?.id || selected?.matricule || '—' }}</span>
           </div>
           <div class="dp-field">
             <span class="dp-field-lbl"><i class="bx bx-user"></i> {{ 'ATTENDANCE.FULL_NAME' | translate }}</span>
-            <span class="dp-field-val">{{ selected.name }}</span>
+            <span class="dp-field-val">{{ selected?.name || ((selected?.prenom || '') + ' ' + (selected?.nom || '')) || '—' }}</span>
           </div>
           <div class="dp-field">
             <span class="dp-field-lbl"><i class="bx bx-briefcase"></i> {{ 'ATTENDANCE.ROLE' | translate }}</span>
-            <span class="dp-field-val">{{ 'ATTENDANCE.WEB_DEVELOPER' | translate }}</span>
+            <span class="dp-field-val">{{ selected?.role || selected?.Fonction || selected?.fonction || '—' }}</span>
           </div>
         </div>
       </div>
@@ -177,17 +177,17 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         <div class="dp-summary-box">
           <div class="dp-summary-icon"><i class="bx bx-refresh"></i></div>
           <div class="dp-summary-lbl">{{ 'ATTENDANCE.TOTAL_ATTENDANCE' | translate }}</div>
-          <div class="dp-summary-val">289 Days</div>
+          <div class="dp-summary-val">{{ selected?.totalDays || '—' }}</div>
         </div>
         <div class="dp-summary-box">
           <div class="dp-summary-icon"><i class="bx bx-log-in"></i></div>
           <div class="dp-summary-lbl">{{ 'ATTENDANCE.AVG_CHECK_IN' | translate }}</div>
-          <div class="dp-summary-val">08:11</div>
+          <div class="dp-summary-val">{{ selected?.checkIn || '—' }}</div>
         </div>
         <div class="dp-summary-box">
           <div class="dp-summary-icon"><i class="bx bx-log-out"></i></div>
           <div class="dp-summary-lbl">{{ 'ATTENDANCE.AVG_CHECK_OUT' | translate }}</div>
-          <div class="dp-summary-val">17:30</div>
+          <div class="dp-summary-val">{{ selected?.checkOut || '—' }}</div>
         </div>
       </div>
 
@@ -328,7 +328,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
             <span class="kpi-pct pct-red">N/A</span>
           </div>
         </div>
-        <apx-chart [series]="chart.series" [chart]="chart.chart" [colors]="chart.colors"
+        <apx-chart *ngIf="chart.chart" [series]="chart.series" [chart]="chart.chart" [colors]="chart.colors"
           [stroke]="chart.stroke" [fill]="chart.fill" [xaxis]="chart.xaxis"
           [grid]="chart.grid" [dataLabels]="chart.dataLabels">
         </apx-chart>
@@ -578,7 +578,7 @@ export class AttendanceComponent implements OnInit {
           initials: `${(e.prenom?.[0] ?? '').toUpperCase()}${(e.nom?.[0] ?? '').toUpperCase()}`,
           name:     `${e.prenom ?? ''} ${e.nom ?? ''}`.trim(),
           role:     e.Fonction ?? e.Département ?? '—',
-          pct:      Math.min(100, 80 + (e.Ancienneté ?? 0) * 2),
+          pct:      0, // TODO: connect to real attendance API
         }));
 
         // Attendance rows: real employees, no check-in data yet (no attendance backend)
@@ -606,8 +606,8 @@ export class AttendanceComponent implements OnInit {
   }
 
   private buildChart(total: number): void {
-    // Show employee count as a single reference data point — no timeseries without backend
-    const pts = Array.from({ length: 12 }, (_, i) => total);
+    // No real attendance timeseries without backend — use zeros to avoid misleading flat line
+    const pts = Array(12).fill(0);
     this.chart = {
       series: [{ name: this.translate.instant('ATTENDANCE.TOTAL_EMPLOYEES'), data: pts }],
       chart: { type: 'area', height: 100, toolbar: { show: false }, sparkline: { enabled: true }, fontFamily: 'Inter,sans-serif' },

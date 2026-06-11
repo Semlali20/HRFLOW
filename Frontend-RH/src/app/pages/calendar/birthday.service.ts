@@ -8,8 +8,8 @@ import { Collaborateur } from 'src/app/core/models/hr.models';
 @Injectable({ providedIn: 'root' })
 export class BirthdayService {
 
-    /** Backend endpoint: GET /Collaborateurs */
-    private readonly API = `${environment.apiUrl}/Collaborateurs`;
+    /** Backend endpoint: GET /employees */
+    private readonly API = `${environment.apiUrl}/employees`;
 
     constructor(private http: HttpClient) {}
 

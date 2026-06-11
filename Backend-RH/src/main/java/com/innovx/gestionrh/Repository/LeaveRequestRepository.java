@@ -36,4 +36,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
             @Param("year") int year);
 
     long countByRequesterIdAndStatus(Long userId, LeaveStatus status);
+
+    @Query("SELECT lr FROM LeaveRequest lr WHERE YEAR(lr.startDate) = :year ORDER BY lr.startDate ASC")
+    List<LeaveRequest> findAllByYear(@Param("year") int year);
 }

@@ -1,37 +1,100 @@
-<div class="settings-container">
-  <i class="fas fa-cog settings-icon" (click)="toggleSettingsCard()"></i>
-  <div class="settings-modal" *ngIf="showSettingsCard">
-    <div class="settings-card">
-      <form (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="title">Title</label>
-          <input type="text" id="title" [(ngModel)]="title" name="title" required>
+<div class="container-fluid">
+
+  <!-- Search bar -->
+  <div class="row mb-3">
+    <div class="col-sm-4">
+      <div class="search-box me-2 mb-2 d-inline-block">
+        <div class="position-relative">
+          <input type="text" class="form-control" placeholder="Search employees..."
+                 [(ngModel)]="searchTerm" name="searchTerm">
+          <i class="bx bx-search-alt search-icon"></i>
         </div>
-        <div class="form-group">
-          <label for="resp">Responsibility</label>
-          <div class="select-container">
-            <select id="resp" [(ngModel)]="resp" name="resp" required>
-              <option *ngFor="let name of respList" [value]="name">{{ name }}</option>
-              <option value="new">Create new responsibility</option>
-              <button type="button" class="clear-btn" (click)="clearResp()">x</button>
-            </select>
-            <button type="button" class="clear-btn" (click)="clearResp()">x</button>
-          </div>
-          <div *ngIf="resp === 'new'" class="new-resp-container">
-            <input type="text" [(ngModel)]="newResp" placeholder="New responsibility" name="newResp"/>
-            <button type="button" (click)="addNewResp()">Create</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="dateOverture">Date d'ouverture</label>
-          <input type="date" id="dateOverture" [(ngModel)]="dateOverture" name="dateOverture" required>
-        </div>
-        <div class="form-group">
-          <label for="dateCloture">Date cloture</label>
-          <input type="date" id="dateCloture" [(ngModel)]="dateCloture" name="dateCloture" required>
-        </div>
-        <button type="submit" class="validate-button">Valider</button>
-      </form>
+      </div>
     </div>
   </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2 text-muted">Loading employees...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error && !loading" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !error && filteredEmployees.length === 0" class="text-center py-5">
+    <i class="bx bx-user-x font-size-48 text-muted"></i>
+    <p class="mt-2 text-muted">No employees found</p>
+  </div>
+
+  <!-- Employee Grid -->
+  <div class="row" *ngIf="!loading && !error">
+    <div class="col-xl-3 col-sm-6"
+         *ngFor="let emp of filteredEmployees; trackBy: trackById">
+      <div class="card text-center">
+        <div class="card-body">
+          <!-- Avatar: photo or initials -->
+          <div class="avatar-sm mx-auto mb-3">
+            <span class="avatar-title rounded-circle bg-primary font-size-16">
+              {{ (emp.prenom?.[0] || '') + (emp.nom?.[0] || '') }}
+            </span>
+          </div>
+          <h5 class="font-size-15 mb-1">
+            <a href="javascript: void(0);" class="text-dark">
+              {{ emp.prenom }} {{ emp.nom }}
+            </a>
+          </h5>
+          <p class="text-muted mb-0">{{ emp['Fonction'] || '-' }}</p>
+          <p class="text-muted font-size-12 mb-2">{{ emp['Département'] || '-' }}</p>
+          <span class="badge"
+                [ngClass]="emp.status === 'ACTIVE' ? 'badge-soft-success' : 'badge-soft-secondary'">
+            {{ emp.status || '-' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings panel (kept from original) -->
+  <div class="settings-container">
+    <i class="fas fa-cog settings-icon" (click)="toggleSettingsCard()"></i>
+    <div class="settings-modal" *ngIf="showSettingsCard">
+      <div class="settings-card">
+        <form (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" [(ngModel)]="title" name="title" required>
+          </div>
+          <div class="form-group">
+            <label for="resp">Responsibility</label>
+            <div class="select-container">
+              <select id="resp" [(ngModel)]="resp" name="resp" required>
+                <option *ngFor="let emp of employees" [value]="(emp.prenom || '') + ' ' + (emp.nom || '')">
+                  {{ emp.prenom }} {{ emp.nom }}
+                </option>
+                <option value="new">Create new responsibility</option>
+              </select>
+              <button type="button" class="clear-btn" (click)="clearResp()">x</button>
+            </div>
+            <div *ngIf="resp === 'new'" class="new-resp-container">
+              <input type="text" [(ngModel)]="newResp" placeholder="New responsibility" name="newResp"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dateOverture">Date d'ouverture</label>
+            <input type="date" id="dateOverture" [(ngModel)]="dateOverture" name="dateOverture" required>
+          </div>
+          <div class="form-group">
+            <label for="dateCloture">Date cloture</label>
+            <input type="date" id="dateCloture" [(ngModel)]="dateCloture" name="dateCloture" required>
+          </div>
+          <button type="submit" class="validate-button">Valider</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
 </div>

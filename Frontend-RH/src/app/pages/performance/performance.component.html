@@ -1,0 +1,270 @@
+<div class="perf-page">
+
+  <!-- ── Header + Clock ──────────────────────────────────────────────────── -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+    <div class="page-header" style="flex:1;margin-bottom:0;">
+      <h4 class="page-title">
+        <i class="bx bxs-star-half" style="color:#2FA8A0;margin-right:8px;vertical-align:-2px;"></i>
+        {{ 'PERFORMANCE.TITLE' | translate }}
+      </h4>
+    </div>
+    <app-wall-clock></app-wall-clock>
+  </div>
+
+  <!-- ── Error ────────────────────────────────────────────────────────────── -->
+  <div class="alert-error" *ngIf="error">
+    <i class="bx bx-error-circle"></i>
+    {{ error | translate }}
+    <button class="alert-close" (click)="error = null"><i class="bx bx-x"></i></button>
+  </div>
+
+  <!-- ── KPI Strip ─────────────────────────────────────────────────────────── -->
+  <div class="perf-kpi-row" *ngIf="!loading">
+    <div class="perf-kpi perf-kpi--teal">
+      <div class="perf-kpi__icon"><i class="bx bxs-star"></i></div>
+      <div>
+        <div class="perf-kpi__label">Total Reviews</div>
+        <div class="perf-kpi__value">{{ totalElements }}</div>
+      </div>
+    </div>
+    <div class="perf-kpi perf-kpi--amber">
+      <div class="perf-kpi__icon"><i class="bx bxs-edit"></i></div>
+      <div>
+        <div class="perf-kpi__label">Draft</div>
+        <div class="perf-kpi__value">{{ draftCount }}</div>
+      </div>
+    </div>
+    <div class="perf-kpi perf-kpi--blue">
+      <div class="perf-kpi__icon"><i class="bx bxs-send"></i></div>
+      <div>
+        <div class="perf-kpi__label">Submitted</div>
+        <div class="perf-kpi__value">{{ submittedCount }}</div>
+      </div>
+    </div>
+    <div class="perf-kpi perf-kpi--emerald">
+      <div class="perf-kpi__icon"><i class="bx bxs-check-circle"></i></div>
+      <div>
+        <div class="perf-kpi__label">Acknowledged</div>
+        <div class="perf-kpi__value">{{ acknowledgedCount }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Table Card ─────────────────────────────────────────────────────────── -->
+  <div class="table-card">
+
+    <div class="table-card__toolbar">
+      <span class="table-card__title">
+        <i class="bx bxs-star-half"></i>
+        {{ 'PERFORMANCE.LIST_TITLE' | translate }}
+      </span>
+      <button class="btn-new" (click)="openForm()">
+        <i class="bx bx-plus"></i> {{ 'PERFORMANCE.NEW_REVIEW' | translate }}
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="state-box" *ngIf="loading">
+      <div class="perf-spinner"></div>
+      {{ 'PERFORMANCE.LOADING' | translate }}
+    </div>
+
+    <!-- Empty -->
+    <div class="state-box" *ngIf="!loading && reviews.length === 0">
+      <i class="bx bx-clipboard"></i>
+      {{ 'PERFORMANCE.EMPTY' | translate }}<br>
+      <button class="btn-new" style="display:inline-flex;margin:16px auto 0;" (click)="openForm()">
+        <i class="bx bx-plus"></i> {{ 'PERFORMANCE.NEW_REVIEW' | translate }}
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto" *ngIf="!loading && reviews.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{{ 'PERFORMANCE.COL_EMPLOYEE' | translate }}</th>
+            <th>{{ 'PERFORMANCE.COL_PERIOD' | translate }}</th>
+            <th>{{ 'PERFORMANCE.COL_DATE' | translate }}</th>
+            <th>{{ 'PERFORMANCE.COL_SCORE' | translate }}</th>
+            <th>{{ 'PERFORMANCE.COL_STATUS' | translate }}</th>
+            <th>{{ 'PERFORMANCE.COL_REVIEWER' | translate }}</th>
+            <th style="text-align:right;padding-right:20px;">{{ 'PERFORMANCE.COL_ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of reviews; let i = index; trackBy: trackById" (click)="openForm(r)">
+            <td class="td-num">{{ currentPage * pageSize + i + 1 }}</td>
+            <td class="td-name">{{ r.collaborateurName }}</td>
+            <td><span class="badge badge-period">{{ r.reviewPeriod }}</span></td>
+            <td class="td-muted">{{ r.reviewDate | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <ng-container *ngIf="r.overallScore">
+                <div class="score-stars">
+                  <ng-container *ngFor="let j of [1,2,3,4,5]">
+                    <i class="bx star" [ngClass]="j <= r.overallScore ? 'bxs-star filled' : 'bx-star'"></i>
+                  </ng-container>
+                  <span style="margin-left:5px;font-size:12px;color:#8FA3B8;font-weight:600;">{{ r.overallScore }}/5</span>
+                </div>
+              </ng-container>
+              <span *ngIf="!r.overallScore" class="td-muted">—</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="statusBadgeClass(r.status)">
+                {{ r.status | titlecase }}
+              </span>
+            </td>
+            <td class="td-muted">{{ r.reviewerName || '—' }}</td>
+            <td (click)="$event.stopPropagation()">
+              <div class="action-btns">
+                <button class="action-btn" (click)="openForm(r)" title="{{ 'PERFORMANCE.EDIT' | translate }}">
+                  <i class="bx bx-pencil"></i>
+                </button>
+                <button *ngIf="r.status === 'DRAFT'"
+                        class="action-btn action-btn--submit"
+                        (click)="submit(r.id!)"
+                        title="{{ 'PERFORMANCE.SUBMIT' | translate }}">
+                  <i class="bx bx-send"></i>
+                </button>
+                <button class="action-btn action-btn--delete"
+                        (click)="delete(r.id!)"
+                        title="{{ 'PERFORMANCE.DELETE' | translate }}">
+                  <i class="bx bx-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-row" *ngIf="!loading && totalPages > 1">
+      <span class="pagination-info">
+        Page {{ currentPage + 1 }} / {{ totalPages }} &nbsp;·&nbsp; {{ totalElements }} reviews
+      </span>
+      <div class="pagination-btns">
+        <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">
+          <i class="bx bx-chevron-left"></i>
+        </button>
+        <ng-container *ngFor="let p of pagesArray">
+          <button class="page-btn" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p + 1 }}</button>
+        </ng-container>
+        <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">
+          <i class="bx bx-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ── Side Panel: Create / Edit Review ──────────────────────────────────── -->
+<ng-container *ngIf="showForm">
+  <div class="panel-backdrop" (click)="closeForm()"></div>
+  <div class="side-panel">
+
+    <div class="panel-header">
+      <span class="panel-title">
+        <i class="bx bxs-star-half"></i>
+        {{ editingId ? ('PERFORMANCE.EDIT_REVIEW' | translate) : ('PERFORMANCE.NEW_REVIEW' | translate) }}
+      </span>
+      <button class="panel-close" (click)="closeForm()"><i class="bx bx-x"></i></button>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- Employee / Period / Date -->
+      <div class="form-section">
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label">{{ 'PERFORMANCE.FIELD_EMPLOYEE' | translate }} <span style="color:#F43F5E">*</span></label>
+            <select class="form-control" [(ngModel)]="form.collaborateurId" required>
+              <option [ngValue]="0" disabled>{{ 'PERFORMANCE.SELECT_EMPLOYEE' | translate }}</option>
+              <option *ngFor="let e of employees" [value]="e.matricule">{{ e.nom }} {{ e.prenom }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ 'PERFORMANCE.FIELD_PERIOD' | translate }} <span style="color:#F43F5E">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="form.reviewPeriod" placeholder="2024-Q1" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ 'PERFORMANCE.FIELD_DATE' | translate }} <span style="color:#F43F5E">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="form.reviewDate" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scores -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <i class="bx bxs-bar-chart-alt-2"></i>
+          {{ 'PERFORMANCE.SCORES_TITLE' | translate }}
+          &nbsp;<small style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#8FA3B8;">(1 = Poor · 5 = Excellent)</small>
+        </div>
+        <div class="score-grid">
+          <div class="score-item" *ngFor="let field of scoreFields">
+            <div class="score-item-label">{{ scoreLabel(field) }}</div>
+            <select class="form-control" style="font-weight:700;font-size:15px;text-align:center;padding:6px 8px;" [(ngModel)]="form[field]">
+              <option [ngValue]="undefined">—</option>
+              <option *ngFor="let s of scoreLabels" [ngValue]="s">{{ s }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text fields -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <i class="bx bxs-like" style="color:#22C55E"></i>
+          {{ 'PERFORMANCE.STRENGTHS' | translate }}
+        </div>
+        <textarea class="form-control" rows="2" [(ngModel)]="form.strengths"
+          placeholder="{{ 'PERFORMANCE.STRENGTHS_PH' | translate }}"></textarea>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <i class="bx bxs-edit" style="color:#FBBF24"></i>
+          {{ 'PERFORMANCE.IMPROVEMENTS' | translate }}
+        </div>
+        <textarea class="form-control" rows="2" [(ngModel)]="form.improvements"
+          placeholder="{{ 'PERFORMANCE.IMPROVEMENTS_PH' | translate }}"></textarea>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <i class="bx bxs-flag" style="color:#60A5FA"></i>
+          {{ 'PERFORMANCE.GOALS' | translate }}
+        </div>
+        <textarea class="form-control" rows="2" [(ngModel)]="form.goals"
+          placeholder="{{ 'PERFORMANCE.GOALS_PH' | translate }}"></textarea>
+      </div>
+
+      <!-- Reviewer -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">{{ 'PERFORMANCE.REVIEWER_NAME' | translate }}</label>
+          <input type="text" class="form-control" [(ngModel)]="form.reviewerName" placeholder="e.g. John Smith">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ 'PERFORMANCE.REVIEWER_NOTES' | translate }}</label>
+          <textarea class="form-control" rows="2" [(ngModel)]="form.reviewerNotes"
+            placeholder="{{ 'PERFORMANCE.REVIEWER_NOTES_PH' | translate }}"></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn-cancel" (click)="closeForm()">{{ 'PERFORMANCE.CANCEL' | translate }}</button>
+      <button class="btn-save" (click)="save()">
+        <i class="bx bx-save"></i>
+        {{ editingId ? ('PERFORMANCE.UPDATE' | translate) : ('PERFORMANCE.CREATE' | translate) }}
+      </button>
+    </div>
+
+  </div>
+</ng-container>

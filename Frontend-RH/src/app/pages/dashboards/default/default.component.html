@@ -13,7 +13,7 @@
     <div class="wdm-total-num">{{ totalDeviceUsers }} {{ 'DASHBOARD.USER' | translate }}</div>
   </div>
   <div class="wdm-breakdown-row">
-    <div class="wdm-breakdown-item" *ngFor="let d of deviceBreakdown">
+    <div class="wdm-breakdown-item" *ngFor="let d of deviceBreakdown; trackBy: trackByIndex">
       <div class="wdm-breakdown-icon"><i class="bx {{ d.icon }}"></i></div>
       <div class="wdm-breakdown-label">{{ d.label | translate }}</div>
       <div class="wdm-breakdown-num">{{ d.users }} {{ 'DASHBOARD.USER' | translate }}</div>
@@ -32,7 +32,7 @@
         <th>{{ 'DASHBOARD.STATUS' | translate }}</th>
       </tr></thead>
       <tbody>
-        <tr *ngFor="let r of deviceActivity">
+        <tr *ngFor="let r of deviceActivity; trackBy: trackById">
           <td class="wdm-id">{{ r.id }}</td>
           <td class="wdm-name">{{ r.name }}</td>
           <td class="wdm-time">{{ r.time }}</td>
@@ -61,7 +61,7 @@
     <div class="dash-col-left">
 
       <!-- KPI Card -->
-      <div class="card wiko-card">
+      <div class="card wiko-card" (click)="navigateToEmployees()" style="cursor:pointer;" title="View all employees">
         <div class="wiko-card__head">
           <span class="wiko-card__title">{{ 'DASHBOARD.AVG_KPI' | translate }}</span>
           <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
@@ -71,7 +71,8 @@
           <span class="kpi-score-den">{{ 'DASHBOARD.KPI_STANDARD' | translate }}</span>
         </div>
         <p class="kpi-improve-text">{{ 'DASHBOARD.KPI_IMPROVEMENT' | translate }}</p>
-        <apx-chart [series]="kpiBarChart.series" [chart]="kpiBarChart.chart" [colors]="kpiBarChart.colors"
+        <apx-chart *ngIf="kpiBarChart.chart"
+          [series]="kpiBarChart.series" [chart]="kpiBarChart.chart" [colors]="kpiBarChart.colors"
           [plotOptions]="kpiBarChart.plotOptions" [dataLabels]="kpiBarChart.dataLabels"
           [xaxis]="kpiBarChart.xaxis" [grid]="kpiBarChart.grid" [yaxis]="kpiBarChart.yaxis">
         </apx-chart>
@@ -84,7 +85,7 @@
           <span class="wiko-card__title">{{ 'DASHBOARD.GENDER_DISTRIBUTION' | translate }}</span>
           <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
         </div>
-        <apx-chart *ngIf="genderDonutChart.series"
+        <apx-chart *ngIf="genderDonutChart.chart"
           [series]="genderDonutChart.series" [chart]="genderDonutChart.chart"
           [labels]="genderDonutChart.labels" [colors]="genderDonutChart.colors"
           [dataLabels]="genderDonutChart.dataLabels" [legend]="genderDonutChart.legend"
@@ -115,22 +116,22 @@
         <span class="wiko-card__title">{{ 'DASHBOARD.EMPLOYEE' | translate }}</span>
         <i class="bx bx-dots-horizontal-rounded wiko-card__more"></i>
       </div>
-      <div class="emp-total-row">
+      <div class="emp-total-row" (click)="navigateToEmployees()" style="cursor:pointer;" title="View all employees">
         <div>
           <p class="emp-total-label">{{ 'DASHBOARD.TOTAL_EMPLOYEE' | translate }}</p>
           <span class="emp-total-num">{{ totalCollaborateurs | number }}</span>
         </div>
-        <button class="emp-add-btn" (click)="goAddEmployee()"><i class="bx bx-plus"></i></button>
+        <button class="emp-add-btn" (click)="$event.stopPropagation(); goAddEmployee()"><i class="bx bx-plus"></i></button>
       </div>
       <div class="emp-gender-row">
-        <div class="emp-gender-item">
+        <div class="emp-gender-item" (click)="navigateToEmployees('ACTIVE')" style="cursor:pointer;" title="View active employees">
           <div class="emp-gender-top">
             <span class="emp-gender-count">{{ maleCount }}</span>
             <span class="emp-gender-pct emp-gender-pct--blue">{{ malePct }}%</span>
           </div>
           <span class="emp-gender-label">{{ 'DASHBOARD.MALE_EMPLOYEE' | translate }}</span>
         </div>
-        <div class="emp-gender-item">
+        <div class="emp-gender-item" (click)="navigateToLeaves('PENDING')" style="cursor:pointer;" title="View pending leave requests">
           <div class="emp-gender-top">
             <span class="emp-gender-count">{{ femaleCount }}</span>
             <span class="emp-gender-pct emp-gender-pct--rose">{{ femalePct }}%</span>
@@ -155,7 +156,8 @@
             <span class="emp-proj-label">{{ 'DASHBOARD.DONE' | translate }}</span>
           </div>
         </div>
-        <apx-chart [series]="projBarChart.series" [chart]="projBarChart.chart" [colors]="projBarChart.colors"
+        <apx-chart *ngIf="projBarChart.chart"
+          [series]="projBarChart.series" [chart]="projBarChart.chart" [colors]="projBarChart.colors"
           [plotOptions]="projBarChart.plotOptions" [dataLabels]="projBarChart.dataLabels"
           [xaxis]="projBarChart.xaxis" [grid]="projBarChart.grid" [yaxis]="projBarChart.yaxis">
         </apx-chart>
@@ -181,7 +183,7 @@
         </div>
       </div>
 
-      <div class="att-pct-row">
+      <div class="att-pct-row" (click)="navigateToLeaves()" style="cursor:pointer;" title="View leave requests">
         <span class="att-pct-num">{{ attendancePct }}%</span>
         <span class="att-pct-trend" [class.att-pct-trend--down]="attendanceTrend < 0">
           <i class="bx" [class.bx-up-arrow-alt]="attendanceTrend >= 0" [class.bx-down-arrow-alt]="attendanceTrend < 0"></i>
@@ -194,18 +196,18 @@
       <div class="att-heatmap">
         <div class="att-heatmap__body">
           <div class="att-heatmap__hour-labels">
-            <span *ngFor="let w of heatmapWeekLabels">{{ w }}</span>
+            <span *ngFor="let w of heatmapWeekLabels; trackBy: trackByIndex">{{ w }}</span>
           </div>
           <div class="att-heatmap__grid">
-            <div *ngFor="let row of heatmapData" class="att-heatmap__row">
-              <div *ngFor="let val of row" class="att-heatmap__cell"
+            <div *ngFor="let row of heatmapData; trackBy: trackByIndex" class="att-heatmap__row">
+              <div *ngFor="let val of row; trackBy: trackByIndex" class="att-heatmap__cell"
                    [style.background]="getHeatColor(val)"
                    [title]="val > 0 ? (val * 10) + '% present' : ''"></div>
             </div>
           </div>
         </div>
         <div class="att-heatmap__day-labels">
-          <ng-container *ngFor="let col of heatmapColLabels">
+          <ng-container *ngFor="let col of heatmapColLabels; trackBy: trackByIndex">
             <span>{{ heatmapColIsI18n ? (col | translate) : col }}</span>
           </ng-container>
         </div>
@@ -214,10 +216,66 @@
 
   </div>
 
+  <!-- ── Expiring Contracts Widget ── -->
+  <div class="card dash-table-card" style="margin-bottom:20px;">
+    <div class="dash-tabs-bar" style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;">
+      <span style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:#1A2B3C;">
+        <i class="bx bx-time-five" style="color:#F59E0B;margin-right:6px;"></i>
+        Contracts Expiring Within 30 Days
+      </span>
+      <button (click)="loadExpiringContracts()" style="background:none;border:none;cursor:pointer;color:#8FA3B8;font-size:15px;" title="Refresh">
+        <i class="bx bx-refresh"></i>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="expiringContractsLoading" style="padding:20px;text-align:center;color:#8FA3B8;font-size:13px;">
+      <i class="bx bx-loader-alt bx-spin" style="font-size:22px;display:block;margin-bottom:8px;"></i> Loading…
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!expiringContractsLoading && expiringContracts.length === 0"
+         style="padding:24px;text-align:center;color:#8FA3B8;font-size:13px;">
+      <i class="bx bx-check-circle" style="font-size:28px;display:block;margin-bottom:8px;color:#22C55E;"></i>
+      No contracts expiring in the next 30 days.
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" *ngIf="!expiringContractsLoading && expiringContracts.length > 0">
+      <table class="wiko-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Contract Type</th>
+            <th>Expiry Date</th>
+            <th>Days Left</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of expiringContracts; trackBy: trackByIndex">
+            <td class="wiko-table__name">{{ a.fullName }}</td>
+            <td>
+              <span style="display:inline-block;padding:3px 10px;border-radius:6px;font-size:11.5px;font-weight:600;background:#FEF3C7;color:#92400E;">
+                {{ a.contractType }}
+              </span>
+            </td>
+            <td style="font-size:13px;color:#4A6080;">{{ a.endDate }}</td>
+            <td>
+              <span class="exp-chip" [ngClass]="contractAlertClass(a.daysLeft)"
+                    style="display:inline-block;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:700;">
+                {{ a.daysLeft }} day(s)
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ── Bottom: Tabbed Table ── -->
   <div class="card dash-table-card">
     <div class="dash-tabs-bar">
-      <button *ngFor="let tab of tableTabs" class="dash-tab" [class.dash-tab--active]="activeTab===tab" (click)="setTab(tab)">{{ tab | translate }}</button>
+      <button *ngFor="let tab of tableTabs; trackBy: trackByIndex" class="dash-tab" [class.dash-tab--active]="activeTab===tab" (click)="setTab(tab)">{{ tab | translate }}</button>
       <span class="dash-tabs__updated"><i class="bx bx-refresh"></i> {{ 'DASHBOARD.UPDATED_RECENTLY' | translate }}</span>
     </div>
     <div class="table-responsive">
@@ -234,7 +292,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let row of tableRows">
+          <tr *ngFor="let row of tableRows; trackBy: trackById">
             <td class="wiko-table__id">{{ row.id }}</td>
             <td class="wiko-table__name">{{ row.name }}</td>
             <td><span class="dept-chip dept-chip--{{ row.deptClass }}">{{ row.dept }}</span></td>

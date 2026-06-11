@@ -124,7 +124,7 @@ export class ProfileComponent implements OnInit {
 
   // ── Role helpers ───────────────────────────────────────────────────────────
   isAdmin(): boolean {
-    return String(this.authService.getUserRole()).toUpperCase() === 'ADMIN';
+    return this.authService.hasPermission('USER_MANAGE');
   }
 
   // ── Create User ────────────────────────────────────────────────────────────
@@ -147,11 +147,11 @@ export class ProfileComponent implements OnInit {
         await this.confirmSvc.alert(this.translate.instant('PROFILE.USER_CREATED'), this.translate.instant('PROFILE.SUCCESS_TITLE'), 'success');
       },
       error: (err) => {
-        const serverMsg: string = err?.error?.message || err?.error?.error || err?.message || '';
-        const isEmailConflict = err?.status === 409 || serverMsg.toLowerCase().includes('email');
-        this.createUserError = isEmailConflict
-          ? this.translate.instant('PROFILE.EMAIL_EXISTS')
-          : serverMsg || this.translate.instant('PROFILE.CREATE_USER_ERROR');
+        if (err?.status === 409) {
+          this.createUserError = this.translate.instant('PROFILE.ERROR_EMAIL_CONFLICT');
+        } else {
+          this.createUserError = err?.error?.message || this.translate.instant('PROFILE.ERROR_CREATE_USER');
+        }
       },
     });
   }
@@ -185,8 +185,8 @@ export class ProfileComponent implements OnInit {
       },
       error: async err => {
         this.showEditPasswordModal = false;
-        const msg = err?.error?.message?.includes('Old password')
-          ? this.translate.instant('PROFILE.PWD_WRONG_OLD')
+        const msg = err?.status === 400
+          ? (err?.error?.message || this.translate.instant('PROFILE.ERROR_PASSWORD_CHANGE'))
           : this.translate.instant('PROFILE.PWD_ERROR');
         await this.confirmSvc.alert(msg, this.translate.instant('PROFILE.ERROR_TITLE'), 'error');
       },

@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, Inject, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { interval, Subject, Subscription } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 import { AuthenticationService } from '../../core/services/auth.service';
 import { NotificationService, HrNotification } from '../../core/services/notification-service.service';
 import { CookieService } from 'ngx-cookie-service';
@@ -39,6 +40,7 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     private notifSub: Subscription;
     private countSub: Subscription;
+    private destroy$ = new Subject<void>();
 
     listLang = [
         { text: 'English', flag: 'assets/images/flags/us.jpg', lang: 'en' },
@@ -95,11 +97,19 @@ export class TopbarComponent implements OnInit, OnDestroy {
         this.notifSub = this.notificationService.notifications$.subscribe(n => { this.notifications = n; });
         this.countSub = this.notificationService.unreadCount$.subscribe(c => { this.unreadCount = c; });
         this.notificationService.connect();
+
+        // Poll unread count every 60 seconds as a fallback
+        interval(60000).pipe(
+            takeUntil(this.destroy$),
+            switchMap(() => this.notificationService.getUnreadCount())
+        ).subscribe(count => { this.unreadCount = count; });
     }
 
     ngOnDestroy(): void {
         this.notifSub?.unsubscribe();
         this.countSub?.unsubscribe();
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     // Close all panels when clicking outside the bar
@@ -134,6 +144,14 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
     markAllRead(): void {
         this.notificationService.markAllRead().subscribe();
+    }
+
+    clearRead(): void {
+        this.notificationService.clearRead().subscribe();
+    }
+
+    deleteNotification(id: number): void {
+        this.notificationService.deleteNotification(id).subscribe();
     }
 
     refreshNotifications(): void {

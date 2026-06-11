@@ -10,6 +10,8 @@ import com.innovx.gestionrh.dto.response.LeaveRequestResponse;
 import com.innovx.gestionrh.dto.response.LeaveTypeResponse;
 import com.innovx.gestionrh.dto.response.PagedResponse;
 import com.innovx.gestionrh.security.services.UserDetailsImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Year;
 import java.util.List;
 
+@Tag(name = "Leave Management", description = "Manage leave types, submit and process leave requests, and track leave balances")
 @RestController
 @RequestMapping("/api/v1/leaves")
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class LeaveController {
 
     // ── Leave Types ────────────────────────────────────────────────────────────
 
+    @Operation(summary = "Create leave type", description = "Define a new category of leave (e.g. Annual, Sick)")
     @PostMapping("/types")
     @PreAuthorize("hasAuthority('LEAVE_MANAGE_TYPES')")
     public ResponseEntity<ApiResponse<LeaveTypeResponse>> createLeaveType(
@@ -41,6 +45,7 @@ public class LeaveController {
                 .body(ApiResponse.ok(leaveService.createLeaveType(request)));
     }
 
+    @Operation(summary = "Update leave type", description = "Modify an existing leave type definition")
     @PutMapping("/types/{id}")
     @PreAuthorize("hasAuthority('LEAVE_MANAGE_TYPES')")
     public ResponseEntity<ApiResponse<LeaveTypeResponse>> updateLeaveType(
@@ -49,12 +54,14 @@ public class LeaveController {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.updateLeaveType(id, request)));
     }
 
+    @Operation(summary = "List leave types", description = "Retrieve all configured leave types")
     @GetMapping("/types")
     @PreAuthorize("hasAuthority('LEAVE_REQUEST')")
     public ResponseEntity<ApiResponse<List<LeaveTypeResponse>>> getAllLeaveTypes() {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.getAllLeaveTypes()));
     }
 
+    @Operation(summary = "Delete leave type", description = "Remove a leave type definition")
     @DeleteMapping("/types/{id}")
     @PreAuthorize("hasAuthority('LEAVE_MANAGE_TYPES')")
     public ResponseEntity<ApiResponse<Void>> deleteLeaveType(@PathVariable Long id) {
@@ -64,6 +71,7 @@ public class LeaveController {
 
     // ── Leave Requests ─────────────────────────────────────────────────────────
 
+    @Operation(summary = "Submit leave request", description = "Submit a new leave request for the authenticated employee")
     @PostMapping
     @PreAuthorize("hasAuthority('LEAVE_REQUEST')")
     public ResponseEntity<ApiResponse<LeaveRequestResponse>> submit(
@@ -73,6 +81,7 @@ public class LeaveController {
                 .body(ApiResponse.ok(leaveService.submit(dto, currentUser.getId())));
     }
 
+    @Operation(summary = "List all leave requests", description = "Paginated list of all leave requests across all employees (requires LEAVE_READ_ALL)")
     @GetMapping
     @PreAuthorize("hasAuthority('LEAVE_READ_ALL')")
     public ResponseEntity<PagedResponse<LeaveRequestResponse>> findAll(
@@ -80,6 +89,7 @@ public class LeaveController {
         return ResponseEntity.ok(PagedResponse.of(leaveService.findAll(pageable)));
     }
 
+    @Operation(summary = "List my leave requests", description = "Paginated list of the authenticated user's own leave requests")
     @GetMapping("/my")
     @PreAuthorize("hasAuthority('LEAVE_REQUEST')")
     public ResponseEntity<PagedResponse<LeaveRequestResponse>> findMyRequests(
@@ -88,6 +98,7 @@ public class LeaveController {
         return ResponseEntity.ok(PagedResponse.of(leaveService.findByUser(currentUser.getId(), pageable)));
     }
 
+    @Operation(summary = "List leave requests by user", description = "Paginated list of leave requests for a specific user")
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAuthority('LEAVE_READ_ALL')")
     public ResponseEntity<PagedResponse<LeaveRequestResponse>> findByUser(
@@ -96,12 +107,14 @@ public class LeaveController {
         return ResponseEntity.ok(PagedResponse.of(leaveService.findByUser(userId, pageable)));
     }
 
+    @Operation(summary = "Get leave request by ID", description = "Fetch a single leave request by its ID")
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('LEAVE_REQUEST', 'LEAVE_READ_ALL')")
     public ResponseEntity<ApiResponse<LeaveRequestResponse>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.findById(id)));
     }
 
+    @Operation(summary = "Approve leave request", description = "Approve a pending leave request (requires LEAVE_APPROVE permission)")
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('LEAVE_APPROVE')")
     public ResponseEntity<ApiResponse<LeaveRequestResponse>> approve(
@@ -111,6 +124,7 @@ public class LeaveController {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.approve(id, decision, currentUser.getId())));
     }
 
+    @Operation(summary = "Reject leave request", description = "Reject a pending leave request (requires LEAVE_REJECT permission)")
     @PatchMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('LEAVE_REJECT')")
     public ResponseEntity<ApiResponse<LeaveRequestResponse>> reject(
@@ -120,6 +134,7 @@ public class LeaveController {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.reject(id, decision, currentUser.getId())));
     }
 
+    @Operation(summary = "Cancel leave request", description = "Cancel a leave request submitted by the authenticated user")
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('LEAVE_REQUEST')")
     public ResponseEntity<ApiResponse<LeaveRequestResponse>> cancel(
@@ -130,6 +145,7 @@ public class LeaveController {
 
     // ── Leave Balances ─────────────────────────────────────────────────────────
 
+    @Operation(summary = "Get my leave balances", description = "Returns remaining leave days per type for the authenticated user in a given year")
     @GetMapping("/balance")
     @PreAuthorize("hasAuthority('LEAVE_REQUEST')")
     public ResponseEntity<ApiResponse<List<LeaveBalanceResponse>>> getMyBalances(
@@ -139,6 +155,7 @@ public class LeaveController {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.getBalancesForUser(currentUser.getId(), resolvedYear)));
     }
 
+    @Operation(summary = "Get leave balances for user", description = "Returns remaining leave days per type for a specific user in a given year")
     @GetMapping("/balance/{userId}")
     @PreAuthorize("hasAuthority('LEAVE_READ_ALL')")
     public ResponseEntity<ApiResponse<List<LeaveBalanceResponse>>> getBalancesForUser(
@@ -148,6 +165,7 @@ public class LeaveController {
         return ResponseEntity.ok(ApiResponse.ok(leaveService.getBalancesForUser(userId, resolvedYear)));
     }
 
+    @Operation(summary = "Initialize leave balance", description = "Manually set the yearly leave balance for a user and leave type")
     @PostMapping("/balance/init")
     @PreAuthorize("hasAuthority('LEAVE_MANAGE_TYPES')")
     public ResponseEntity<ApiResponse<LeaveBalanceResponse>> initBalance(

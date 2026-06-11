@@ -58,6 +58,7 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     { label: 'Salary',               icon: 'bxs-wallet',         route: '/salary',          permission: 'SALARY_READ' },
     { label: 'Documents',            icon: 'bxs-folder-open',    route: '/documents',       permission: 'DOCUMENT_READ' },
     { label: 'Meetings',             icon: 'bxs-conversation',   route: '/meetings',        permission: 'MEETING_READ' },
+    { label: 'Performance Reviews',  icon: 'bxs-star-half',      route: '/performance',     permission: 'PERFORMANCE_READ' },
     { label: 'Departments',          icon: 'bxs-building-house', route: '/org',             permission: 'DEPARTMENT_READ' },
     { label: 'Public Holidays',      icon: 'bxs-party',          route: '/public-holidays', permission: 'LEAVE_MANAGE_TYPES' },
     { label: 'Statistics',           icon: 'bxs-chart',          route: '/statistics',      permission: 'REPORT_READ' },
@@ -252,11 +253,11 @@ export class SidebarComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   }
 
   get showEmployeeSection(): boolean {
-    return this.canSee('EMPLOYEE_READ') || this.canSee('INTERN_READ')       ||
-           this.canSee('PLANNING_READ') || this.canSee('LEAVE_READ_ALL')    ||
-           this.canSee('CV_READ')       || this.canSee('SALARY_READ')       ||
-           this.canSee('DOCUMENT_READ') || this.canSee('MEETING_READ')      ||
-           this.canSee('DEPARTMENT_READ');
+    return this.canSee('EMPLOYEE_READ')    || this.canSee('INTERN_READ')       ||
+           this.canSee('PLANNING_READ')    || this.canSee('LEAVE_READ_ALL')    ||
+           this.canSee('CV_READ')          || this.canSee('SALARY_READ')       ||
+           this.canSee('DOCUMENT_READ')    || this.canSee('MEETING_READ')      ||
+           this.canSee('PERFORMANCE_READ') || this.canSee('DEPARTMENT_READ');
   }
 
   get showOrgSection(): boolean {

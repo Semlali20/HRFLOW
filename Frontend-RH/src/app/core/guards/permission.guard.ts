@@ -6,6 +6,12 @@ import { AuthenticationService } from '../services/auth.service';
 /**
  * Functional permission guard. Usage in routes:
  * { path: '...', canActivate: [permissionGuard('EMPLOYEE_READ')] }
+ *
+ * S-011: The ADMIN role-name shortcut has been removed. ADMIN users already have
+ * all permissions assigned via syncRolePermissions() on the backend, so
+ * permService.has(permission) will return true for them through the normal path.
+ * Checking the role name here would bypass the actual permission check and could
+ * allow access if the role name were spoofed or the mapping changed.
  */
 export function permissionGuard(permission: string): CanActivateFn {
     return (_route: ActivatedRouteSnapshot) => {
@@ -18,8 +24,6 @@ export function permissionGuard(permission: string): CanActivateFn {
             return false;
         }
         if (!permService.has(permission)) {
-            // ADMIN bypasses all permission checks
-            if (authService.getUserRole() === 'ADMIN') return true;
             router.navigate(['/dashboard']);
             return false;
         }

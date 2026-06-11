@@ -23,9 +23,12 @@ function mapEmployee(e: any): Collaborateur {
         Département:    e.department?.name ?? '',
         Fonction:       e.position?.name   ?? '',
         date_entree:    e.hireDate          ?? '',
-        Ancienneté:     e.seniorityYears    ?? 0,
-        status:         e.status            ?? '',
-        _backendId:     e.id,
+        Ancienneté:        e.seniorityYears    ?? 0,
+        status:            e.status            ?? '',
+        contractStartDate: e.contractStartDate ?? null,
+        contractEndDate:   e.contractEndDate   ?? null,
+        noticePeriodDays:  e.noticePeriodDays  ?? null,
+        _backendId:        e.id,
         _departmentId:  e.department?.id    ?? null,
         _positionId:    e.position?.id      ?? null,
         _version:       e.version           ?? 0,
@@ -58,10 +61,13 @@ export function mapToBackendRequest(dto: any): any {
         branch:       orNull(dto.FILIALE ?? dto.branch),
         departmentId: dto.departmentId ?? dto._departmentId ?? null,
         positionId:   dto.positionId  ?? dto._positionId  ?? null,
-        contractType: mapContractType(dto.Type ?? dto.contractType),
-        hireDate:     orNull(dto.date_entree ?? dto.hireDate),
-        status:       dto.status      || 'ACTIVE',
-        version:      dto.version     ?? dto._version ?? null,
+        contractType:      mapContractType(dto.Type ?? dto.contractType),
+        hireDate:          orNull(dto.date_entree ?? dto.hireDate),
+        contractStartDate: orNull(dto.contractStartDate),
+        contractEndDate:   orNull(dto.contractEndDate),
+        noticePeriodDays:  dto.noticePeriodDays ?? null,
+        status:            dto.status || 'ACTIVE',
+        version:           dto.version ?? dto._version ?? null,
     };
 }
 
@@ -168,6 +174,14 @@ export class CollaborateurService {
     unlinkUser(id: number): Observable<Collaborateur> {
         return this.http.patch<any>(`${this.BASE}/${id}/unlink-user`, null).pipe(
             map(res => mapEmployee(res?.data ?? res)),
+            catchError(this.handleError)
+        );
+    }
+
+    /** GET /employees/contracts/expiring?daysAhead=N */
+    getExpiringContracts(daysAhead: number = 30): Observable<any[]> {
+        return this.http.get<any>(`${this.BASE}/contracts/expiring`, { params: { daysAhead: String(daysAhead) } }).pipe(
+            map(res => Array.isArray(res) ? res : (res?.content ?? res?.data ?? [])),
             catchError(this.handleError)
         );
     }

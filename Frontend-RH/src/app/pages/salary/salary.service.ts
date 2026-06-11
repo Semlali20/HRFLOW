@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { Payslip, PayslipCreateDto, SalarySummary } from 'src/app/core/models/hr.models';
+import { Payslip, PayslipCreateDto } from 'src/app/core/models/hr.models';
 
 @Injectable({ providedIn: 'root' })
 export class SalaryService {
@@ -38,36 +38,54 @@ export class SalaryService {
         return this.http.get<Payslip[]>(this.BASE, { params }).pipe(catchError(this.handleError));
     }
 
-    getSummary(period?: string): Observable<SalarySummary> {
-        const params = period ? new HttpParams().set('period', period) : new HttpParams();
-        return this.http.get<SalarySummary>(`${this.BASE}/summary`, { params }).pipe(catchError(this.handleError));
-    }
-
     create(dto: PayslipCreateDto): Observable<Payslip> {
         if (!dto.collaborateurId || !dto.period) {
             return throwError(() => new Error('collaborateurId and period are required'));
         }
-        return this.http.post<Payslip>(this.BASE, dto).pipe(catchError(this.handleError));
+        return this.http.post<any>(this.BASE, dto).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
+    update(id: number, dto: PayslipCreateDto): Observable<Payslip> {
+        if (!id) return throwError(() => new Error('id is required'));
+        return this.http.put<any>(`${this.BASE}/${id}`, dto).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
+    }
+
+    /** PATCH /salaries/{id}/status?status=VALIDATED */
     validate(id: number): Observable<Payslip> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.put<Payslip>(`${this.BASE}/${id}/validate`, {}).pipe(catchError(this.handleError));
+        return this.http.patch<any>(`${this.BASE}/${id}/status`, null, { params: { status: 'VALIDATED' } }).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
+    /** PATCH /salaries/{id}/status?status=PAID */
     markPaid(id: number): Observable<Payslip> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.put<Payslip>(`${this.BASE}/${id}/pay`, {}).pipe(catchError(this.handleError));
+        return this.http.patch<any>(`${this.BASE}/${id}/status`, null, { params: { status: 'PAID' } }).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
+    }
+
+    /** PATCH /salaries/{id}/status?status=X — generic status update */
+    updateStatus(id: number, status: string): Observable<Payslip> {
+        if (!id) return throwError(() => new Error('id is required'));
+        return this.http.patch<any>(`${this.BASE}/${id}/status`, null, { params: { status } }).pipe(
+            map(res => res?.data ?? res),
+            catchError(this.handleError)
+        );
     }
 
     delete(id: number): Observable<void> {
         if (!id) return throwError(() => new Error('id is required'));
         return this.http.delete<void>(`${this.BASE}/${id}`).pipe(catchError(this.handleError));
-    }
-
-    downloadPayslip(id: number): Observable<ArrayBuffer> {
-        if (!id) return throwError(() => new Error('id is required'));
-        return this.http.get(`${this.BASE}/${id}/download`, { responseType: 'arraybuffer' }).pipe(catchError(this.handleError));
     }
 
     private handleError(err: any): Observable<never> {

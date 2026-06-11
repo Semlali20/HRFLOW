@@ -288,13 +288,13 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
       <div class="dp-field">
         <span class="dp-field-lbl"><i class="bx bx-purchase-tag-alt"></i> {{ 'PROJECTS.FIELD_PROJECT_ID' | translate }}</span>
-        <span class="dp-field-val">#ID128472</span>
+        <span class="dp-field-val">#{{ selectedProject?.id || 'N/A' }}</span>
       </div>
       <div class="dp-field">
         <span class="dp-field-lbl"><i class="bx bx-user"></i> {{ 'PROJECTS.FIELD_PROJECT_MANAGER' | translate }}</span>
         <span class="dp-field-val">
           <span class="dp-manager-row">
-            <span class="dp-manager-avatar">MS</span> Mrs. Mole Stewart
+            <span class="dp-manager-avatar">{{ getInitials(selectedProject?.manager) }}</span> {{ selectedProject?.manager || '—' }}
           </span>
         </span>
       </div>
@@ -309,22 +309,23 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
       <div class="dp-field">
         <span class="dp-field-lbl"><i class="bx bx-loader-circle"></i> {{ 'PROJECTS.FIELD_STATUS' | translate }}</span>
         <span class="dp-field-val">
-          <span class="dp-status-badge status-progress">
-            <span style="width:7px;height:7px;border-radius:50%;background:#15803D;display:inline-block;"></span>
-            On Progress
+          <span class="dp-status-badge" [ngClass]="chipClass(selectedProject?.status)">
+            <span style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block;opacity:.6;"></span>
+            {{ selectedProject?.status || '—' }}
           </span>
         </span>
       </div>
       <div class="dp-field">
         <span class="dp-field-lbl"><i class="bx bx-calendar"></i> {{ 'PROJECTS.FIELD_TIMELINE' | translate }}</span>
-        <span class="dp-field-val" style="font-weight:600;">May 12, 2024 - December 12, 2024</span>
+        <span class="dp-field-val" style="font-weight:600;">{{ selectedProject?.start || '—' }} — {{ selectedProject?.end || '—' }}</span>
       </div>
       <div class="dp-field">
         <span class="dp-field-lbl"><i class="bx bx-cube-alt"></i> {{ 'PROJECTS.FIELD_SERVICES' | translate }}</span>
         <span class="dp-field-val">
-          <span class="dp-service-chip">UI Design</span>
-          <span class="dp-service-chip">Website Develope</span>
-          <span class="dp-service-chip">QA Testing</span>
+          <ng-container *ngIf="selectedProject?.services?.length; else noServices">
+            <span class="dp-service-chip" *ngFor="let s of selectedProject.services">{{ s }}</span>
+          </ng-container>
+          <ng-template #noServices><span style="color:#8FA3B8;">—</span></ng-template>
         </span>
       </div>
 
@@ -480,7 +481,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
           </div>
           <div class="total-dd-wrap" (click)="$event.stopPropagation()">
             <button class="period-btn" (click)="showTotalDd=!showTotalDd">
-              {{ totalPeriodLabel }} <i class="bx bx-chevron-down"></i>
+              {{ totalPeriodLabel | translate }} <i class="bx bx-chevron-down"></i>
             </button>
             <div class="total-dd" *ngIf="showTotalDd">
               <button [class.active]="totalPeriod==='week'"  (click)="setTotalPeriod('week')">This Week</button>
@@ -507,7 +508,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
           <span class="big-num">{{ periodTotal }}</span>
         </div>
         <div class="big-sub">{{ 'PROJECTS.TOTAL_PROJECTS_SUB' | translate }}</div>
-        <apx-chart [series]="areaChart.series" [chart]="areaChart.chart" [colors]="areaChart.colors"
+        <apx-chart *ngIf="areaChart.chart" [series]="areaChart.series" [chart]="areaChart.chart" [colors]="areaChart.colors"
           [stroke]="areaChart.stroke" [fill]="areaChart.fill" [xaxis]="areaChart.xaxis"
           [grid]="areaChart.grid" [dataLabels]="areaChart.dataLabels" [tooltip]="areaChart.tooltip">
         </apx-chart>
@@ -521,7 +522,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
             <div class="time-val">{{ totalProjects }}</div>
           </div>
         </div>
-        <apx-chart [series]="barChart.series" [chart]="barChart.chart" [colors]="barChart.colors"
+        <apx-chart *ngIf="barChart.chart" [series]="barChart.series" [chart]="barChart.chart" [colors]="barChart.colors"
           [plotOptions]="barChart.plotOptions" [xaxis]="barChart.xaxis" [yaxis]="barChart.yaxis"
           [grid]="barChart.grid" [dataLabels]="barChart.dataLabels" [tooltip]="barChart.tooltip">
         </apx-chart>
@@ -649,7 +650,7 @@ export class ProjectsHrComponent implements OnInit {
 
   createForm = this.emptyForm();
 
-  // Loaded from real API
+  // TODO: fetch from API when service category endpoint is available
   availableServices = ['UI Design', 'Website Development', 'QA Testing', 'Backend Development', 'DevOps', 'Mobile App', 'Data Analysis'];
   employeeOptions: { name: string; initials: string; bg: string }[] = [];
   managerOptions: string[] = [];
@@ -662,7 +663,7 @@ export class ProjectsHrComponent implements OnInit {
   showTotalDd = false;
 
   get totalPeriodLabel(): string {
-    return { week: 'This Week', month: 'This Month', year: 'This Year' }[this.totalPeriod];
+    return { week: 'PROJECTS.PERIOD_WEEK', month: 'PROJECTS.PERIOD_MONTH', year: 'PROJECTS.PERIOD_YEAR' }[this.totalPeriod];
   }
 
   setTotalPeriod(p: 'week' | 'month' | 'year'): void {
@@ -719,7 +720,26 @@ export class ProjectsHrComponent implements OnInit {
 
   constructor(private collaborateurService: CollaborateurService, private confirmSvc: ConfirmService, private translate: TranslateService, private route: ActivatedRoute) {}
 
+  private readonly LS_KEY = 'hr_projects_v1';
+
+  private saveProjects(): void {
+    try { localStorage.setItem(this.LS_KEY, JSON.stringify(this.rows)); } catch {}
+  }
+
+  private loadProjects(): void {
+    try {
+      const raw = localStorage.getItem(this.LS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          this.rows = parsed.map(p => ({ ...p, createdAt: p.createdAt ? new Date(p.createdAt) : new Date() }));
+        }
+      }
+    } catch {}
+  }
+
   ngOnInit(): void {
+    this.loadProjects();
     this.route.queryParams.subscribe(params => {
       if (params['action'] === 'create') this.openCreate();
     });
@@ -836,6 +856,7 @@ export class ProjectsHrComponent implements OnInit {
       this.buildCharts(this.rows.length);
       this.buildAreaChart();
     }
+    this.saveProjects();
     this.closeAll();
   }
 
@@ -860,6 +881,7 @@ export class ProjectsHrComponent implements OnInit {
   async deleteRow(row: any): Promise<void> {
     if (!(await this.confirmSvc.confirm(this.translate.instant('PROJECTS.CONFIRM_DELETE_MSG', {name: row.name}), this.translate.instant('PROJECTS.CONFIRM_DELETE_BTN')))) return;
     this.rows = this.rows.filter(r => r !== row);
+    this.saveProjects();
     this.buildCharts(this.employeeOptions.length);
   }
 
@@ -870,6 +892,13 @@ export class ProjectsHrComponent implements OnInit {
       'chip-done':      s === 'Completed',
       'chip-cancelled': s === 'Cancelled',
     };
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '??';
+    const parts = name.trim().split(' ').filter(p => p.length > 0);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
   private emptyForm() {

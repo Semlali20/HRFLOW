@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { PlanningService } from './planning.service';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
 import { ConfirmService } from 'src/app/shared/confirm.service';
@@ -643,7 +644,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
           <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_DEPT' | translate }}</label>
             <select class="cf-sel" [(ngModel)]="createForm.dept">
               <option value="">{{ 'PLANNING.WF_SELECT_DEPT' | translate }}</option>
-              <option *ngFor="let d of deptOptions">{{d}}</option>
+              <option *ngFor="let d of deptOptions; trackBy: trackByIndex">{{d}}</option>
             </select></div>
           <div class="cf-row">
             <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.WF_FORM_CURRENT_HC' | translate }}</label>
@@ -699,7 +700,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.REC_FORM_DEPT' | translate }}</label>
               <select class="cf-sel" [(ngModel)]="createForm.dept">
                 <option value="">{{ 'PLANNING.REC_SELECT_DEPT' | translate }}</option>
-                <option *ngFor="let d of deptOptions">{{d}}</option>
+                <option *ngFor="let d of deptOptions; trackBy: trackByIndex">{{d}}</option>
               </select></div>
             <div class="cf-field"><label class="cf-lbl">{{ 'PLANNING.REC_FORM_TARGET_DATE' | translate }}</label>
               <input class="cf-in" type="date" [(ngModel)]="createForm.targetDate"/></div>
@@ -815,7 +816,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </div>
             <!-- Legend -->
             <div class="cal-legend">
-              <div class="leg-item" *ngFor="let l of typeLegend">
+              <div class="leg-item" *ngFor="let l of typeLegend; trackBy: trackByIndex">
                 <span class="leg-dot" [style.background]="l.color"></span> {{ l.label }}
               </div>
             </div>
@@ -826,13 +827,13 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
         <ng-container *ngIf="calView==='monthly'">
           <!-- Day of week header -->
           <div class="cal-dow">
-            <div class="cal-dow-cell" *ngFor="let d of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']">{{ d }}</div>
+            <div class="cal-dow-cell" *ngFor="let d of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; trackBy: trackByIndex">{{ d }}</div>
           </div>
 
           <!-- Day grid -->
           <div class="cal-grid">
             <div class="cal-cell"
-                 *ngFor="let day of calendarDays"
+                 *ngFor="let day of calendarDays; trackBy: trackByIndex"
                  [class.cal-cell--other]="!day.cur"
                  [class.cal-cell--today]="isToday(day.date)"
                  [class.cal-cell--selected]="isSameDay(day.date, selectedDay)"
@@ -840,7 +841,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <span class="cal-day-num">{{ day.date.getDate() }}</span>
               <div class="cal-events">
                 <div class="cal-pill"
-                     *ngFor="let ev of day.events.slice(0,3)"
+                     *ngFor="let ev of day.events.slice(0,3); trackBy: trackById"
                      [style.background]="typeColor(ev.type) + '20'"
                      [style.color]="typeColorDark(ev.type)"
                      (click)="openEventDetail(ev); $event.stopPropagation()">
@@ -869,7 +870,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <i class="bx bx-calendar-x" style="font-size:22px;vertical-align:middle;margin-right:8px;"></i>
               No events on this day. Click "New Event" to add one.
             </div>
-            <div class="dep-event" *ngFor="let ev of selectedDayEvents" (click)="openEventDetail(ev)">
+            <div class="dep-event" *ngFor="let ev of selectedDayEvents; trackBy: trackById" (click)="openEventDetail(ev)">
               <div class="dep-type-badge" [style.background]="typeColor(ev.type)+'20'"
                    [style.color]="typeColorDark(ev.type)">
                 <i class="bx" [ngClass]="typeIcon(ev.type)"></i>
@@ -893,7 +894,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <!-- Day headers -->
             <div class="cal-week-header">
               <div class="cal-tg"></div>
-              <div class="cal-week-day-hd" *ngFor="let wd of weekDays"
+              <div class="cal-week-day-hd" *ngFor="let wd of weekDays; trackBy: trackByIndex"
                    [class.cal-today-hd]="isToday(wd.date)">
                 <div class="cal-wdh-name">{{ wd.date | date:'EEE' }}</div>
                 <div class="cal-wdh-num" [class.today]="isToday(wd.date)">{{ wd.date.getDate() }}</div>
@@ -902,8 +903,8 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <!-- All-day row (shown only when there are all-day events) -->
             <div class="cal-allday-row" *ngIf="weekHasAllDay">
               <div class="cal-allday-tg">all-day</div>
-              <div class="cal-allday-cell" *ngFor="let wd of weekDays">
-                <div class="cal-pill" *ngFor="let ev of wd.allDayEvents"
+              <div class="cal-allday-cell" *ngFor="let wd of weekDays; trackBy: trackByIndex">
+                <div class="cal-pill" *ngFor="let ev of wd.allDayEvents; trackBy: trackById"
                      [style.background]="typeColor(ev.type)+'20'"
                      [style.color]="typeColorDark(ev.type)"
                      (click)="openEventDetail(ev)">
@@ -914,12 +915,12 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </div>
             <!-- Time grid -->
             <div class="cal-week-body">
-              <div class="cal-time-row" *ngFor="let h of calHours">
+              <div class="cal-time-row" *ngFor="let h of calHours; trackBy: trackByIndex">
                 <div class="cal-tg-cell">{{ fmtHour(h) }}:00</div>
-                <div class="cal-day-col" *ngFor="let wd of weekDays"
+                <div class="cal-day-col" *ngFor="let wd of weekDays; trackBy: trackByIndex"
                      [class.cal-today-col]="isToday(wd.date)"
                      (click)="drillDay(wd.date, h)">
-                  <div class="cal-ev-block" *ngFor="let ev of wd.eventsByHour[h]"
+                  <div class="cal-ev-block" *ngFor="let ev of wd.eventsByHour[h]; trackBy: trackById"
                        [style.background]="typeColor(ev.type)+'22'"
                        [style.color]="typeColorDark(ev.type)"
                        [style.border-left-color]="typeColor(ev.type)"
@@ -944,7 +945,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             <!-- All-day events -->
             <div class="cal-day-allday" *ngIf="dayAllDayEvents.length > 0">
               <span class="cal-day-allday-lbl">{{ 'PLANNING.CAL_ALL_DAY' | translate }}</span>
-              <div class="cal-pill" *ngFor="let ev of dayAllDayEvents"
+              <div class="cal-pill" *ngFor="let ev of dayAllDayEvents; trackBy: trackById"
                    [style.background]="typeColor(ev.type)+'20'"
                    [style.color]="typeColorDark(ev.type)"
                    (click)="openEventDetail(ev)">
@@ -954,10 +955,10 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </div>
             <!-- Time slots -->
             <div class="cal-day-body">
-              <div class="cal-day-row" *ngFor="let slot of dayHours">
+              <div class="cal-day-row" *ngFor="let slot of dayHours; trackBy: trackByIndex">
                 <div class="cal-day-tg">{{ fmtHour(slot.hour) }}:00</div>
                 <div class="cal-day-slot">
-                  <div class="cal-day-ev" *ngFor="let ev of slot.events"
+                  <div class="cal-day-ev" *ngFor="let ev of slot.events; trackBy: trackById"
                        [style.background]="typeColor(ev.type)+'18'"
                        [style.border-left-color]="typeColor(ev.type)"
                        (click)="openEventDetail(ev)">
@@ -995,7 +996,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <thead><tr><th>{{ 'PLANNING.TH_DEPARTMENT' | translate }}</th><th>{{ 'PLANNING.TH_CURRENT_HC' | translate }}</th><th>{{ 'PLANNING.TH_PLANNED_HC' | translate }}</th><th>{{ 'PLANNING.TH_GAP' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
               <tbody>
                 <tr *ngIf="headcountPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_HC_PLANS' | translate }}</td></tr>
-                <tr *ngFor="let r of headcountPlans" (click)="openDetail(r,'workforce')">
+                <tr *ngFor="let r of headcountPlans; trackBy: trackById" (click)="openDetail(r,'workforce')">
                   <td class="td-b">{{ r.dept }}</td>
                   <td>{{ r.current }}</td>
                   <td>{{ r.planned }}</td>
@@ -1006,7 +1007,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </table>
           </div>
           <div class="pl-card-pad" *ngIf="wfTab==='budget'">
-            <div class="bgt-row" *ngFor="let b of departmentBudgets">
+            <div class="bgt-row" *ngFor="let b of departmentBudgets; trackBy: trackByIndex">
               <span class="bgt-dept">{{ b.dept }}</span>
               <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="b.pct"></div></div></div>
               <span class="bgt-pct">{{ b.pct }}%</span>
@@ -1039,7 +1040,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <thead><tr><th>{{ 'PLANNING.TH_EMPLOYEE' | translate }}</th><th>{{ 'PLANNING.TH_SKILL_GAP' | translate }}</th><th>{{ 'PLANNING.TH_PRIORITY' | translate }}</th><th>{{ 'PLANNING.TH_DEADLINE' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th><th></th></tr></thead>
               <tbody>
                 <tr *ngIf="trainingNeeds.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_TRAINING_NEEDS' | translate }}</td></tr>
-                <tr *ngFor="let r of trainingNeeds" (click)="openDetail(r,'training')">
+                <tr *ngFor="let r of trainingNeeds; trackBy: trackById" (click)="openDetail(r,'training')">
                   <td class="td-b">{{ r.employee }}</td>
                   <td>{{ r.skill }}</td>
                   <td><span class="chip" [ngClass]="prioClass(r.priority)">{{ r.priority }}</span></td>
@@ -1057,7 +1058,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <thead><tr><th>{{ 'PLANNING.TH_DATE' | translate }}</th><th>{{ 'PLANNING.TH_SESSION' | translate }}</th><th>{{ 'PLANNING.TH_TRAINER' | translate }}</th><th>{{ 'PLANNING.TH_DURATION' | translate }}</th></tr></thead>
               <tbody>
                 <tr *ngIf="trainingSessions.length===0"><td colspan="4" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_SESSIONS' | translate }}</td></tr>
-                <tr *ngFor="let s of trainingSessions">
+                <tr *ngFor="let s of trainingSessions; trackBy: trackById">
                   <td><div class="date-box"><span class="db-day">{{ s.day }}</span><span class="db-mon">{{ s.month }}</span></div></td>
                   <td class="td-b">{{ s.name }}</td>
                   <td>{{ s.trainer }}</td>
@@ -1067,7 +1068,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </table>
           </div>
           <div class="pl-card-pad" *ngIf="trTab==='pdi'">
-            <div class="list-item" *ngFor="let p of pdiProgress">
+            <div class="list-item" *ngFor="let p of pdiProgress; trackBy: trackById">
               <div class="li-avatar">{{ p.name[0] }}</div>
               <div class="li-main">
                 <div class="li-title">{{ p.name }}</div>
@@ -1081,7 +1082,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
         </div>
         <div class="pl-card pl-card-pad">
           <div class="pl-card-hd"><span class="pl-card-ttl">{{ 'PLANNING.CARD_UPCOMING_SESSIONS' | translate }}</span></div>
-          <div class="list-item" *ngFor="let s of trainingSessions.slice(0,6)">
+          <div class="list-item" *ngFor="let s of trainingSessions.slice(0,6); trackBy: trackById">
             <div class="date-box"><span class="db-day">{{ s.day }}</span><span class="db-mon">{{ s.month }}</span></div>
             <div class="li-main">
               <div class="li-title">{{ s.name }}</div>
@@ -1107,7 +1108,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <thead><tr><th>{{ 'PLANNING.TH_EMPLOYEE' | translate }}</th><th>{{ 'PLANNING.TH_CURRENT_ROLE' | translate }}</th><th>{{ 'PLANNING.TH_TARGET_ROLE' | translate }}</th><th>{{ 'PLANNING.TH_PROGRESS' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
               <tbody>
                 <tr *ngIf="idpPlans.length===0"><td colspan="5" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_IDP' | translate }}</td></tr>
-                <tr *ngFor="let r of idpPlans" (click)="openDetail(r,'career')">
+                <tr *ngFor="let r of idpPlans; trackBy: trackById" (click)="openDetail(r,'career')">
                   <td class="td-b">{{ r.employee }}</td>
                   <td style="font-size:12.5px;">{{ r.currentRole }}</td>
                   <td style="font-size:12.5px;font-weight:600;color:#1B7872;">{{ r.targetRole }}</td>
@@ -1127,7 +1128,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <thead><tr><th>{{ 'PLANNING.TH_MILESTONE' | translate }}</th><th>{{ 'PLANNING.TH_DATE' | translate }}</th><th>{{ 'PLANNING.TH_STATUS' | translate }}</th></tr></thead>
               <tbody>
                 <tr *ngIf="careerMilestones.length===0"><td colspan="3" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_MILESTONES' | translate }}</td></tr>
-                <tr *ngFor="let m of careerMilestones">
+                <tr *ngFor="let m of careerMilestones; trackBy: trackById">
                   <td class="td-b">{{ m.title }}</td>
                   <td>{{ m.date }}</td>
                   <td><span class="chip" [ngClass]="m.dotClass==='done'?'ch-green':'ch-gray'">{{ m.status }}</span></td>
@@ -1136,7 +1137,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </table>
           </div>
           <div class="pl-card-pad" *ngIf="carTab==='mentorship'">
-            <div class="mentor-row" *ngFor="let m of mentorships">
+            <div class="mentor-row" *ngFor="let m of mentorships; trackBy: trackById">
               <div class="li-avatar">{{ m.mentorInitials }}</div>
               <div class="li-main"><div class="li-title">{{ m.mentor }}</div><div class="li-sub">{{ m.mentorRole }}</div></div>
               <i class="bx bx-right-arrow-alt" style="font-size:18px;color:#CBD5E0;"></i>
@@ -1172,7 +1173,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
               <thead><tr><th>{{ 'PLANNING.TH_REQ_ID' | translate }}</th><th>{{ 'PLANNING.TH_POSITION' | translate }}</th><th>{{ 'PLANNING.TH_DEPARTMENT' | translate }}</th><th>{{ 'PLANNING.TH_TARGET_DATE' | translate }}</th><th>{{ 'PLANNING.TH_STAGE' | translate }}</th><th></th></tr></thead>
               <tbody>
                 <tr *ngIf="hiringRequests.length===0"><td colspan="6" style="text-align:center;padding:28px;color:#6B6B6B !important;">{{ 'PLANNING.EMPTY_HIRING' | translate }}</td></tr>
-                <tr *ngFor="let r of hiringRequests" (click)="openDetail(r,'recruitment')">
+                <tr *ngFor="let r of hiringRequests; trackBy: trackById" (click)="openDetail(r,'recruitment')">
                   <td class="td-reqid">{{ r.reqId }}</td>
                   <td class="td-b">{{ r.position }}</td>
                   <td>{{ r.dept }}</td>
@@ -1186,7 +1187,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
             </table>
           </div>
           <div class="pl-card-pad" *ngIf="recTab==='pipeline'">
-            <div class="bgt-row" *ngFor="let s of pipelineStages">
+            <div class="bgt-row" *ngFor="let s of pipelineStages; trackBy: trackByIndex">
               <span class="bgt-dept">{{ s.label }}</span>
               <div class="bgt-bar"><div class="prog-bg"><div class="prog-fill" [style.width.%]="(s.count / (pipelineStages[0]?.count || 1)) * 100" [style.background]="s.color"></div></div></div>
               <span class="bgt-pct">{{ s.count }}</span>
@@ -1195,7 +1196,7 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
         </div>
         <div class="pl-card pl-card-pad">
           <div class="pl-card-hd"><span class="pl-card-ttl">{{ 'PLANNING.CARD_RECENT_EVENTS' | translate }}</span></div>
-          <div class="list-item" *ngFor="let e of allEvents.slice(0,8)">
+          <div class="list-item" *ngFor="let e of allEvents.slice(0,8); trackBy: trackById">
             <div class="dep-type-badge" [style.background]="typeColor(e.type)+'20'" [style.color]="typeColorDark(e.type)">
               <i class="bx" [ngClass]="typeIcon(e.type)"></i>
             </div>
@@ -1211,7 +1212,9 @@ interface CalDay { date: Date; cur: boolean; events: any[]; }
   </div>
   `
 })
-export class PlanningComponent implements OnInit {
+export class PlanningComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
 
   today      = new Date();
   activeView = 'calendar';
@@ -1299,7 +1302,7 @@ export class PlanningComponent implements OnInit {
     forkJoin({
       events:         this.planningService.getAllEvents(),
       collaborateurs: this.collaborateurService.getAll(),
-    }).subscribe({
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ events, collaborateurs }) => {
         this.loading   = false;
         this.allEvents = events as any[];
@@ -1312,6 +1315,11 @@ export class PlanningComponent implements OnInit {
       },
     });
   }
+
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+
+  trackById(_: number, item: any): any { return item.id ?? item._backendId ?? _; }
+  trackByIndex(index: number): number { return index; }
 
   // ── Calendar helpers ──────────────────────────────────────────────────────
 

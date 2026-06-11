@@ -41,7 +41,6 @@ import { CalendarComponent } from './calendar/calendar.component';
 
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ChatComponent } from './chat/chat.component';
-import { FilemanagerComponent } from './filemanager/filemanager.component';
 import { SharedModule } from '../shared/shared.module';
 import { CollaborateurComponent } from './Collaborateur/collaborateur.component';
 import { UploadsComponent } from './uploads/uploads.component';
@@ -63,7 +62,7 @@ import { StagiairesComponent } from './stagiaires/stagiaires.component';
 import { StatisticsComponent } from './statistics/statistics.component';
 
 @NgModule({
-  declarations: [FilemanagerComponent, UploadsComponent],
+  declarations: [UploadsComponent],
   imports: [
     ChatComponent,
     CollaborateurComponent,

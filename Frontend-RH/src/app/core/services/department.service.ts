@@ -1,39 +1,89 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-export interface DeptRef { id: number; name: string; }
-export interface PosRef  { id: number; name: string; departmentId?: number; }
+/** Lightweight ref used in dropdowns / selects */
+export interface DeptRef {
+  id: number;
+  name: string;
+  code?: string;
+}
+
+export interface PosRef {
+  id: number;
+  title: string;
+  code?: string;
+  departmentId?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DepartmentService {
 
-    private readonly DEPT_BASE = `${environment.apiUrl}/departments`;
-    private readonly POS_BASE  = `${environment.apiUrl}/positions`;
+  private readonly base = `${environment.apiUrl}`;
 
-    constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-    getActiveDepartments(): Observable<DeptRef[]> {
-        return this.http.get<any>(`${this.DEPT_BASE}/active`).pipe(
-            map(res => {
-                const raw: any[] = Array.isArray(res) ? res : (res?.data ?? res?.content ?? []);
-                return raw.map(d => ({ id: d.id, name: d.name }));
-            }),
-            catchError(err => throwError(() => err))
-        );
-    }
+  // ── Departments ────────────────────────────────────────────────────────────
 
-    getAllPositions(): Observable<PosRef[]> {
-        return this.http.get<any>(this.POS_BASE).pipe(
-            map(res => {
-                const raw: any[] = Array.isArray(res)
-                    ? res
-                    : (res?.data ?? res?.content ?? []);
-                return raw.map(p => ({ id: p.id, name: p.title ?? p.name, departmentId: p.department?.id }));
-            }),
-            catchError(err => throwError(() => err))
-        );
-    }
+  getAllDepartments(): Observable<any[]> {
+    return this.http.get<any>(`${this.base}/departments`).pipe(
+      map(res => Array.isArray(res) ? res : (res?.content ?? res?.data ?? [])),
+      catchError(() => throwError(() => new Error('Failed to load departments')))
+    );
+  }
+
+  /** Fetches only active departments via the dedicated /active endpoint */
+  getActiveDepartments(): Observable<any[]> {
+    return this.http.get<any>(`${this.base}/departments/active`).pipe(
+      map(res => res?.data ?? (Array.isArray(res) ? res : (res?.content ?? []))),
+      catchError(() => this.getAllDepartments())   // fallback to paginated if /active not available
+    );
+  }
+
+  getDepartmentById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/departments/${id}`);
+  }
+
+  createDepartment(dto: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/departments`, dto);
+  }
+
+  updateDepartment(id: number, dto: any): Observable<any> {
+    return this.http.put<any>(`${this.base}/departments/${id}`, dto);
+  }
+
+  deleteDepartment(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/departments/${id}`);
+  }
+
+  // ── Positions ──────────────────────────────────────────────────────────────
+
+  getAllPositions(): Observable<any[]> {
+    return this.http.get<any>(`${this.base}/positions`).pipe(
+      map(res => Array.isArray(res) ? res : (res?.content ?? res?.data ?? [])),
+      catchError(() => throwError(() => new Error('Failed to load positions')))
+    );
+  }
+
+  getPositionsByDepartment(departmentId: number): Observable<any[]> {
+    return this.http.get<any>(`${this.base}/positions/department/${departmentId}`).pipe(
+      map(res => res?.data ?? (Array.isArray(res) ? res : (res?.content ?? []))),
+      catchError(() => throwError(() => new Error('Failed to load positions for department')))
+    );
+  }
+
+  createPosition(dto: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/positions`, dto);
+  }
+
+  updatePosition(id: number, dto: any): Observable<any> {
+    return this.http.put<any>(`${this.base}/positions/${id}`, dto);
+  }
+
+  deletePosition(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/positions/${id}`);
+  }
 }

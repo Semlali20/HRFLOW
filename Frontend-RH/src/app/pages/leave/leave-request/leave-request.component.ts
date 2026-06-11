@@ -58,6 +58,6 @@ export class LeaveRequestComponent implements OnInit {
             startDate: this.form.startDate,
             endDate: this.form.endDate,
             reason: this.form.reason
-        }).subscribe(() => this.router.navigate(['/leaves']));
+        }).subscribe(() => this.router.navigate(['/leave']));
     }
 }

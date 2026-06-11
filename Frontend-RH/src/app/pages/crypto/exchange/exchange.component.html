@@ -98,7 +98,7 @@
 
                     <div class="mt-4">
                         <div id="candlestick-chart" class="apex-charts" dir="ltr"></div>
-                        <apx-chart class="apex-charts" dir="ltr" [series]="priceCandlestickChart.series"
+                        <apx-chart *ngIf="priceCandlestickChart.chart" class="apex-charts" dir="ltr" [series]="priceCandlestickChart.series"
                             [chart]="priceCandlestickChart.chart" [plotOptions]="priceCandlestickChart.plotOptions"
                             [yaxis]="priceCandlestickChart.yaxis" [xaxis]="priceCandlestickChart.xaxis">
                         </apx-chart>

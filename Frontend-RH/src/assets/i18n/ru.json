@@ -334,5 +334,9 @@
         }
       }
     }
+  },
+  "ONBOARDING": {
+    "TITLE": "Onboarding",
+    "LOAD_ERROR": "Не удалось загрузить процессы"
   }
 }

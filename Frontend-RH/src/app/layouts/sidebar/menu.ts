@@ -11,6 +11,12 @@ export const MENU: MenuItem[] = [
     // always visible — no permission required
   },
   {
+    label: 'Mon Espace',
+    link: '/my-dashboard',
+    icon: 'bxs-user-circle',
+    // always visible — self-service dashboard for all roles
+  },
+  {
     label: 'Notifications',
     link: '/chat',
     icon: 'bxs-bell',
@@ -83,6 +89,12 @@ export const MENU: MenuItem[] = [
     link: '/meetings',
     icon: 'bxs-conversation',
     permission: 'MEETING_READ',
+  },
+  {
+    label: 'Formations',
+    link: '/training',
+    icon: 'bxs-graduation',
+    permission: 'TRAINING_READ',
   },
 
   {

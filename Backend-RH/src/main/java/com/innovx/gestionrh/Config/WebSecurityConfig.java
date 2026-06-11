@@ -78,8 +78,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/auth/forgot-password").permitAll()
                         .requestMatchers("/api/v1/auth/verify-otp").permitAll()
                         .requestMatchers("/api/v1/auth/reset-password").permitAll()
-                        // SSE streams require authentication via token in request
-                        .requestMatchers("/api/v1/notifications/stream").authenticated()
+                        // SSE stream uses a short-lived ticket for auth (no JWT in URL)
+                        .requestMatchers("/api/v1/notifications/stream").permitAll()
                         // Actuator health check (for load balancers)
                         .requestMatchers("/actuator/health").permitAll()
                         // Swagger / OpenAPI docs

@@ -22,6 +22,10 @@ import java.time.LocalDate;
                @UniqueConstraint(name = "uk_collab_email",  columnNames = "email"),
                @UniqueConstraint(name = "uk_collab_cin",    columnNames = "cin"),
                @UniqueConstraint(name = "uk_collab_emp_no", columnNames = "employee_number")
+       },
+       indexes = {
+               @Index(name = "idx_collab_department", columnList = "department_id"),
+               @Index(name = "idx_collab_status",     columnList = "status")
        })
 @SQLRestriction("is_deleted = false")
 @Data
@@ -92,6 +96,15 @@ public class Collaborateurs extends BaseEntity {
 
     @Column(name = "hire_date")
     private LocalDate hireDate;
+
+    @Column(name = "contract_start_date")
+    private LocalDate contractStartDate;
+
+    @Column(name = "contract_end_date")
+    private LocalDate contractEndDate;
+
+    @Column(name = "notice_period_days")
+    private Integer noticePeriodDays;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

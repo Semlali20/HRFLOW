@@ -1,0 +1,243 @@
+<div class="container-fluid p-4">
+
+  <!-- Welcome banner -->
+  <div class="welcome-banner rounded-3 p-4 mb-4 d-flex align-items-center justify-content-between"
+       style="background: linear-gradient(135deg, #1B7872 0%, #0d4f4a 100%); color: white;">
+    <div>
+      <h4 class="mb-1 fw-bold">
+        Good {{ timeOfDay }},
+        {{ currentUser?.firstname || 'there' }}! 👋
+      </h4>
+      <p class="mb-0 opacity-75">{{ todayDate | date:'EEEE, MMMM d, y' }}</p>
+    </div>
+    <div class="text-end d-none d-md-block">
+      <div class="fs-5 fw-semibold">{{ currentUser?.title || currentUser?.userRole }}</div>
+      <div class="small opacity-75">{{ currentUser?.email }}</div>
+    </div>
+  </div>
+
+  <!-- Role badge -->
+  <div class="mb-4">
+    <span *ngIf="isHR" class="badge me-2" style="background:#1B7872;font-size:.85rem">HR</span>
+    <span *ngIf="isManager && !isHR" class="badge bg-primary me-2" style="font-size:.85rem">Manager</span>
+    <span *ngIf="isEmployee" class="badge bg-secondary me-2" style="font-size:.85rem">Employee</span>
+  </div>
+
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#1B7872" role="status">
+      <span class="visually-hidden">Loading…</span>
+    </div>
+  </div>
+
+  <div *ngIf="!loading">
+
+    <!-- ═══════════════════════════════════════════════
+         LEAVE BALANCE — visible to everyone
+    ════════════════════════════════════════════════ -->
+    <h6 class="text-muted fw-semibold text-uppercase small mb-3">My Leave Balance</h6>
+    <div class="row g-3 mb-4">
+      <div *ngFor="let b of leaveBalance; trackBy: trackById" class="col-6 col-sm-4 col-md-3 col-lg-2">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body text-center py-3 px-2">
+            <div class="fs-2 fw-bold" style="color:#1B7872">
+              {{ b.remaining ?? b.balance ?? b.remainingDays ?? '—' }}
+            </div>
+            <div class="small fw-semibold text-truncate">{{ b.leaveTypeName || b.type || b.leaveType?.name || 'Leave' }}</div>
+            <div class="small text-muted">of {{ b.total ?? b.allocated ?? b.totalDays ?? '—' }} days</div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="leaveBalance.length === 0" class="col-12">
+        <div class="text-muted small p-3 bg-light rounded">No leave balance data available yet.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         MY REQUESTS + MY TRAININGS  — two-column row
+    ════════════════════════════════════════════════ -->
+    <div class="row g-3 mb-4">
+
+      <!-- My Leave Requests -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold">My Leave Requests</h6>
+            <a routerLink="/dayoff" class="btn btn-sm btn-outline-secondary">View all</a>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="myLeaveRequests.length === 0"
+                 class="text-center py-4 text-muted small">
+              No requests yet.
+            </div>
+            <ul class="list-group list-group-flush">
+              <li *ngFor="let r of myLeaveRequests.slice(0, 5); trackBy: trackById"
+                  class="list-group-item px-3 py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="small fw-semibold">
+                      {{ r.leaveType?.name || r.leaveTypeName || r.type || 'Leave' }}
+                    </div>
+                    <div class="small text-muted">
+                      {{ r.startDate | date:'mediumDate' }} – {{ r.endDate | date:'mediumDate' }}
+                    </div>
+                  </div>
+                  <span [class]="statusClass(r.status)">{{ r.status }}</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Trainings -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold">My Trainings</h6>
+            <a routerLink="/training" class="btn btn-sm btn-outline-secondary">Browse all</a>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="myTrainings.length === 0"
+                 class="text-center py-4 text-muted small">
+              Not enrolled in any training.
+            </div>
+            <ul class="list-group list-group-flush">
+              <li *ngFor="let t of myTrainings.slice(0, 5); trackBy: trackById"
+                  class="list-group-item px-3 py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="small fw-semibold">{{ t.title }}</div>
+                    <div class="small text-muted">{{ t.startDate | date:'mediumDate' }}</div>
+                  </div>
+                  <span [class]="trainingStatusClass(t.status ?? '')">
+                    {{ t.category }}
+                  </span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         MY PERFORMANCE REVIEWS — visible to everyone
+    ════════════════════════════════════════════════ -->
+    <div class="row g-3 mb-4" *ngIf="myReviews.length > 0">
+      <div class="col-12">
+        <h6 class="text-muted fw-semibold text-uppercase small mb-3">My Performance Reviews</h6>
+      </div>
+      <div *ngFor="let rv of myReviews.slice(0, 4); trackBy: trackById" class="col-sm-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body py-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="small fw-semibold">{{ rv.reviewPeriod }}</div>
+              <span class="badge" [class]="rv.status === 'ACKNOWLEDGED' ? 'bg-success' : rv.status === 'SUBMITTED' ? 'bg-primary' : 'bg-warning text-dark'">
+                {{ rv.status }}
+              </span>
+            </div>
+            <div class="fs-4 fw-bold" style="color:#1B7872">{{ rv.overallScore ?? '—' }}</div>
+            <div class="small text-muted">Overall Score</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         MANAGER / HR PENDING ACTIONS
+    ════════════════════════════════════════════════ -->
+    <div *ngIf="isManager || isHR" class="mb-4">
+      <h6 class="text-muted fw-semibold text-uppercase small mb-3">Pending Actions</h6>
+      <div class="row g-3">
+
+        <!-- Pending leave approvals (manager + HR) -->
+        <div class="col-6 col-md-4 col-lg-3">
+          <a routerLink="/leave" class="card border-0 shadow-sm text-center p-3 text-decoration-none d-block"
+             style="cursor:pointer;">
+            <div class="fs-2 fw-bold text-warning">{{ pendingLeaveCount }}</div>
+            <div class="small text-muted mt-1">Leave Requests Pending</div>
+          </a>
+        </div>
+
+        <!-- Total employees (HR only) -->
+        <div *ngIf="isHR" class="col-6 col-md-4 col-lg-3">
+          <a routerLink="/collaborateur" class="card border-0 shadow-sm text-center p-3 text-decoration-none d-block"
+             style="cursor:pointer;">
+            <div class="fs-2 fw-bold" style="color:#1B7872">{{ totalEmployees }}</div>
+            <div class="small text-muted mt-1">Total Employees</div>
+          </a>
+        </div>
+
+        <!-- Reviews in draft (HR only) -->
+        <div *ngIf="isHR" class="col-6 col-md-4 col-lg-3">
+          <a routerLink="/performance" class="card border-0 shadow-sm text-center p-3 text-decoration-none d-block"
+             style="cursor:pointer;">
+            <div class="fs-2 fw-bold text-info">{{ pendingReviewCount }}</div>
+            <div class="small text-muted mt-1">Reviews in Draft</div>
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         QUICK ACTIONS — always visible
+    ════════════════════════════════════════════════ -->
+    <h6 class="text-muted fw-semibold text-uppercase small mb-3">Quick Actions</h6>
+    <div class="row g-3">
+
+      <div class="col-6 col-md-3">
+        <a routerLink="/dayoff"
+           class="card border-0 shadow-sm text-center p-3 text-decoration-none text-dark d-block h-100">
+          <i class="bx bxs-calendar-plus fs-3 mb-2" style="color:#1B7872"></i>
+          <div class="small fw-semibold">Request Leave</div>
+        </a>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <a routerLink="/training"
+           class="card border-0 shadow-sm text-center p-3 text-decoration-none text-dark d-block h-100">
+          <i class="bx bxs-graduation fs-3 mb-2 text-primary"></i>
+          <div class="small fw-semibold">Browse Training</div>
+        </a>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <a routerLink="/performance"
+           class="card border-0 shadow-sm text-center p-3 text-decoration-none text-dark d-block h-100">
+          <i class="bx bxs-star-half fs-3 mb-2 text-warning"></i>
+          <div class="small fw-semibold">My Reviews</div>
+        </a>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <a routerLink="/settings"
+           class="card border-0 shadow-sm text-center p-3 text-decoration-none text-dark d-block h-100">
+          <i class="bx bxs-cog fs-3 mb-2 text-secondary"></i>
+          <div class="small fw-semibold">Settings</div>
+        </a>
+      </div>
+
+      <!-- Manager-only quick actions -->
+      <div class="col-6 col-md-3" *ngIf="isManager || isHR">
+        <a routerLink="/leave"
+           class="card border-0 shadow-sm text-center p-3 text-decoration-none text-dark d-block h-100">
+          <i class="bx bxs-door-open fs-3 mb-2 text-warning"></i>
+          <div class="small fw-semibold">Approve Leaves</div>
+        </a>
+      </div>
+
+      <!-- HR-only quick actions -->
+      <div class="col-6 col-md-3" *ngIf="isHR">
+        <a routerLink="/collaborateur"
+           class="card border-0 shadow-sm text-center p-3 text-decoration-none text-dark d-block h-100">
+          <i class="bx bxs-group fs-3 mb-2" style="color:#1B7872"></i>
+          <div class="small fw-semibold">Manage Employees</div>
+        </a>
+      </div>
+
+    </div>
+
+  </div><!-- end !loading -->
+</div>

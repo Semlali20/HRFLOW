@@ -1,15 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
 import { DepartmentService, DeptRef, PosRef } from 'src/app/core/services/department.service';
+import { ReferenceDataService } from 'src/app/core/services/reference-data.service';
+import { ReportService } from 'src/app/core/services/report.service';
+import { downloadBlob, todayDateString } from 'src/app/core/utils/download.util';
 import { AdminService } from '../admin/admin.service';
 import { Collaborateur, CollaborateurCreateDto } from 'src/app/core/models/hr.models';
 import { ConfirmService } from 'src/app/shared/confirm.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 interface EmpRow {
   matricule: number;
@@ -275,15 +280,24 @@ interface EmpRow {
     .ecm-cancel-btn { padding:10px 20px; border:1.5px solid #E2E8F0; border-radius:10px; background:#fff; color:#4A6080; font-size:13.5px; font-weight:600; cursor:pointer; }
     .ecm-create-btn {
       padding:10px 32px; border:none; border-radius:10px;
-      background:#162233; color:#fff; font-size:13.5px; font-weight:600; cursor:pointer; transition:background .15s;
+      background:#2FA8A0; color:#fff; font-size:13.5px; font-weight:600; cursor:pointer; transition:background .15s;
     }
-    .ecm-create-btn:hover { background:#2FA8A0; }
+    .ecm-create-btn:hover { background:#228880; }
     .ecm-create-btn:disabled { opacity:.5; cursor:default; }
 
     /* ── Toast ── */
     .toast-msg { position:fixed; bottom:24px; right:24px; z-index:2000; padding:12px 20px; border-radius:10px; font-size:13.5px; font-weight:600; color:#fff; animation:fadeIn .3s; }
     .toast-msg--success { background:#22C55E; }
     .toast-msg--error   { background:#EF4444; }
+
+    /* ── Contract Section ── */
+    .contract-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; letter-spacing:.03em; }
+    .contract-expiry-warning { display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:8px; font-size:12.5px; font-weight:600; margin-top:10px; }
+    .contract-expiry-warning--danger { background:#FEE2E2; color:#BE123C; }
+    .contract-expiry-warning--warn   { background:#FEF3C7; color:#92400E; }
+    .contract-expiry-warning--ok     { background:#DCFCE7; color:#15803D; }
+    .contract-days-row { display:flex; align-items:center; gap:10px; margin-top:6px; }
+    .contract-days-pill { padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; }
 
     /* ── Sub-filter row ── */
     .sub-filter-row { display:flex; align-items:center; gap:8px; padding:10px 20px; background:#F8FAFC; border-bottom:1px solid #F0F3F6; flex-wrap:wrap; }
@@ -296,6 +310,52 @@ interface EmpRow {
     .sub-filter-btn--active { background:#2FA8A0; color:#fff; border-color:#2FA8A0; font-weight:600; }
     .sub-filter-clear { margin-left:auto; font-size:12px; color:#8FA3B8; cursor:pointer; display:flex; align-items:center; gap:4px; }
     .sub-filter-clear:hover { color:#EF4444; }
+
+    /* ── Advanced Filters panel ── */
+    .adv-filter-panel {
+      background:#F8FAFC; border-bottom:1px solid #E2E8F0;
+      padding:12px 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;
+    }
+    .adv-filter-group { display:flex; flex-direction:column; gap:4px; min-width:140px; flex:1; max-width:200px; }
+    .adv-filter-label { font-size:11px; font-weight:600; color:#8FA3B8; text-transform:uppercase; letter-spacing:.05em; }
+    .adv-filter-select, .adv-filter-input {
+      padding:6px 10px; border:1.5px solid #E2E8F0; border-radius:8px;
+      font-size:12.5px; color:#1A2B3C; background:#fff; outline:none;
+      font-family:'Inter',sans-serif; transition:border .15s;
+    }
+    .adv-filter-select:focus, .adv-filter-input:focus { border-color:#2FA8A0; }
+    .adv-filter-actions { display:flex; align-items:flex-end; gap:8px; margin-left:auto; }
+    .adv-apply-btn {
+      padding:7px 16px; border:none; border-radius:8px;
+      background:#1B7872; color:#fff; font-size:12.5px; font-weight:600;
+      cursor:pointer; transition:background .15s;
+    }
+    .adv-apply-btn:hover { background:#155f5a; }
+    .adv-reset-btn {
+      padding:7px 14px; border:1.5px solid #E2E8F0; border-radius:8px;
+      background:#fff; color:#4A6080; font-size:12.5px; font-weight:600;
+      cursor:pointer; transition:all .15s;
+    }
+    .adv-reset-btn:hover { background:#F0F3F6; }
+    .adv-filter-toggle {
+      display:flex; align-items:center; gap:5px; font-size:12px; color:#4A6080;
+      background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:7px 14px;
+      cursor:pointer; transition:all .13s; white-space:nowrap;
+    }
+    .adv-filter-toggle:hover { background:#E2E8F0; }
+    .adv-filter-toggle--active { background:#E8F7F6; color:#1B7872; border-color:#2FA8A0; }
+
+    /* ── Bulk Action Bar ── */
+    .bulk-action-bar { background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:8px; }
+    .bulk-action-bar .form-select { font-size:12.5px; border:1.5px solid #CBD5E0; border-radius:7px; padding:5px 10px; outline:none; }
+    .bulk-action-bar .form-select:focus { border-color:#2FA8A0; }
+    .bulk-action-bar .btn { font-size:12.5px; border-radius:7px; padding:5px 14px; font-weight:600; cursor:pointer; border:none; }
+    .bulk-action-bar .btn-primary { background:#1B7872; color:#fff; }
+    .bulk-action-bar .btn-primary:hover:not(:disabled) { background:#155f5a; }
+    .bulk-action-bar .btn-primary:disabled { opacity:.55; cursor:default; }
+    .bulk-action-bar .btn-outline-secondary { background:#fff; color:#4A6080; border:1.5px solid #CBD5E0; }
+    .bulk-action-bar .btn-outline-secondary:hover { background:#F1F5F9; }
+    .bulk-action-bar .spinner-border-sm { width:12px; height:12px; border-width:2px; }
   `],
   template: `
   <!-- ── Backdrop ── -->
@@ -343,12 +403,43 @@ interface EmpRow {
         <div class="edp-field"><i class="bx bx-award"></i><span class="edp-lbl">{{ 'EMPLOYEES.ANCIENNETE' | translate }}</span><span class="edp-val">{{ detailAnciennete ?? '—' }}</span></div>
       </div>
 
+      <!-- ── Contract Section ── -->
+      <div class="edp-section-title" style="margin-top:20px">{{ 'EMPLOYEES.SECTION_CONTRACT' | translate }}</div>
+      <div class="edp-info-grid">
+        <div class="edp-field">
+          <i class="bx bx-file-blank"></i>
+          <span class="edp-lbl">{{ 'EMPLOYEES.CONTRACT_TYPE_FIELD' | translate }}</span>
+          <span class="contract-badge" [ngClass]="contractBadgeClass">{{ detailEmployee.Type || '—' }}</span>
+        </div>
+        <div class="edp-field">
+          <i class="bx bx-calendar-check"></i>
+          <span class="edp-lbl">{{ 'EMPLOYEES.CONTRACT_START' | translate }}</span>
+          <span class="edp-val">{{ detailEmployee.contractStartDate || detailEmployee.date_entree || '—' }}</span>
+        </div>
+        <div class="edp-field">
+          <i class="bx bx-calendar-x"></i>
+          <span class="edp-lbl">{{ 'EMPLOYEES.CONTRACT_END' | translate }}</span>
+          <span class="edp-val" [ngClass]="contractExpiryClass">{{ detailEmployee.contractEndDate || '—' }}</span>
+        </div>
+        <div class="edp-field" *ngIf="detailEmployee.noticePeriodDays != null">
+          <i class="bx bx-alarm"></i>
+          <span class="edp-lbl">{{ 'EMPLOYEES.NOTICE_PERIOD' | translate }}</span>
+          <span class="edp-val">{{ detailEmployee.noticePeriodDays }} days</span>
+        </div>
+      </div>
+      <div *ngIf="contractDaysLeft !== null" class="contract-expiry-warning"
+           [ngClass]="{ 'contract-expiry-warning--danger': contractDaysLeft <= 7, 'contract-expiry-warning--warn': contractDaysLeft > 7 && contractDaysLeft <= 30, 'contract-expiry-warning--ok': contractDaysLeft > 30 }">
+        <i class="bx" [ngClass]="{ 'bx-error-circle': contractDaysLeft <= 7, 'bx-time-five': contractDaysLeft > 7 && contractDaysLeft <= 30, 'bx-check-circle': contractDaysLeft > 30 }"></i>
+        <span *ngIf="contractDaysLeft <= 0">Contract has expired!</span>
+        <span *ngIf="contractDaysLeft > 0">{{ contractDaysLeft }} day(s) remaining until contract expiry</span>
+      </div>
+
       <div class="edp-section-title" style="margin-top:20px">{{ 'EMPLOYEES.SECTION_ACCOUNT' | translate }}</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
         <select style="flex:1;padding:8px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#4A6080;outline:none;background:#fff;min-width:200px"
                 [(ngModel)]="linkUserId">
           <option [ngValue]="null">{{ 'EMPLOYEES.SELECT_USER' | translate }}</option>
-          <option *ngFor="let u of allUsers" [ngValue]="u.id">{{ u.label }}</option>
+          <option *ngFor="let u of allUsers; trackBy: trackById" [ngValue]="u.id">{{ u.label }}</option>
         </select>
         <button style="padding:8px 16px;border:none;border-radius:8px;background:#1B7872;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap"
                 [disabled]="!linkUserId || linkingUser" (click)="linkUserToEmployee()">
@@ -385,7 +476,7 @@ interface EmpRow {
         </div>
         <div class="ecm-field-group">
           <label class="ecm-label">{{ 'EMPLOYEES.FIELD_DOB' | translate }}</label>
-          <input type="date" class="ecm-input" [(ngModel)]="form.date_naissance" [max]="today" />
+          <input type="date" class="ecm-input" [(ngModel)]="form.date_naissance" [max]="today" (change)="onDobChange($event)" />
         </div>
         <div class="ecm-field-group">
           <label class="ecm-label">{{ 'EMPLOYEES.FIELD_CIN' | translate }}</label>
@@ -398,7 +489,6 @@ interface EmpRow {
               <option value="">{{ 'EMPLOYEES.SELECT_GENDER' | translate }}</option>
               <option value="MALE">{{ 'EMPLOYEES.GENDER_MALE' | translate }}</option>
               <option value="FEMALE">{{ 'EMPLOYEES.GENDER_FEMALE' | translate }}</option>
-              <option value="OTHER">{{ 'EMPLOYEES.GENDER_OTHER' | translate }}</option>
             </select>
             <i class="bx bx-chevron-down ecm-select-icon"></i>
           </div>
@@ -409,7 +499,8 @@ interface EmpRow {
         </div>
         <div class="ecm-field-group">
           <label class="ecm-label">{{ 'EMPLOYEES.FIELD_AGE' | translate }}</label>
-          <input class="ecm-input" [(ngModel)]="form.age" [placeholder]="'EMPLOYEES.FIELD_AGE' | translate" type="number" min="18" max="70" />
+          <input class="ecm-input" [(ngModel)]="form.age" [placeholder]="form.date_naissance ? '' : 'Auto-calculated'" type="number" readonly
+            style="background:var(--hr-page-bg,#F8FAFC);cursor:default;color:var(--hr-text-muted,#8FA3B8);" />
         </div>
       </div>
 
@@ -418,9 +509,9 @@ interface EmpRow {
         <div class="ecm-field-group">
           <label class="ecm-label">{{ 'EMPLOYEES.FIELD_DEPARTMENT' | translate }}</label>
           <div class="ecm-select-wrap">
-            <select class="ecm-select" [(ngModel)]="form.departmentId">
+            <select class="ecm-select" [(ngModel)]="form.departmentId" (ngModelChange)="onDepartmentChange($event)">
               <option [ngValue]="null">{{ 'EMPLOYEES.SELECT_DEPARTMENT' | translate }}</option>
-              <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
+              <option *ngFor="let d of departments; trackBy: trackById" [ngValue]="d.id">{{ d.name }}</option>
             </select>
             <i class="bx bx-chevron-down ecm-select-icon"></i>
           </div>
@@ -429,8 +520,8 @@ interface EmpRow {
           <label class="ecm-label">{{ 'EMPLOYEES.FIELD_FONCTION' | translate }}</label>
           <div class="ecm-select-wrap">
             <select class="ecm-select" [(ngModel)]="form.positionId">
-              <option [ngValue]="null">{{ 'EMPLOYEES.SELECT_FONCTION' | translate }}</option>
-              <option *ngFor="let p of filteredPositions" [ngValue]="p.id">{{ p.name }}</option>
+              <option [ngValue]="null">{{ 'COLLAB.SELECT_POSITION' | translate }}</option>
+              <option *ngFor="let p of filteredPositions; trackBy: trackById" [ngValue]="p.id">{{ p.title ?? p.name }}</option>
             </select>
             <i class="bx bx-chevron-down ecm-select-icon"></i>
           </div>
@@ -463,6 +554,18 @@ interface EmpRow {
         <div class="ecm-field-group">
           <label class="ecm-label">{{ 'EMPLOYEES.FIELD_FILIALE' | translate }}</label>
           <input class="ecm-input" [(ngModel)]="form.FILIALE" [placeholder]="'EMPLOYEES.FILIALE_PH' | translate" />
+        </div>
+        <div class="ecm-field-group">
+          <label class="ecm-label">{{ 'EMPLOYEES.CONTRACT_START' | translate }}</label>
+          <input type="date" class="ecm-input" [(ngModel)]="form.contractStartDate" />
+        </div>
+        <div class="ecm-field-group">
+          <label class="ecm-label">{{ 'EMPLOYEES.CONTRACT_END' | translate }}</label>
+          <input type="date" class="ecm-input" [(ngModel)]="form.contractEndDate" />
+        </div>
+        <div class="ecm-field-group">
+          <label class="ecm-label">{{ 'EMPLOYEES.NOTICE_PERIOD' | translate }}</label>
+          <input type="number" class="ecm-input" [(ngModel)]="form.noticePeriodDays" [placeholder]="'e.g. 30'" min="0" />
         </div>
       </div>
     </div>
@@ -540,6 +643,7 @@ interface EmpRow {
         <div class="emp-chart-title">{{ 'EMPLOYEES.DEPT_DISTRIBUTION' | translate }}</div>
         <div class="emp-chart-wrap">
           <apx-chart
+            *ngIf="donutChart.chart"
             [series]="donutChart.series"
             [chart]="donutChart.chart"
             [labels]="donutChart.labels"
@@ -551,7 +655,7 @@ interface EmpRow {
           </apx-chart>
         </div>
         <div class="emp-chart-legend">
-          <span *ngFor="let l of donutLegend" class="emp-legend-item">
+          <span *ngFor="let l of donutLegend; trackBy: trackByIndex" class="emp-legend-item">
             <span class="emp-legend-dot" [style.background]="l.color"></span>{{ l.label }}
           </span>
         </div>
@@ -562,13 +666,13 @@ interface EmpRow {
     <!-- Table Card -->
     <div class="emp-table-card">
       <div class="emp-tabs-bar">
-        <button *ngFor="let t of tableTabs" class="emp-tab" [class.emp-tab--active]="activeTableTab===t.key" (click)="setTab(t.key)">{{ t.label | translate }}</button>
+        <button *ngFor="let t of tableTabs; trackBy: trackByIndex" class="emp-tab" [class.emp-tab--active]="activeTableTab===t.key" (click)="setTab(t.key)">{{ t.label | translate }}</button>
         <span class="emp-tabs-updated"><i class="bx bx-refresh" style="cursor:pointer" (click)="loadData()"></i>&nbsp; {{ 'EMPLOYEES.UPDATED_NOW' | translate }}</span>
       </div>
 
       <!-- Sub-filter row -->
       <div class="sub-filter-row" *ngIf="filterOptions.length > 0">
-        <button *ngFor="let opt of filterOptions"
+        <button *ngFor="let opt of filterOptions; trackBy: trackByIndex"
                 class="sub-filter-btn"
                 [class.sub-filter-btn--active]="activeFilter === opt"
                 (click)="setFilter(opt)">{{ opt }}</button>
@@ -577,16 +681,89 @@ interface EmpRow {
         </span>
       </div>
 
-      <!-- Search + Import -->
+      <!-- Search + Import + Export -->
       <div class="search-row">
         <div class="search-input-wrap">
           <i class="bx bx-search search-icon"></i>
-          <input class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="applySearch()" [placeholder]="'EMPLOYEES.SEARCH_PH' | translate" />
+          <input class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="onSearch($event)" [placeholder]="'EMPLOYEES.SEARCH_PH' | translate" />
         </div>
+        <!-- Advanced Filters toggle -->
+        <button class="adv-filter-toggle" [class.adv-filter-toggle--active]="showFilters" (click)="showFilters = !showFilters">
+          <i class="bx bx-filter-alt"></i> Filters
+          <span *ngIf="hasActiveFilters()" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#1B7872;color:#fff;border-radius:50%;font-size:10px;font-weight:700;margin-left:2px;">!</span>
+        </button>
         <label class="import-btn" [title]="'EMPLOYEES.IMPORT_EXCEL' | translate">
           <i class="bx bx-upload"></i> {{ 'EMPLOYEES.IMPORT_EXCEL' | translate }}
           <input type="file" accept=".xlsx,.xls" style="display:none" (change)="onFileImport($event)" />
         </label>
+        <button class="import-btn" (click)="exportExcel()" [disabled]="exportingExcel" [title]="'Export employees as Excel'">
+          <span *ngIf="exportingExcel" style="display:inline-block;width:12px;height:12px;border:2px solid #E2E8F0;border-top-color:#1B7872;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px;"></span>
+          <i *ngIf="!exportingExcel" class="bx bx-file-blank"></i>
+          Excel
+        </button>
+        <button class="import-btn" (click)="exportPdf()" [disabled]="exportingPdf" [title]="'Export employees as PDF'">
+          <span *ngIf="exportingPdf" style="display:inline-block;width:12px;height:12px;border:2px solid #E2E8F0;border-top-color:#BE123C;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px;"></span>
+          <i *ngIf="!exportingPdf" class="bx bx-file-pdf"></i>
+          PDF
+        </button>
+      </div>
+
+      <!-- Advanced Filter Panel -->
+      <div class="adv-filter-panel" *ngIf="showFilters">
+        <div class="adv-filter-group">
+          <label class="adv-filter-label">Department</label>
+          <select class="adv-filter-select" [(ngModel)]="filters.department">
+            <option value="">All Departments</option>
+            <option *ngFor="let d of departments; trackBy: trackById" [value]="d.id">{{ d.name }}</option>
+          </select>
+        </div>
+        <div class="adv-filter-group">
+          <label class="adv-filter-label">Contract Type</label>
+          <select class="adv-filter-select" [(ngModel)]="filters.contractType">
+            <option value="">All Types</option>
+            <option value="CDI">CDI</option>
+            <option value="CDD">CDD</option>
+            <option value="STAGE">Stage</option>
+            <option value="INTERIM">Intérim</option>
+            <option value="CIVP">CIVP</option>
+            <option value="FREELANCE">Freelance</option>
+          </select>
+        </div>
+        <div class="adv-filter-group">
+          <label class="adv-filter-label">Status</label>
+          <select class="adv-filter-select" [(ngModel)]="filters.status">
+            <option value="">All Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </div>
+        <div class="adv-filter-group">
+          <label class="adv-filter-label">Hired From</label>
+          <input type="date" class="adv-filter-input" [(ngModel)]="filters.hireFrom" />
+        </div>
+        <div class="adv-filter-group">
+          <label class="adv-filter-label">Hired To</label>
+          <input type="date" class="adv-filter-input" [(ngModel)]="filters.hireTo" />
+        </div>
+        <div class="adv-filter-actions">
+          <button class="adv-reset-btn" (click)="resetFilters()">Reset</button>
+          <button class="adv-apply-btn" (click)="applyFilters()">Apply</button>
+        </div>
+      </div>
+
+      <!-- Bulk Action Bar -->
+      <div *ngIf="selectedIds.size > 0" class="bulk-action-bar d-flex align-items-center gap-2 p-2 mb-2 mx-3 mt-2">
+        <span class="text-muted small" style="white-space:nowrap;color:#4A6080;font-size:12.5px;">{{ selectedIds.size }} selected</span>
+        <select class="form-select form-select-sm" style="width:auto;min-width:160px" [(ngModel)]="bulkAction">
+          <option value="">Choose action…</option>
+          <option value="ACTIVE">Set Active</option>
+          <option value="INACTIVE">Set Inactive</option>
+        </select>
+        <button class="btn btn-sm btn-primary" (click)="applyBulkAction()" [disabled]="!bulkAction || bulkActionLoading">
+          <span *ngIf="bulkActionLoading" class="spinner-border spinner-border-sm me-1" style="display:inline-block;vertical-align:middle;border-style:solid;border-color:#fff transparent #fff #fff;border-radius:50%;animation:spin .7s linear infinite;"></span>
+          Apply
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="selectedIds.clear()">Clear</button>
       </div>
 
       <div style="overflow-x:auto;">
@@ -613,6 +790,7 @@ interface EmpRow {
         <table *ngIf="!loading && !error && filteredRows.length > 0">
           <thead>
             <tr>
+              <th style="width:40px;text-align:center;"><input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" style="cursor:pointer;width:15px;height:15px;" /></th>
               <th>{{ 'EMPLOYEES.TABLE_MATRICULE' | translate }}</th>
               <th>{{ 'EMPLOYEES.TABLE_NAME' | translate }}</th>
               <th>{{ 'EMPLOYEES.TABLE_START_DATE' | translate }}</th>
@@ -623,7 +801,10 @@ interface EmpRow {
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let e of pagedRows" (click)="openDetail(getRaw(e.matricule))">
+            <tr *ngFor="let e of pagedRows; trackBy: trackById" (click)="openDetail(getRaw(e.matricule))">
+              <td style="text-align:center;" (click)="$event.stopPropagation()">
+                <input type="checkbox" [checked]="selectedIds.has(e.matricule)" (change)="toggleSelect(e.matricule)" style="cursor:pointer;width:15px;height:15px;" />
+              </td>
               <td class="emp-td-id">{{ e.matricule }}</td>
               <td class="emp-td-name">{{ e.name }}</td>
               <td class="emp-td-date">{{ e.startDate || '—' }}</td>
@@ -648,7 +829,7 @@ interface EmpRow {
         </span>
         <div class="pagination-btns">
           <button class="page-btn" (click)="currentPage=currentPage-1" [disabled]="currentPage===1"><i class="bx bx-chevron-left"></i></button>
-          <button class="page-btn" *ngFor="let p of pageNumbers" [class.active]="p===currentPage" (click)="currentPage=p">{{ p }}</button>
+          <button class="page-btn" *ngFor="let p of pageNumbers; trackBy: trackByIndex" [class.active]="p===currentPage" (click)="currentPage=p">{{ p }}</button>
           <button class="page-btn" (click)="currentPage=currentPage+1" [disabled]="currentPage===totalPages"><i class="bx bx-chevron-right"></i></button>
         </div>
       </div>
@@ -657,7 +838,10 @@ interface EmpRow {
   </div>
   `
 })
-export class CollaborateurComponent implements OnInit {
+export class CollaborateurComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
+  private searchSubject = new Subject<string>();
 
   today = new Date().toISOString().split('T')[0];
   Math = Math;
@@ -674,6 +858,55 @@ export class CollaborateurComponent implements OnInit {
   saving = false;
   toast: { message: string; type: 'success' | 'error' } | null = null;
 
+  // ── Advanced Filters ──
+  showFilters = false;
+  filters = { department: '', contractType: '', status: '', hireFrom: '', hireTo: '' };
+
+  // ── Export state ──
+  exportingExcel = false;
+  exportingPdf = false;
+
+  // ── Bulk Operations ──
+  selectedIds = new Set<number>();
+  bulkAction = '';
+  bulkActionLoading = false;
+
+  toggleSelect(id: number): void {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+    } else {
+      this.selectedIds.add(id);
+    }
+  }
+
+  toggleSelectAll(): void {
+    if (this.allSelected) {
+      this.selectedIds.clear();
+    } else {
+      this.allEmployees.forEach((e: any) => this.selectedIds.add(e.matricule));
+    }
+  }
+
+  get allSelected(): boolean {
+    return this.allEmployees.length > 0 && this.selectedIds.size === this.allEmployees.length;
+  }
+
+  applyBulkAction(): void {
+    if (!this.bulkAction || this.selectedIds.size === 0) return;
+    this.bulkActionLoading = true;
+    const ids = Array.from(this.selectedIds);
+    const calls = ids.map(id => this.collaborateurService.updateStatus(id, this.bulkAction));
+    forkJoin(calls).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.selectedIds.clear();
+        this.bulkAction = '';
+        this.bulkActionLoading = false;
+        this.loadData();
+      },
+      error: () => { this.bulkActionLoading = false; }
+    });
+  }
+
   // ── Stats (computed from real data) ──
   get total()       { return this.allEmployees.length; }
   get cdiCount()    { return this.allEmployees.filter(e => e.Type?.toUpperCase() === 'CDI').length; }
@@ -684,6 +917,35 @@ export class CollaborateurComponent implements OnInit {
   get detailNationalite(): string { return this.detailEmployee?.['Nationalité'] ?? ''; }
   get detailDepartement(): string { return this.detailEmployee?.['Département'] ?? ''; }
   get detailAnciennete(): number | null { return this.detailEmployee?.['Ancienneté'] ?? null; }
+
+  get contractDaysLeft(): number | null {
+    const end = this.detailEmployee?.contractEndDate;
+    if (!end) return null;
+    const diff = Math.floor((new Date(end).getTime() - Date.now()) / 86400000);
+    return diff;
+  }
+
+  get contractExpiryClass(): string {
+    const days = this.contractDaysLeft;
+    if (days === null) return '';
+    if (days <= 7)  return 'text-danger fw-bold';
+    if (days <= 30) return 'text-warning fw-bold';
+    return 'text-success';
+  }
+
+  get contractBadgeClass(): string {
+    const map: Record<string, string> = {
+      CDI: 'bg-success text-white',
+      CDD: 'bg-warning text-dark',
+      STAGE: 'bg-info text-white',
+      CIVP: 'bg-primary text-white',
+      FREELANCE: 'bg-secondary text-white',
+      INTERIM: 'bg-danger text-white',
+      PRESTATAIRE: 'bg-secondary text-white',
+      APPRENTISSAGE: 'bg-primary text-white',
+    };
+    return map[this.detailEmployee?.Type ?? ''] ?? 'bg-secondary text-white';
+  }
 
   // ── Table ──
   tableTabs = [
@@ -700,7 +962,7 @@ export class CollaborateurComponent implements OnInit {
       return [...new Set(this.rows.map(r => r.empType).filter(Boolean))].sort();
     }
     if (this.activeTableTab === 'GENDER') {
-      return ['MALE', 'FEMALE'];
+      return this.refData.genders.map(g => g.value);
     }
     if (this.activeTableTab === 'DEPARTMENT') {
       return [...new Set(this.rows.map(r => r.department).filter(Boolean))].sort();
@@ -741,9 +1003,27 @@ export class CollaborateurComponent implements OnInit {
   departments: DeptRef[] = [];
   positions: PosRef[] = [];
 
-  get filteredPositions(): PosRef[] {
-    if (!this.form.departmentId) return this.positions;
-    return this.positions.filter(p => !p.departmentId || p.departmentId === this.form.departmentId);
+  filteredPositions: PosRef[] = [];
+
+  onDobChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    if (!val) { this.form.age = null; return; }
+    const birth = new Date(val);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    this.form.age = age > 0 ? age : null;
+  }
+
+  onDepartmentChange(deptId: number | string): void {
+    if (!deptId) { this.filteredPositions = []; return; }
+    this.deptService.getPositionsByDepartment(Number(deptId)).subscribe({
+      next: positions => {
+        this.filteredPositions = positions.map((p: any) => ({ id: p.id, title: p.title ?? p.name, name: p.title ?? p.name, departmentId: p.department?.id ?? p.departmentId }));
+      },
+      error: () => { this.filteredPositions = []; }
+    });
   }
 
   // ── Link User state ──
@@ -758,20 +1038,78 @@ export class CollaborateurComponent implements OnInit {
     private confirmSvc: ConfirmService,
     private translate: TranslateService,
     private route: ActivatedRoute,
+    public refData: ReferenceDataService,
+    private reportService: ReportService,
   ) {}
+
+  exportExcel(): void {
+    this.exportingExcel = true;
+    this.reportService.getEmployeesExcelBlob()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          downloadBlob(blob, `employees_${todayDateString()}.xlsx`);
+          this.exportingExcel = false;
+        },
+        error: () => {
+          this.showToast(this.translate.instant('EMPLOYEES.EXPORT_ERROR') || 'Export failed', 'error');
+          this.exportingExcel = false;
+        }
+      });
+  }
+
+  exportPdf(): void {
+    this.exportingPdf = true;
+    this.reportService.getEmployeesPdfBlob()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          downloadBlob(blob, `employees_${todayDateString()}.pdf`);
+          this.exportingPdf = false;
+        },
+        error: () => {
+          this.showToast(this.translate.instant('EMPLOYEES.EXPORT_ERROR') || 'Export failed', 'error');
+          this.exportingPdf = false;
+        }
+      });
+  }
 
   ngOnInit(): void {
     this.loadData();
     this.loadReferenceData();
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['action'] === 'create') this.openCreate();
+    });
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(term => this.collaborateurService.getAll(term || undefined)),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: results => {
+        this.allEmployees = results;
+        this.rows = results.map(e => this.toRow(e));
+        this.applySearch();
+        this.buildChart(results);
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  trackById(_: number, item: any): any { return item.id ?? item._backendId ?? item.matricule ?? _; }
+  trackByIndex(index: number): number { return index; }
+
   loadReferenceData(): void {
-    this.deptService.getActiveDepartments().subscribe({ next: d => this.departments = d, error: () => {} });
-    this.deptService.getAllPositions().subscribe({ next: p => this.positions = p, error: () => {} });
-    this.adminService.getAllUsers().subscribe({
+    this.deptService.getActiveDepartments().pipe(takeUntil(this.destroy$)).subscribe({ next: d => this.departments = d, error: () => {} });
+    this.deptService.getAllPositions().pipe(takeUntil(this.destroy$)).subscribe({ next: p => this.positions = p, error: () => {} });
+    this.adminService.getAllUsers().pipe(takeUntil(this.destroy$)).subscribe({
       next: users => {
         this.allUsers = users.map(u => ({
           id: u.id,
@@ -785,7 +1123,7 @@ export class CollaborateurComponent implements OnInit {
   loadData(): void {
     this.loading = true;
     this.error = null;
-    this.collaborateurService.getAll().subscribe({
+    this.collaborateurService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
       next: data => {
         this.allEmployees = data;
         this.rows = data.map(e => this.toRow(e));
@@ -825,6 +1163,30 @@ export class CollaborateurComponent implements OnInit {
       }
     }
 
+    // Apply advanced filters (client-side)
+    if (this.filters.department) {
+      const deptId = String(this.filters.department);
+      result = result.filter(r => {
+        const raw = this.getRaw(r.matricule);
+        return String((raw as any)?._departmentId) === deptId;
+      });
+    }
+    if (this.filters.contractType) {
+      result = result.filter(r => r.empType?.toUpperCase() === this.filters.contractType.toUpperCase());
+    }
+    if (this.filters.status) {
+      result = result.filter(r => {
+        const raw = this.getRaw(r.matricule);
+        return (raw as any)?.status?.toUpperCase() === this.filters.status.toUpperCase();
+      });
+    }
+    if (this.filters.hireFrom) {
+      result = result.filter(r => r.startDate >= this.filters.hireFrom);
+    }
+    if (this.filters.hireTo) {
+      result = result.filter(r => r.startDate <= this.filters.hireTo);
+    }
+
     if (q) {
       result = result.filter(r =>
         r.name.toLowerCase().includes(q) ||
@@ -836,6 +1198,24 @@ export class CollaborateurComponent implements OnInit {
 
     this.filteredRows = result;
     this.currentPage = 1;
+  }
+
+  applyFilters(): void {
+    this.applySearch();
+  }
+
+  resetFilters(): void {
+    this.filters = { department: '', contractType: '', status: '', hireFrom: '', hireTo: '' };
+    this.applySearch();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.filters.department || this.filters.contractType || this.filters.status || this.filters.hireFrom || this.filters.hireTo);
+  }
+
+  onSearch(term: string): void {
+    this.loading = true;
+    this.searchSubject.next(term);
   }
 
   getRaw(matricule: number): Collaborateur {
@@ -877,6 +1257,7 @@ export class CollaborateurComponent implements OnInit {
   openCreate(): void {
     this.editingEmployee = null;
     this.form = this.emptyForm();
+    this.filteredPositions = [];
     this.showCreateModal = true;
     this.detailEmployee = null;
   }
@@ -898,9 +1279,15 @@ export class CollaborateurComponent implements OnInit {
       departmentId: (emp as any)._departmentId ?? null,
       positionId:   (emp as any)._positionId   ?? null,
       _version:     (emp as any)._version      ?? null,
-      date_entree: emp.date_entree ?? '',
-      anciennete: emp.Ancienneté ?? null,
+      date_entree:       emp.date_entree        ?? '',
+      anciennete:        emp.Ancienneté         ?? null,
+      contractStartDate: (emp as any).contractStartDate ?? '',
+      contractEndDate:   (emp as any).contractEndDate   ?? '',
+      noticePeriodDays:  (emp as any).noticePeriodDays  ?? null,
     };
+    if (this.form.departmentId) {
+      this.onDepartmentChange(this.form.departmentId);
+    }
     this.showCreateModal = true;
     this.detailEmployee = null;
   }
@@ -926,14 +1313,17 @@ export class CollaborateurComponent implements OnInit {
       category:     this.form.CATEGORIE     || null,
       dateOfBirth:  this.form.date_naissance || null,
       branch:       this.form.FILIALE       || null,
-      contractType: this.form.Type          || null,
-      hireDate:     this.form.date_entree   || null,
-      phone:        this.form.phone         || null,
-      address:      this.form.address       || null,
-      departmentId: this.form.departmentId  ?? null,
-      positionId:   this.form.positionId    ?? null,
-      status:       this.form.status        || null,
-      version:      this.form._version      ?? null,
+      contractType:      this.form.Type              || null,
+      hireDate:          this.form.date_entree        || null,
+      contractStartDate: this.form.contractStartDate  || null,
+      contractEndDate:   this.form.contractEndDate    || null,
+      noticePeriodDays:  this.form.noticePeriodDays   ?? null,
+      phone:             this.form.phone              || null,
+      address:           this.form.address            || null,
+      departmentId:      this.form.departmentId       ?? null,
+      positionId:        this.form.positionId         ?? null,
+      status:            this.form.status             || null,
+      version:           this.form._version           ?? null,
     };
 
     if (this.editingEmployee) {
@@ -955,18 +1345,15 @@ export class CollaborateurComponent implements OnInit {
       });
     } else {
       this.collaborateurService.create(dto).subscribe({
-        next: created => {
-          this.allEmployees = [created, ...this.allEmployees];
-          this.rows = this.allEmployees.map(e => this.toRow(e));
-          this.applySearch();
-          this.buildChart(this.allEmployees);
+        next: () => {
           this.showCreateModal = false;
           this.saving = false;
           this.showToast(this.translate.instant('EMPLOYEES.TOAST_CREATED'), 'success');
+          this.loadData();
         },
         error: err => {
           this.saving = false;
-          this.showToast(err?.error?.message || this.translate.instant('EMPLOYEES.TOAST_CREATED'), 'error');
+          this.showToast(err?.error?.message || this.translate.instant('EMPLOYEES.TOAST_ERROR', { default: 'Failed to create employee' }), 'error');
         }
       });
     }
@@ -1094,7 +1481,7 @@ export class CollaborateurComponent implements OnInit {
   }
 
   private emptyForm(): any {
-    return { nom:'', prenom:'', email:'', sexe:'', CIN:'', nationalite:'', CATEGORIE:'', age: null, date_naissance:'', FILIALE:'', Type:'', departmentId: null as number | null, positionId: null as number | null, date_entree:'', anciennete: null };
+    return { nom:'', prenom:'', email:'', sexe:'', CIN:'', nationalite:'', CATEGORIE:'', age: null, date_naissance:'', FILIALE:'', Type:'', departmentId: null as number | null, positionId: null as number | null, date_entree:'', anciennete: null, contractStartDate:'', contractEndDate:'', noticePeriodDays: null };
   }
 
   private showToast(message: string, type: 'success' | 'error'): void {

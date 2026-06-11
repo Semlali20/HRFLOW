@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaveService, LeaveRequest } from '../leave/leave.service';
+import { ReportService } from 'src/app/core/services/report.service';
+import { downloadBlob, todayDateString } from 'src/app/core/utils/download.util';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
@@ -140,8 +142,22 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
     </div>
     <div class="dp-footer" *ngIf="selected.status === 'PENDING'">
-      <button class="btn-decline" [disabled]="saving" (click)="reject(selected)">{{ 'DAYOFF.BTN_REJECT' | translate }}</button>
-      <button class="btn-accept"  [disabled]="saving" (click)="approve(selected)">{{ 'DAYOFF.BTN_APPROVE' | translate }}</button>
+      <button class="btn-decline" [disabled]="saving" (click)="requestAction(selected, 'reject')">{{ 'DAYOFF.BTN_REJECT' | translate }}</button>
+      <button class="btn-accept"  [disabled]="saving" (click)="requestAction(selected, 'approve')">{{ 'DAYOFF.BTN_APPROVE' | translate }}</button>
+    </div>
+  </div>
+
+  <!-- Confirm Action Panel -->
+  <div *ngIf="pendingAction" style="position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(10,20,35,.18);padding:24px 28px;min-width:360px;max-width:480px;border:1px solid #F0F3F6;">
+    <p style="font-size:14px;font-weight:600;color:#1A2B3C;margin:0 0 12px;">
+      {{ (pendingAction === 'approve' ? 'DAYOFF.CONFIRM_APPROVE' : 'DAYOFF.CONFIRM_REJECT') | translate }}
+      <strong>{{ pendingItem?.requester?.name }}</strong>?
+    </p>
+    <textarea [(ngModel)]="comment" [placeholder]="'DAYOFF.COMMENT_PLACEHOLDER' | translate" rows="2" style="width:100%;margin:8px 0;padding:8px;border-radius:6px;border:1px solid #ddd;resize:vertical;font-size:13px;box-sizing:border-box;"></textarea>
+    <span *ngIf="commentError" style="color:red;font-size:12px;display:block;margin-bottom:6px;">{{ commentError | translate }}</span>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-sm btn-success" (click)="confirmAction()" [disabled]="saving" style="padding:7px 16px;background:#22C55E;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ 'DAYOFF.CONFIRM_BTN' | translate }}</button>
+      <button class="btn btn-sm btn-secondary" (click)="cancelAction()" style="padding:7px 16px;background:#F1F5F9;color:#4A6080;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">{{ 'DAYOFF.CANCEL_BTN' | translate }}</button>
     </div>
   </div>
 
@@ -188,6 +204,20 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     <div class="table-card">
       <div class="tabs-bar">
         <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ t | translate }}</button>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:6px;padding-bottom:2px;">
+          <button (click)="exportExcel()" [disabled]="exportingExcel"
+                  style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#4A6080;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:7px;padding:5px 11px;cursor:pointer;"
+                  title="Export leave report as Excel">
+            <span *ngIf="exportingExcel" style="display:inline-block;width:10px;height:10px;border:2px solid #E2E8F0;border-top-color:#1B7872;border-radius:50%;animation:spin .7s linear infinite;"></span>
+            <i *ngIf="!exportingExcel" class="bx bx-file-blank"></i> Excel
+          </button>
+          <button (click)="exportPdf()" [disabled]="exportingPdf"
+                  style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#4A6080;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:7px;padding:5px 11px;cursor:pointer;"
+                  title="Export leave report as PDF">
+            <span *ngIf="exportingPdf" style="display:inline-block;width:10px;height:10px;border:2px solid #E2E8F0;border-top-color:#BE123C;border-radius:50%;animation:spin .7s linear infinite;"></span>
+            <i *ngIf="!exportingPdf" class="bx bx-file-pdf"></i> PDF
+          </button>
+        </span>
       </div>
 
       <div class="state-box" *ngIf="loading">
@@ -230,8 +260,8 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
                 <span class="status-badge" [ngClass]="badgeClass(r.status)">{{ r.status }}</span>
               </td>
               <td (click)="$event.stopPropagation()">
-                <button class="act-btn approve" [title]="'DAYOFF.BTN_APPROVE' | translate" *ngIf="r.status==='PENDING'" (click)="approve(r)"><i class="bx bx-check"></i></button>
-                <button class="act-btn reject"  [title]="'DAYOFF.BTN_REJECT' | translate"  *ngIf="r.status==='PENDING'" (click)="reject(r)"><i class="bx bx-x"></i></button>
+                <button class="act-btn approve" [title]="'DAYOFF.BTN_APPROVE' | translate" *ngIf="r.status==='PENDING'" (click)="requestAction(r, 'approve')"><i class="bx bx-check"></i></button>
+                <button class="act-btn reject"  [title]="'DAYOFF.BTN_REJECT' | translate"  *ngIf="r.status==='PENDING'" (click)="requestAction(r, 'reject')"><i class="bx bx-x"></i></button>
               </td>
             </tr>
           </tbody>
@@ -254,7 +284,43 @@ export class DayoffComponent implements OnInit {
   selected: LeaveRequest | null = null;
   toast: string | null = null;
 
-  constructor(private leaveService: LeaveService, private translate: TranslateService) {}
+  comment: string = '';
+  commentError: string | null = null;
+  pendingAction: 'approve' | 'reject' | null = null;
+  pendingItem: LeaveRequest | null = null;
+
+  exportingExcel = false;
+  exportingPdf = false;
+
+  constructor(
+    private leaveService: LeaveService,
+    private reportService: ReportService,
+    private translate: TranslateService,
+  ) {}
+
+  exportExcel(): void {
+    const year = new Date().getFullYear();
+    this.exportingExcel = true;
+    this.reportService.getLeavesExcel(year).subscribe({
+      next: (blob) => {
+        downloadBlob(blob, `leave_report_${year}_${todayDateString()}.xlsx`);
+        this.exportingExcel = false;
+      },
+      error: () => { this.exportingExcel = false; }
+    });
+  }
+
+  exportPdf(): void {
+    const year = new Date().getFullYear();
+    this.exportingPdf = true;
+    this.reportService.getLeavesPdf(year).subscribe({
+      next: (blob) => {
+        downloadBlob(blob, `leave_report_${year}_${todayDateString()}.pdf`);
+        this.exportingPdf = false;
+      },
+      error: () => { this.exportingPdf = false; }
+    });
+  }
 
   ngOnInit(): void { this.load(); }
 
@@ -287,30 +353,46 @@ export class DayoffComponent implements OnInit {
     return { 'badge-pending': s==='PENDING', 'badge-approved': s==='APPROVED', 'badge-rejected': s==='REJECTED' };
   }
 
-  approve(req: LeaveRequest): void {
+  requestAction(req: LeaveRequest, action: 'approve' | 'reject'): void {
+    this.pendingItem   = req;
+    this.pendingAction = action;
+    this.comment       = '';
+    this.commentError  = null;
+  }
+
+  confirmAction(): void {
+    if (!this.pendingItem || !this.pendingAction) return;
+    if (this.pendingAction === 'reject' && !this.comment.trim()) {
+      this.commentError = 'DAYOFF.COMMENT_REQUIRED';
+      return;
+    }
     this.saving = true;
-    this.leaveService.approve(req.id, '').subscribe({
+    const obs = this.pendingAction === 'approve'
+      ? this.leaveService.approve(this.pendingItem.id, this.comment)
+      : this.leaveService.reject(this.pendingItem.id, this.comment);
+    obs.subscribe({
       next: updated => {
         this.rows = this.rows.map(r => r.id === updated.id ? updated : r);
         if (this.selected?.id === updated.id) this.selected = updated;
         this.saving = false;
-        this.showToast(this.translate.instant('DAYOFF.TOAST_APPROVED'));
+        this.pendingItem = null;
+        this.pendingAction = null;
+        this.comment = '';
+        this.showToast(this.translate.instant('DAYOFF.ACTION_SUCCESS'));
+        this.load();
       },
-      error: err => { this.saving = false; this.showToast(err?.error?.message || this.translate.instant('DAYOFF.TOAST_APPROVE_FAILED')); }
+      error: () => {
+        this.saving = false;
+        this.showToast(this.translate.instant('DAYOFF.ACTION_ERROR'));
+      }
     });
   }
 
-  reject(req: LeaveRequest): void {
-    this.saving = true;
-    this.leaveService.reject(req.id, '').subscribe({
-      next: updated => {
-        this.rows = this.rows.map(r => r.id === updated.id ? updated : r);
-        if (this.selected?.id === updated.id) this.selected = updated;
-        this.saving = false;
-        this.showToast(this.translate.instant('DAYOFF.TOAST_REJECTED'));
-      },
-      error: err => { this.saving = false; this.showToast(err?.error?.message || this.translate.instant('DAYOFF.TOAST_REJECT_FAILED')); }
-    });
+  cancelAction(): void {
+    this.pendingItem = null;
+    this.pendingAction = null;
+    this.comment = '';
+    this.commentError = null;
   }
 
   private showToast(msg: string): void {

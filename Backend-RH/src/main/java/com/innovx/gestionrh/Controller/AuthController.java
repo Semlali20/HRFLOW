@@ -1,8 +1,12 @@
 package com.innovx.gestionrh.Controller;
 
+import com.innovx.gestionrh.Config.RateLimitConfig;
+import com.innovx.gestionrh.Config.SseTicketStore;
+import com.innovx.gestionrh.Entity.OtpToken;
 import com.innovx.gestionrh.Entity.RefreshToken;
 import com.innovx.gestionrh.Entity.Role;
 import com.innovx.gestionrh.Entity.User;
+import com.innovx.gestionrh.Repository.OtpTokenRepository;
 import com.innovx.gestionrh.Repository.RoleRepository;
 import com.innovx.gestionrh.Repository.UserRepository;
 import com.innovx.gestionrh.Service.EmailService;
@@ -21,11 +25,15 @@ import com.innovx.gestionrh.payload.response.MessageResponse;
 import com.innovx.gestionrh.payload.response.TokenRefreshResponse;
 import com.innovx.gestionrh.security.jwt.JwtUtils;
 import com.innovx.gestionrh.security.services.UserDetailsImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,19 +48,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Tag(name = "Authentication", description = "Login, registration, password reset, token refresh")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    // ── OTP store: email → (code, expiry) ────────────────────────────────────
-    private record OtpEntry(String code, LocalDateTime expiresAt) {}
-    private final Map<String, OtpEntry> otpStore = new ConcurrentHashMap<>();
-    private static final int OTP_TTL_MINUTES = 2;
+    private static final int OTP_TTL_MINUTES = 15;
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -62,11 +67,20 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final PasswordService passwordService;
     private final EmailService emailService;
+    private final RateLimitConfig rateLimitConfig;
+    private final OtpTokenRepository otpTokenRepository;
+    private final SseTicketStore sseTicketStore;
 
     // ── LOGIN ─────────────────────────────────────────────────────────────────
 
+    @Operation(summary = "Login", description = "Authenticate with email/password, returns JWT access and refresh tokens")
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        String clientIp = getClientIp(httpRequest);
+        if (!rateLimitConfig.isAllowed("login:" + clientIp)) {
+            return ResponseEntity.status(429)
+                    .body(Map.of("message", "Too many login attempts. Please wait before trying again."));
+        }
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
@@ -104,6 +118,7 @@ public class AuthController {
      * Returns the caller's current role + permissions, freshly loaded from DB.
      * Frontend polls this every ~60 s to pick up permission changes without re-login.
      */
+    @Operation(summary = "Get current user", description = "Returns the authenticated user's profile, roles and permissions")
     @GetMapping("/me")
     public ResponseEntity<JwtResponse> getCurrentUser(
             @AuthenticationPrincipal UserDetailsImpl currentUser) {
@@ -127,6 +142,8 @@ public class AuthController {
 
     // ── REGISTER ──────────────────────────────────────────────────────────────
 
+    @Operation(summary = "Register user", description = "Create a new user account (requires USER_MANAGE permission); sends a temporary password by email")
+    @PreAuthorize("hasAuthority('USER_MANAGE')")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody SignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -171,6 +188,7 @@ public class AuthController {
 
     // ── REFRESH ───────────────────────────────────────────────────────────────
 
+    @Operation(summary = "Refresh token", description = "Exchange a valid refresh token for a new access token")
     @PostMapping("/refresh")
     public ResponseEntity<TokenRefreshResponse> refresh(@Valid @RequestBody TokenRefreshRequest request) {
         RefreshToken verified = refreshTokenService.findByToken(request.getRefreshToken())
@@ -186,6 +204,7 @@ public class AuthController {
 
     // ── LOGOUT ────────────────────────────────────────────────────────────────
 
+    @Operation(summary = "Logout", description = "Invalidates the current user's refresh token")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
             @AuthenticationPrincipal UserDetailsImpl currentUser) {
@@ -198,6 +217,7 @@ public class AuthController {
 
     // ── PASSWORD CHANGE ───────────────────────────────────────────────────────
 
+    @Operation(summary = "Change password", description = "Change the authenticated user's password")
     @PutMapping("/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @AuthenticationPrincipal UserDetailsImpl currentUser,
@@ -211,8 +231,14 @@ public class AuthController {
 
     // ── FORGOT PASSWORD — step 1: send OTP ───────────────────────────────────
 
+    @Operation(summary = "Forgot password – send OTP", description = "Sends a 6-digit OTP code to the given email address for password reset")
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body, HttpServletRequest httpRequest) {
+        String clientIp = getClientIp(httpRequest);
+        if (!rateLimitConfig.isAllowed("forgot:" + clientIp)) {
+            return ResponseEntity.status(429)
+                    .body(Map.of("message", "Too many requests. Please wait before trying again."));
+        }
         String email = body.get("email");
         if (email == null || email.isBlank()) {
             throw new BusinessException("MISSING_EMAIL", "Email is required.");
@@ -221,7 +247,13 @@ public class AuthController {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
         String code = String.format("%06d", new Random().nextInt(1_000_000));
-        otpStore.put(email, new OtpEntry(code, LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES)));
+        OtpToken otpToken = OtpToken.builder()
+                .email(email)
+                .code(code)
+                .expiresAt(LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES))
+                .used(false)
+                .build();
+        otpTokenRepository.save(otpToken);
 
         emailService.sendEmail(email, "Your WIKOHR password reset code",
                 "Your verification code is: " + code + "\n\nThis code expires in " + OTP_TTL_MINUTES + " minutes.");
@@ -232,17 +264,23 @@ public class AuthController {
 
     // ── FORGOT PASSWORD — step 2: verify OTP ─────────────────────────────────
 
+    @Operation(summary = "Verify OTP", description = "Validates the OTP code sent by the forgot-password flow")
     @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<Void>> verifyOtp(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> body, HttpServletRequest httpRequest) {
         String email = body.get("email");
+        String clientIp = getClientIp(httpRequest);
+        if (!rateLimitConfig.isAllowed("otp:" + clientIp + ":" + email)) {
+            return ResponseEntity.status(429)
+                    .body(Map.of("message", "Too many OTP attempts. Please wait before trying again."));
+        }
         String code  = body.get("otp");
-        OtpEntry entry = otpStore.get(email);
+        OtpToken entry = otpTokenRepository.findTopByEmailAndUsedFalseOrderByCreatedAtDesc(email)
+                .orElseThrow(() -> new BusinessException("INVALID_OTP", "The code you entered is incorrect."));
 
-        if (entry == null || !entry.code().equals(code)) {
+        if (!entry.getCode().equals(code)) {
             throw new BusinessException("INVALID_OTP", "The code you entered is incorrect.");
         }
-        if (LocalDateTime.now().isAfter(entry.expiresAt())) {
-            otpStore.remove(email);
+        if (entry.isExpired()) {
             throw new BusinessException("EXPIRED_OTP", "This code has expired. Please request a new one.");
         }
         return ResponseEntity.ok(ApiResponse.ok("Code verified."));
@@ -250,18 +288,20 @@ public class AuthController {
 
     // ── FORGOT PASSWORD — step 3: reset password ──────────────────────────────
 
+    @Operation(summary = "Reset password", description = "Sets a new password after OTP verification")
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody Map<String, String> body) {
         String email       = body.get("email");
         String code        = body.get("otp");
         String newPassword = body.get("newPassword");
 
-        OtpEntry entry = otpStore.get(email);
-        if (entry == null || !entry.code().equals(code)) {
+        OtpToken entry = otpTokenRepository.findTopByEmailAndUsedFalseOrderByCreatedAtDesc(email)
+                .orElseThrow(() -> new BusinessException("INVALID_OTP", "Invalid or expired code."));
+
+        if (!entry.getCode().equals(code)) {
             throw new BusinessException("INVALID_OTP", "Invalid or expired code.");
         }
-        if (LocalDateTime.now().isAfter(entry.expiresAt())) {
-            otpStore.remove(email);
+        if (entry.isExpired()) {
             throw new BusinessException("EXPIRED_OTP", "This code has expired. Please request a new one.");
         }
         if (newPassword == null || newPassword.length() < 8) {
@@ -274,13 +314,45 @@ public class AuthController {
         user.setMustChangePassword(false);
         user.setLastPasswordChange(LocalDateTime.now());
         userRepository.save(user);
-        otpStore.remove(email);
+
+        entry.setUsed(true);
+        otpTokenRepository.save(entry);
 
         log.info("Password reset for '{}'.", email);
         return ResponseEntity.ok(ApiResponse.ok("Password reset successfully."));
     }
 
+    // ── SSE TICKET ────────────────────────────────────────────────────────────
+
+    /**
+     * Issues a short-lived (30 s), single-use SSE ticket so the browser's
+     * EventSource does not need to pass the full JWT as a URL query parameter
+     * (which would be recorded in server access logs).
+     *
+     * Flow:
+     *   1. Authenticated client POSTs here → receives { "ticket": "..." }
+     *   2. Client opens EventSource at /api/v1/notifications/stream?ticket=<ticket>
+     *   3. Ticket is consumed immediately on first use.
+     */
+    @Operation(summary = "Issue SSE ticket", description = "Returns a short-lived one-time ticket for opening the SSE notification stream without exposing the JWT in the URL")
+    @PostMapping("/sse-ticket")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, String>> issueSseTicket(
+            @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        sseTicketStore.evictExpired();
+        String ticket = sseTicketStore.issue(currentUser.getEmail());
+        return ResponseEntity.ok(Map.of("ticket", ticket));
+    }
+
     // ── HELPERS ───────────────────────────────────────────────────────────────
+
+    private String getClientIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader != null && !xfHeader.isEmpty()) {
+            return xfHeader.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
 
     private String buildWelcomeEmail(String firstName, String lastName, String email, String password) {
         return "Hello " + firstName + " " + lastName + ",\n\n"

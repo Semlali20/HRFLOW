@@ -1,13 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { forkJoin, of, Subject } from 'rxjs';
+import { catchError, takeUntil } from 'rxjs/operators';
 
-import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
-import { StagiaireService } from 'src/app/core/services/stagiaire.service';
+import { SharedCacheService } from 'src/app/core/services/shared-cache.service';
 import { LeaveService } from 'src/app/pages/leave/leave.service';
 import { SalaryService } from 'src/app/pages/salary/salary.service';
 import { RecruitmentService } from 'src/app/pages/recruitment/recruitment.service';
@@ -19,7 +18,9 @@ import { RecruitmentService } from 'src/app/pages/recruitment/recruitment.servic
   templateUrl: './statistics.component.html',
   styleUrls: ['./statistics.component.scss']
 })
-export class StatisticsComponent implements OnInit {
+export class StatisticsComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
 
   isLoading = true;
   hasError = false;
@@ -46,22 +47,22 @@ export class StatisticsComponent implements OnInit {
   recruitmentChart: any = {};
 
   constructor(
-    private collaborateurService: CollaborateurService,
-    private stagiaireService: StagiaireService,
+    private sharedCacheService: SharedCacheService,
     private leaveService: LeaveService,
     private salaryService: SalaryService,
     private recruitmentService: RecruitmentService,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
     forkJoin({
-      employees:    this.collaborateurService.getAll().pipe(catchError(() => of([]))),
-      interns:      this.stagiaireService.getAll().pipe(catchError(() => of([]))),
+      employees:    this.sharedCacheService.getEmployees().pipe(catchError(() => of([]))),
+      interns:      this.sharedCacheService.getInterns().pipe(catchError(() => of([]))),
       leaves:       this.leaveService.getAllRequests().pipe(catchError(() => of([]))),
       payslips:     this.salaryService.getAll().pipe(catchError(() => of([]))),
       offers:       this.recruitmentService.getAllOffers().pipe(catchError(() => of([]))),
       applications: this.recruitmentService.getAllApplications().pipe(catchError(() => of([]))),
-    }).subscribe({
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ employees, interns, leaves, payslips, offers, applications }) => {
         this.isLoading = false;
 
@@ -94,12 +95,17 @@ export class StatisticsComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   private count(arr: any[], keyFn: (item: any) => string): { labels: string[]; values: number[] } {
     const map: Record<string, number> = {};
     for (const item of arr) {
-      const key = keyFn(item) || 'Autre';
+      const key = keyFn(item) || this.translate.instant('STATS.GENDER_OTHER');
       map[key] = (map[key] || 0) + 1;
     }
     return { labels: Object.keys(map), values: Object.values(map) };
@@ -114,7 +120,7 @@ export class StatisticsComponent implements OnInit {
       legend: { position: 'bottom', fontSize: '12px' },
       dataLabels: { enabled: true, style: { fontSize: '12px' } },
       plotOptions: { pie: { donut: { size: '60%' } } },
-      tooltip: { y: { formatter: (v: number) => `${v} pers.` } },
+      tooltip: { y: { formatter: (v: number) => `${v} ${this.translate.instant('STATS.PERSONS')}` } },
     };
   }
 
@@ -128,7 +134,7 @@ export class StatisticsComponent implements OnInit {
       dataLabels: { enabled: false },
       plotOptions: { bar: { borderRadius: 5, columnWidth: '55%' } },
       grid: { borderColor: '#F1F5F9' },
-      tooltip: { y: { formatter: (v: number) => `${v} pers.` } },
+      tooltip: { y: { formatter: (v: number) => `${v} ${this.translate.instant('STATS.PERSONS')}` } },
     };
   }
 
@@ -136,22 +142,28 @@ export class StatisticsComponent implements OnInit {
 
   private buildGenderChart(employees: any[]): void {
     const { labels, values } = this.count(employees,
-      e => e.sexe === 'M' ? 'Hommes' : e.sexe === 'F' ? 'Femmes' : 'Autre');
+      e => e.sexe === 'M' ? this.translate.instant('STATS.GENDER_MALE') : e.sexe === 'F' ? this.translate.instant('STATS.GENDER_FEMALE') : this.translate.instant('STATS.GENDER_OTHER'));
     this.genderChart = this.donutOpts(labels, values, ['#2FA8A0', '#F472B6', '#94A3B8']);
   }
 
   private buildContractChart(employees: any[]): void {
-    const { labels, values } = this.count(employees, e => e.Type || 'Non défini');
+    const { labels, values } = this.count(employees, e => e.Type || this.translate.instant('STATS.UNDEFINED'));
     this.contractChart = this.donutOpts(labels, values, ['#2FA8A0', '#818CF8', '#FB923C', '#34D399']);
   }
 
   private buildDepartmentChart(employees: any[]): void {
-    const { labels, values } = this.count(employees, e => e.Département || 'Non défini');
-    this.departmentChart = this.barOpts(labels, values, '#2FA8A0', 'Employés');
+    const { labels, values } = this.count(employees, e => e.Département || this.translate.instant('STATS.UNDEFINED'));
+    this.departmentChart = this.barOpts(labels, values, '#2FA8A0', this.translate.instant('STATS.EMPLOYEES'));
   }
 
   private buildSeniorityChart(employees: any[]): void {
-    const buckets = ['0–1 an', '2–3 ans', '4–5 ans', '6–10 ans', '10+ ans'];
+    const buckets = [
+      this.translate.instant('STATS.SENIORITY_0_1'),
+      this.translate.instant('STATS.SENIORITY_2_3'),
+      this.translate.instant('STATS.SENIORITY_4_5'),
+      this.translate.instant('STATS.SENIORITY_6_10'),
+      this.translate.instant('STATS.SENIORITY_10_PLUS'),
+    ];
     const values = [0, 0, 0, 0, 0];
     for (const e of employees) {
       const s = e.Ancienneté ?? 0;
@@ -161,43 +173,58 @@ export class StatisticsComponent implements OnInit {
       else if (s <= 10) values[3]++;
       else              values[4]++;
     }
-    this.seniorityChart = this.barOpts(buckets, values, '#818CF8', 'Employés');
+    this.seniorityChart = this.barOpts(buckets, values, '#818CF8', this.translate.instant('STATS.EMPLOYEES'));
   }
 
   private buildLeaveStatusChart(leaves: any[]): void {
     const map: Record<string, string> = {
-      PENDING: 'En attente', APPROVED: 'Approuvé', REJECTED: 'Rejeté', CANCELLED: 'Annulé'
+      PENDING:   this.translate.instant('STATS.STATUS_PENDING'),
+      APPROVED:  this.translate.instant('STATS.STATUS_APPROVED'),
+      REJECTED:  this.translate.instant('STATS.STATUS_REJECTED'),
+      CANCELLED: this.translate.instant('STATS.STATUS_CANCELLED'),
     };
     const { labels, values } = this.count(leaves, l => map[l.status] || l.status);
     this.leaveStatusChart = this.donutOpts(labels, values, ['#FBBF24', '#34D399', '#F87171', '#94A3B8']);
   }
 
   private buildLeaveTypeChart(leaves: any[]): void {
-    const { labels, values } = this.count(leaves, l => l.leaveType?.name || 'Autre');
+    const { labels, values } = this.count(leaves, l => l.leaveType?.name || this.translate.instant('STATS.GENDER_OTHER'));
     this.leaveTypeChart = this.barOpts(labels, values, '#FBBF24', 'Demandes');
   }
 
   private buildSalaryStatusChart(payslips: any[]): void {
-    const map: Record<string, string> = { DRAFT: 'Brouillon', VALIDATED: 'Validé', PAID: 'Payé' };
+    const map: Record<string, string> = {
+      DRAFT:     this.translate.instant('STATS.PAYSLIP_DRAFT'),
+      VALIDATED: this.translate.instant('STATS.PAYSLIP_VALIDATED'),
+      PAID:      this.translate.instant('STATS.PAYSLIP_PAID'),
+    };
     const { labels, values } = this.count(payslips, p => map[p.status] || p.status);
     this.salaryStatusChart = this.barOpts(labels, values, '#34D399', 'Bulletins');
   }
 
   private buildInternTypeChart(interns: any[]): void {
-    const { labels, values } = this.count(interns, i => i.typeDeStage || 'Non défini');
+    const { labels, values } = this.count(interns, i => i.typeDeStage || this.translate.instant('STATS.UNDEFINED'));
     this.internTypeChart = this.donutOpts(labels, values, ['#2FA8A0', '#818CF8', '#FB923C', '#34D399', '#F472B6']);
   }
 
   private buildInternStatusChart(interns: any[]): void {
-    const map: Record<string, string> = { ACTIVE: 'En cours', COMPLETED: 'Terminé', CANCELLED: 'Annulé' };
-    const { labels, values } = this.count(interns, i => map[i.status] || i.status || 'Autre');
+    const map: Record<string, string> = {
+      ACTIVE:    this.translate.instant('STATS.INTERN_ACTIVE'),
+      COMPLETED: this.translate.instant('STATS.INTERN_COMPLETED'),
+      CANCELLED: this.translate.instant('STATS.STATUS_CANCELLED'),
+    };
+    const { labels, values } = this.count(interns, i => map[i.status] || i.status || this.translate.instant('STATS.GENDER_OTHER'));
     this.internStatusChart = this.donutOpts(labels, values, ['#34D399', '#818CF8', '#94A3B8']);
   }
 
   private buildRecruitmentChart(applications: any[]): void {
     const labelMap: Record<string, string> = {
-      NEW: 'Nouveau', REVIEWING: 'Examen', SHORTLISTED: 'Présélection',
-      INTERVIEW_SCHEDULED: 'Entretien', OFFERED: 'Offre', REJECTED: 'Rejeté'
+      NEW:                  this.translate.instant('STATS.STAGE_NEW'),
+      REVIEWING:            this.translate.instant('STATS.STAGE_REVIEW'),
+      SHORTLISTED:          this.translate.instant('STATS.STAGE_SHORTLIST'),
+      INTERVIEW_SCHEDULED:  this.translate.instant('STATS.STAGE_INTERVIEW'),
+      OFFERED:              this.translate.instant('STATS.STAGE_OFFER'),
+      REJECTED:             this.translate.instant('STATS.STAGE_REJECTED'),
     };
     const stages = ['NEW', 'REVIEWING', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'OFFERED', 'REJECTED'];
     const labels = stages.map(s => labelMap[s]);

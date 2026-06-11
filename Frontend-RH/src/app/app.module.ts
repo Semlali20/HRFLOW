@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { ErrorHandler, NgModule } from '@angular/core';
 import { HttpClientModule, HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -23,6 +23,9 @@ import { AppComponent } from './app.component';
 
 import { ErrorInterceptor } from './core/helpers/error.interceptor';
 import { TokenInterceptor } from './core/helpers/token.interceptor';
+import { HttpErrorInterceptor } from './core/helpers/http-error.interceptor';
+import { GlobalErrorHandler } from './core/handlers/global-error.handler';
+import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
 import { registerLocaleData } from '@angular/common';
@@ -62,11 +65,14 @@ export function createTranslateLoader(http: HttpClient): TranslateLoader {
         ScrollToModule.forRoot(),
         ToastrModule.forRoot(),
         FormsModule,
+        ToastContainerComponent,
     ],
     providers: [
         AuthGuard,
+        { provide: ErrorHandler, useClass: GlobalErrorHandler },
         { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
+        { provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true },
     ],
     bootstrap: [AppComponent]
 })

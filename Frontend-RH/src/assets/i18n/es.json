@@ -336,5 +336,9 @@
         }
       }
     }
+  },
+  "ONBOARDING": {
+    "TITLE": "Onboarding",
+    "LOAD_ERROR": "Error al cargar los procesos"
   }
 }

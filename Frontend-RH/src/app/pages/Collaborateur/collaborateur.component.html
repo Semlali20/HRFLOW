@@ -271,7 +271,7 @@
     <div class="card emp-chart-card">
       <div class="emp-chart-title">Role Demographics</div>
       <div class="emp-chart-wrap">
-        <apx-chart
+        <apx-chart *ngIf="donutChart.chart"
           [series]="donutChart.series"
           [chart]="donutChart.chart"
           [labels]="donutChart.labels"

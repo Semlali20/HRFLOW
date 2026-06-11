@@ -2,7 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { forkJoin } from 'rxjs';
 import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
+import { SalaryService } from './salary.service';
+import { ReportService } from 'src/app/core/services/report.service';
+import { downloadBlob, todayDateString } from 'src/app/core/utils/download.util';
+import { ReferenceDataService } from 'src/app/core/services/reference-data.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
@@ -86,8 +91,9 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     .td-name{font-weight:600;color:#1A2B3C;}
     .td-amt{font-weight:600;color:#1A2B3C;}
     .status-chip{display:inline-flex;padding:4px 12px;border-radius:999px;font-size:11.5px;font-weight:700;}
-    .chip-unpaid{background:#FFE4E6;color:#BE123C;}
-    .chip-paid  {background:#DCFCE7;color:#15803D;}
+    .chip-unpaid    {background:#FFE4E6;color:#BE123C;}
+    .chip-paid      {background:#DCFCE7;color:#15803D;}
+    .chip-validated {background:#FEF3C7;color:#B45309;}
     .eye-btn{background:#F1F5F9;border:none;color:#4A6080;font-size:15px;cursor:pointer;padding:0;width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
     .eye-btn:hover{background:#1B7872;color:#fff;}
 
@@ -259,13 +265,13 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
             </button>
             <div class="period-dd-wrap">
               <button class="filter-btn" (click)="showPeriodDropdown=!showPeriodDropdown">
-                {{ periodTypeLabel }} <i class="bx bx-chevron-down"></i>
+                {{ periodTypeLabel | translate }} <i class="bx bx-chevron-down"></i>
               </button>
               <div class="period-dd" *ngIf="showPeriodDropdown">
-                <button [class.active]="overviewPeriod==='today'"  (click)="setPeriodType('today')">Today</button>
-                <button [class.active]="overviewPeriod==='week'"   (click)="setPeriodType('week')">This Week</button>
-                <button [class.active]="overviewPeriod==='month'"  (click)="setPeriodType('month')">This Month</button>
-                <button [class.active]="overviewPeriod==='year'"   (click)="setPeriodType('year')">This Year</button>
+                <button [class.active]="overviewPeriod==='today'"  (click)="setPeriodType('today')">{{ 'SALARY.PERIOD_TODAY' | translate }}</button>
+                <button [class.active]="overviewPeriod==='week'"   (click)="setPeriodType('week')">{{ 'SALARY.PERIOD_WEEK' | translate }}</button>
+                <button [class.active]="overviewPeriod==='month'"  (click)="setPeriodType('month')">{{ 'SALARY.PERIOD_MONTH' | translate }}</button>
+                <button [class.active]="overviewPeriod==='year'"   (click)="setPeriodType('year')">{{ 'SALARY.PERIOD_YEAR' | translate }}</button>
               </div>
             </div>
           </div>
@@ -281,7 +287,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
             <div class="dist-lbl-row" style="margin-bottom:0;"><span class="dist-dot" style="background:#22C55E;"></span><span class="dist-lbl">Intérim ({{ totalCount > 0 ? (interimCount / totalCount * 100 | number:'1.0-0') : 0 }}%)</span></div>
           </div>
           <div class="dist-chart">
-            <apx-chart [series]="donut.series" [chart]="donut.chart" [colors]="donut.colors"
+            <apx-chart *ngIf="donut.chart" [series]="donut.series" [chart]="donut.chart" [colors]="donut.colors"
               [labels]="donut.labels" [dataLabels]="donut.dataLabels" [legend]="donut.legend"
               [stroke]="donut.stroke" [plotOptions]="donut.plotOptions"></apx-chart>
           </div>
@@ -359,7 +365,22 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
     <div class="table-card">
       <div class="tabs-bar">
         <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab===t" (click)="activeTab=t">{{ t | translate }}</button>
-        <span class="tabs-right"><i class="bx bx-refresh"></i> {{ rows.length }} {{ 'SALARY.EMPLOYEES_COUNT' | translate }}</span>
+        <span class="tabs-right">
+          <i class="bx bx-refresh"></i> {{ rows.length }} {{ 'SALARY.EMPLOYEES_COUNT' | translate }}
+          &nbsp;
+          <button (click)="exportExcel()" [disabled]="exportingExcel"
+                  style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#4A6080;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:7px;padding:5px 11px;cursor:pointer;margin-left:8px;"
+                  title="Export payroll as Excel">
+            <span *ngIf="exportingExcel" style="display:inline-block;width:10px;height:10px;border:2px solid #E2E8F0;border-top-color:#1B7872;border-radius:50%;animation:spin .7s linear infinite;"></span>
+            <i *ngIf="!exportingExcel" class="bx bx-file-blank"></i> Excel
+          </button>
+          <button (click)="exportPdf()" [disabled]="exportingPdf"
+                  style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#4A6080;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:7px;padding:5px 11px;cursor:pointer;margin-left:6px;"
+                  title="Export payroll as PDF">
+            <span *ngIf="exportingPdf" style="display:inline-block;width:10px;height:10px;border:2px solid #E2E8F0;border-top-color:#BE123C;border-radius:50%;animation:spin .7s linear infinite;"></span>
+            <i *ngIf="!exportingPdf" class="bx bx-file-pdf"></i> PDF
+          </button>
+        </span>
       </div>
 
       <!-- Loading -->
@@ -404,7 +425,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
               <td class="td-amt">{{ r.gross }}</td>
               <td class="td-amt">{{ r.deductions }}</td>
               <td class="td-amt">{{ r.net }}</td>
-              <td><span class="status-chip chip-unpaid">{{ 'SALARY.PENDING' | translate }}</span></td>
+              <td><span class="status-chip" [ngClass]="r.statusClass">{{ r.statusLabel }}</span></td>
               <td (click)="$event.stopPropagation(); openDetail(r)">
                 <button class="eye-btn" title="View details"><i class="bx bx-show"></i></button>
               </td>
@@ -427,7 +448,12 @@ export class SalaryComponent implements OnInit {
   showPeriodDropdown = false;
 
   get periodTypeLabel(): string {
-    return { today: 'Today', week: 'This Week', month: 'This Month', year: 'This Year' }[this.overviewPeriod];
+    return {
+      today: 'SALARY.PERIOD_TODAY',
+      week:  'SALARY.PERIOD_WEEK',
+      month: 'SALARY.PERIOD_MONTH',
+      year:  'SALARY.PERIOD_YEAR'
+    }[this.overviewPeriod];
   }
 
   get periodNavLabel(): string {
@@ -477,50 +503,123 @@ export class SalaryComponent implements OnInit {
 
   donut: any = {};
 
-  constructor(private collaborateurService: CollaborateurService, private translate: TranslateService) {}
+  exportingExcel = false;
+  exportingPdf = false;
+
+  constructor(
+    private collaborateurService: CollaborateurService,
+    private salaryService: SalaryService,
+    private reportService: ReportService,
+    private translate: TranslateService,
+    private refData: ReferenceDataService,
+  ) {}
 
   openDetail(r: any) { this.selected = r; this.showDetail = true; }
   closeAll() { this.showDetail = false; this.selected = null; }
+
+  exportExcel(): void {
+    const year = new Date().getFullYear();
+    this.exportingExcel = true;
+    this.reportService.getPayrollExcel(year).subscribe({
+      next: (blob) => {
+        downloadBlob(blob, `payroll_${year}_${todayDateString()}.xlsx`);
+        this.exportingExcel = false;
+      },
+      error: () => { this.exportingExcel = false; }
+    });
+  }
+
+  exportPdf(): void {
+    const year = new Date().getFullYear();
+    this.exportingPdf = true;
+    this.reportService.getPayrollPdf(year).subscribe({
+      next: (blob) => {
+        downloadBlob(blob, `payroll_${year}_${todayDateString()}.pdf`);
+        this.exportingPdf = false;
+      },
+      error: () => { this.exportingPdf = false; }
+    });
+  }
 
   getInitials(name: string): string {
     if (!name) return '?';
     return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   }
 
+  private statusClass(status: string): string {
+    switch ((status ?? '').toUpperCase()) {
+      case 'VALIDATED': return 'chip-validated';
+      case 'PAID':      return 'chip-paid';
+      default:          return 'chip-unpaid'; // DRAFT or unknown
+    }
+  }
+
+  private statusLabel(status: string): string {
+    switch ((status ?? '').toUpperCase()) {
+      case 'VALIDATED': return 'Validated';
+      case 'PAID':      return 'Paid';
+      default:          return 'Draft';
+    }
+  }
+
   ngOnInit(): void {
     this.loading = true;
     this.error = null;
-    this.collaborateurService.getAll().subscribe({
-      next: data => {
-        this.totalCount = data.length;
-        this.cdiCount    = data.filter(e => (e.Type ?? '').toUpperCase() === 'CDI').length;
-        this.cddCount    = data.filter(e => (e.Type ?? '').toUpperCase() === 'CDD').length;
-        this.stageCount  = data.filter(e => (e.Type ?? '').toUpperCase() === 'STAGE').length;
+
+    forkJoin({
+      collaborateurs: this.collaborateurService.getAll(),
+      payslips: this.salaryService.getAll()
+    }).subscribe({
+      next: ({ collaborateurs, payslips }) => {
+        // ── Contract distribution from real employee data ──
+        this.totalCount   = collaborateurs.length;
+        this.cdiCount     = collaborateurs.filter(e => (e.Type ?? '').toUpperCase() === 'CDI').length;
+        this.cddCount     = collaborateurs.filter(e => (e.Type ?? '').toUpperCase() === 'CDD').length;
+        this.stageCount   = collaborateurs.filter(e => (e.Type ?? '').toUpperCase() === 'STAGE').length;
         this.interimCount = this.totalCount - this.cdiCount - this.cddCount - this.stageCount;
 
-        // Map real employees to salary rows (no payroll backend — financial fields are empty)
-        this.rows = data.map(e => ({
-          id:           String(e.matricule),
-          empId:        String(e.matricule),
-          name:         `${e.prenom ?? ''} ${e.nom ?? ''}`.trim(),
-          role:         e.Fonction ?? e.Département ?? '—',
-          department:   e.Département ?? '—',
-          contractType: e.Type ?? '—',
-          hours:        '—',
-          gross:        '—',
-          deductions:   '—',
-          net:          '—',
-          status:       'Pending',
-          // Detail fields — no payroll data yet
-          hourlyRate:       '—',
-          annualSalary:     '—',
-          overtimeRate:     '—',
-          bonuses:          '—',
-          deductionsAmount: '—',
-          deductionTypes:   [],
-          payFrequency:     'Monthly',
-          history:          [],
-        }));
+        // ── Build a lookup map: collaborateurId → employee ──
+        const empMap = new Map(collaborateurs.map(e => [e.matricule, e]));
+
+        // ── Map real payslips to display rows ──
+        this.rows = payslips.map(p => {
+          const emp = empMap.get(p.collaborateurId);
+          const grossAmt = (p.baseSalary ?? 0) + (p.bonuses ?? 0);
+          const name = `${p.collaborateurPrenom ?? ''} ${p.collaborateurNom ?? ''}`.trim()
+            || `${emp?.prenom ?? ''} ${emp?.nom ?? ''}`.trim()
+            || `#${p.collaborateurId}`;
+          return {
+            // Table row fields
+            id:           String(p.id),
+            empId:        String(p.collaborateurId),
+            name,
+            role:         emp?.Fonction ?? emp?.Département ?? 'N/A',
+            department:   emp?.Département ?? 'N/A',
+            contractType: emp?.Type ?? 'N/A',
+            gross:        grossAmt.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+            deductions:   (p.deductions ?? 0).toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+            net:          (p.netSalary ?? 0).toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+            status:       p.status,
+            statusClass:  this.statusClass(p.status),
+            statusLabel:  this.statusLabel(p.status),
+            // Detail panel fields
+            hourlyRate:       'N/A', // TODO: not in Payslip DTO
+            annualSalary:     ((p.baseSalary ?? 0) * 12).toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+            overtimeRate:     'N/A', // TODO: not in Payslip DTO
+            bonuses:          (p.bonuses ?? 0).toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+            deductionsAmount: (p.deductions ?? 0).toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+            deductionTypes:   [],
+            payFrequency:     'Monthly',
+            history: [{
+              date:       p.paymentDate ?? p.period ?? '—',
+              hours:      'N/A', // TODO: not in Payslip DTO
+              gross:      grossAmt.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+              deductions: (p.deductions ?? 0).toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+              net:        (p.netSalary ?? 0).toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
+              status:     this.statusLabel(p.status),
+            }],
+          };
+        });
 
         this.buildDonut();
         this.loading = false;
@@ -535,9 +634,13 @@ export class SalaryComponent implements OnInit {
   private buildDonut(): void {
     // Show contract type distribution using real employee data
     const other = Math.max(0, this.totalCount - this.cdiCount - this.cddCount - this.stageCount - this.interimCount);
-    const seriesRaw = [this.cdiCount, this.cddCount, this.stageCount, this.interimCount].filter(v => v > 0);
-    const labelsRaw = (['CDI', 'CDD', 'Stage', 'Intérim'] as const)
-      .map((l, i) => [l, [this.cdiCount, this.cddCount, this.stageCount, this.interimCount][i]] as [string, number])
+    const contractLabels = this.refData.contractTypes
+      .filter(ct => ['CDI', 'CDD', 'STAGE', 'INTERIM'].includes(ct.value))
+      .map(ct => ct.label);
+    const contractCounts = [this.cdiCount, this.cddCount, this.stageCount, this.interimCount];
+    const seriesRaw = contractCounts.filter(v => v > 0);
+    const labelsRaw = contractLabels
+      .map((l, i) => [l, contractCounts[i]] as [string, number])
       .filter(([, v]) => v > 0)
       .map(([l]) => l);
 

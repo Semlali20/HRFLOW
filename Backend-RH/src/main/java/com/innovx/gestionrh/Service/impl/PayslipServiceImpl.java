@@ -41,6 +41,7 @@ public class PayslipServiceImpl implements PayslipService {
 
         Payslip payslip = payslipMapper.toEntity(request);
         payslip.setCollaborateur(collaborateur);
+        payslip.setYear(extractYear(request.getPeriod()));
         payslip.setNetSalary(calcNet(request.getBaseSalary(), request.getBonuses(), request.getDeductions()));
         payslip.setStatus(PayslipStatus.DRAFT);
         payslip.setDeleted(false);
@@ -53,6 +54,9 @@ public class PayslipServiceImpl implements PayslipService {
     public PayslipResponse update(Long id, PayslipRequest request) {
         Payslip payslip = getOrThrow(id);
         payslipMapper.updateEntity(request, payslip);
+        if (request.getPeriod() != null) {
+            payslip.setYear(extractYear(request.getPeriod()));
+        }
         payslip.setNetSalary(calcNet(payslip.getBaseSalary(), payslip.getBonuses(), payslip.getDeductions()));
         return payslipMapper.toResponse(payslipRepository.save(payslip));
     }
@@ -99,5 +103,10 @@ public class PayslipServiceImpl implements PayslipService {
         BigDecimal b = bonuses != null ? bonuses : BigDecimal.ZERO;
         BigDecimal d = deductions != null ? deductions : BigDecimal.ZERO;
         return base.add(b).subtract(d);
+    }
+
+    /** Extracts the four-digit year from a period string in YYYY-MM format. */
+    private int extractYear(String period) {
+        return Integer.parseInt(period.substring(0, 4));
     }
 }

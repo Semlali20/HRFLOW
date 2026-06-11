@@ -334,5 +334,9 @@
         }
       }
     }
+  },
+  "ONBOARDING": {
+    "TITLE": "Onboarding",
+    "LOAD_ERROR": "Impossibile caricare i processi"
   }
 }

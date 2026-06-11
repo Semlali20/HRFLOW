@@ -34,4 +34,36 @@ export class ReportService {
     getEmployeesPdf(): Observable<ArrayBuffer> {
         return this.http.get(`${this.BASE}/employees/pdf`, { responseType: 'arraybuffer' });
     }
+
+    getInternsExcelBlob(): Observable<Blob> {
+        return this.http.get(`${this.BASE}/interns/excel`, { responseType: 'blob' });
+    }
+
+    getEmployeesExcelBlob(): Observable<Blob> {
+        return this.http.get(`${this.BASE}/employees/excel`, { responseType: 'blob' });
+    }
+
+    getEmployeesPdfBlob(): Observable<Blob> {
+        return this.http.get(`${this.BASE}/employees/pdf`, { responseType: 'blob' });
+    }
+
+    getLeavesExcel(year?: number): Observable<Blob> {
+        const params = year ? `?year=${year}` : '';
+        return this.http.get(`${this.BASE}/leaves/excel${params}`, { responseType: 'blob' });
+    }
+
+    getLeavesPdf(year?: number): Observable<Blob> {
+        const params = year ? `?year=${year}` : '';
+        return this.http.get(`${this.BASE}/leaves/pdf${params}`, { responseType: 'blob' });
+    }
+
+    getPayrollExcel(year?: number): Observable<Blob> {
+        const params = year ? `?year=${year}` : '';
+        return this.http.get(`${this.BASE}/payroll/excel${params}`, { responseType: 'blob' });
+    }
+
+    getPayrollPdf(year?: number): Observable<Blob> {
+        const params = year ? `?year=${year}` : '';
+        return this.http.get(`${this.BASE}/payroll/pdf${params}`, { responseType: 'blob' });
+    }
 }

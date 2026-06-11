@@ -7,7 +7,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LeaveRequest, LeaveType, LeaveBalance, LeaveSubmitRequest } from 'src/app/core/models/hr.models';
 
@@ -23,9 +23,13 @@ export class DayOffService {
 
     constructor(private http: HttpClient) {}
 
-    /** GET /leaves — all leave requests */
+    /** GET /leaves — all leave requests (backend returns PagedResponse — unwrap content) */
     getAll(): Observable<LeaveRequest[]> {
-        return this.http.get<LeaveRequest[]>(this.BASE).pipe(catchError(this.handleError));
+        const params = new HttpParams().set('size', '1000').set('page', '0');
+        return this.http.get<any>(this.BASE, { params }).pipe(
+            map(res => Array.isArray(res) ? res : (res?.content ?? res?.data ?? [])),
+            catchError(this.handleError)
+        );
     }
 
     /** GET /leaves/{id} */
@@ -34,9 +38,13 @@ export class DayOffService {
         return this.http.get<LeaveRequest>(`${this.BASE}/${id}`).pipe(catchError(this.handleError));
     }
 
-    /** GET /leaves/my — own requests */
+    /** GET /leaves/my — own requests (also paginated) */
     getMyRequests(): Observable<LeaveRequest[]> {
-        return this.http.get<LeaveRequest[]>(`${this.BASE}/my`).pipe(catchError(this.handleError));
+        const params = new HttpParams().set('size', '500').set('page', '0');
+        return this.http.get<any>(`${this.BASE}/my`, { params }).pipe(
+            map(res => Array.isArray(res) ? res : (res?.content ?? res?.data ?? [])),
+            catchError(this.handleError)
+        );
     }
 
     /** POST /leaves — submit leave request */

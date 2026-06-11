@@ -121,6 +121,24 @@
   flex-shrink: 0;
 }
 
+// ── Center: Global Search ─────────────────────────────────────────────────────
+.tb-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 480px;
+
+  app-global-search {
+    width: 100%;
+  }
+
+  .gs-input-group {
+    --gs-bg: #F4F6F9;
+    width: 100%;
+  }
+}
+
 // ── Right ─────────────────────────────────────────────────────────────────────
 .tb-right {
   display: flex;
@@ -373,65 +391,19 @@
   border: 2px solid #fff;
 }
 
-// ── Notification action strip (outside / above the dropdown box) ─────────────
-.tb-notif-actions {
-  display: none;
-  position: absolute;
-  top: calc(100% + 10px);
-  right: -10px;
-  flex-direction: row;
-  gap: 6px;
-  z-index: 2001;
-  animation: tbSlide .18s cubic-bezier(.34, 1.3, .64, 1) both;
-}
-
-.tb-icon-btn--open .tb-notif-actions {
-  display: flex;
-}
-
-.tb-na-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 13px;
-  border-radius: 8px;
-  border: 1.5px solid #E2E8F0;
-  background: #fff;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all .18s;
-  box-shadow: 0 2px 8px rgba(10, 20, 35, .08);
-
-  i { font-size: 14px; line-height: 1; }
-
-  &:hover:not(:disabled) {
-    background: #F0FDF9;
-    color: #2FA8A0;
-    border-color: #2FA8A0;
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-}
-
 @keyframes tbSpin {
   to { transform: rotate(360deg); }
 }
 .tb-spin { animation: tbSpin .7s linear infinite; display: inline-block; }
 
-// Notifications panel
-// top is pushed down to clear the action strip (10px gap + ~33px strip height + 8px gap = 51px)
-.tb-notif-panel { min-width: 340px; right: -10px; top: calc(100% + 10px); }
+// ── Notifications panel ───────────────────────────────────────────────────────
+.tb-notif-panel { min-width: 360px; right: -10px; top: calc(100% + 10px); overflow: hidden; }
+
 .tb-notif-head {
   display: flex;
   align-items: center;
-  padding: 14px 16px 12px;
+  justify-content: space-between;
+  padding: 14px 16px 13px;
   border-bottom: 1px solid #F0F3F6;
 }
 .tb-notif-title {
@@ -449,32 +421,142 @@
   font-size: 11px;
   font-weight: 700;
   padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
 }
+
+// Icon-only action buttons in the header
+.tb-notif-icon-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tb-ni-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #64748B;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+  padding: 0;
+
+  &:hover {
+    background: #F0FDF9;
+    border-color: #2FA8A0;
+    color: #2FA8A0;
+  }
+  &--check:hover {
+    background: #F0FDF9;
+    border-color: #2FA8A0;
+    color: #2FA8A0;
+  }
+  &--trash:hover {
+    background: #FFF1F2;
+    border-color: #FECDD3;
+    color: #EF4444;
+  }
+  // Refresh button is always teal-tinted so it's unmissable
+  &--refresh {
+    background: #E8F7F6;
+    border-color: #A7DED9;
+    color: #1B7872;
+    &:hover {
+      background: #2FA8A0;
+      border-color: #2FA8A0;
+      color: #fff;
+    }
+  }
+}
+
 .tb-notif-list {
-  max-height: 280px;
+  max-height: 300px;
   overflow-y: auto;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 4px; }
 }
+
+// Empty state
 .tb-notif-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 20px;
-  color: #B0BEC5;
-  gap: 8px;
-  i { font-size: 32px; }
-  span { font-size: 13px; }
+  padding: 36px 20px 32px;
+  gap: 4px;
 }
+.tb-notif-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  i { font-size: 26px; color: #94A3B8; }
+}
+.tb-notif-empty-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
+  margin: 0;
+}
+.tb-notif-empty-sub {
+  font-size: 12px;
+  color: #B0BEC5;
+  margin: 0;
+}
+
 .tb-notif-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 0;
   text-decoration: none;
   transition: background .12s;
   border-bottom: 1px solid #F8FAFC;
-  &:hover { background: #F8FFFE; }
+  position: relative;
+  &:hover { background: #F8FFFE; .tb-notif-del { opacity: 1; } }
   &--unread { background: #F0FDF9; }
   &:last-child { border-bottom: none; }
+}
+
+.tb-notif-item-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0 12px 16px;
+  text-decoration: none;
+}
+
+.tb-notif-del {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 10px;
+  margin-right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: #B0BEC5;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s, background .15s, color .15s;
+  padding: 0;
+  &:hover { background: #FFF1F2; color: #EF4444; opacity: 1; }
 }
 .tb-notif-dot {
   width: 8px;
@@ -605,6 +687,8 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, .4);
   }
 
+  .tb-center .gs-input-group { --gs-bg: #1A1A1A; }
+
   .tb-logo-name { color: #FFFFFF; }
 
   // Icon buttons (lang, theme, notif)
@@ -655,13 +739,16 @@
     box-shadow: none;
   }
 
-  // ── Notification action strip ────────────────────────────────────────────────
-  .tb-na-btn {
+  // ── Notifications icon action buttons ───────────────────────────────────────
+  .tb-ni-btn {
     background: #1A1A1A;
     border-color: #2A2A2A;
-    color: #A0A0A0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
-    &:hover:not(:disabled) { background: #222222; color: #2FA8A0; border-color: #2FA8A0; }
+    color: #888;
+    &:hover { background: rgba(47,168,160,.12); border-color: #2FA8A0; color: #2FA8A0; }
+    &--trash:hover { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.3); color: #FDA4AF; }
+    &--refresh { background: rgba(47,168,160,.1); border-color: rgba(47,168,160,.3); color: #2FA8A0;
+      &:hover { background: #2FA8A0; border-color: #2FA8A0; color: #fff; }
+    }
   }
 
   // ── Notifications dropdown ───────────────────────────────────────────────────
@@ -675,10 +762,22 @@
     &:last-child { border-bottom: none; }
   }
 
+  .tb-notif-del {
+    color: #555555;
+    &:hover { background: rgba(239,68,68,.15); color: #FDA4AF; }
+  }
+
   .tb-notif-msg   { color: #FFFFFF; }
   .tb-notif-sub   { color: #6B6B6B; }
   .tb-notif-time  { color: #555555; }
-  .tb-notif-empty { color: #555555; }
+
+  .tb-notif-empty-icon { background: #1A1A1A; i { color: #555; } }
+  .tb-notif-empty-title { color: #888; }
+  .tb-notif-empty-sub   { color: #555; }
+
+  .tb-notif-list {
+    &::-webkit-scrollbar-thumb { background: #2A2A2A; }
+  }
 
   .tb-notif-foot {
     border-top-color: #2A2A2A;
@@ -724,6 +823,8 @@
     box-shadow: 0 2px 16px rgba(27, 120, 114, .35);
   }
 
+  .tb-center .gs-input-group { --gs-bg: rgba(255,255,255,.15); }
+
   .tb-logo-name { color: #fff; }
 
   .tb-icon-btn {
@@ -758,12 +859,12 @@
   .tb-profile-role { color: rgba(255, 255, 255, .65); }
   .tb-chevron      { color: rgba(255, 255, 255, .55); }
 
-  // ── Notification action strip ────────────────────────────────────────────────
-  .tb-na-btn {
+  // ── Notifications icon action buttons ───────────────────────────────────────
+  .tb-ni-btn {
     background: rgba(255, 255, 255, .15);
     border-color: rgba(255, 255, 255, .25);
-    color: rgba(255, 255, 255, .85);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
-    &:hover:not(:disabled) { background: rgba(255, 255, 255, .25); color: #fff; border-color: rgba(255, 255, 255, .5); }
+    color: rgba(255, 255, 255, .8);
+    &:hover { background: rgba(255, 255, 255, .28); border-color: rgba(255,255,255,.55); color: #fff; }
+    &--trash:hover { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.3); color: #FDA4AF; }
   }
 }

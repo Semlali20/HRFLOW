@@ -1,12 +1,15 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FileManagerService } from './filemanager.service';
 import { ManagedFile } from 'src/app/core/models/hr.models';
 import { ConfirmService } from 'src/app/shared/confirm.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CvService } from '../cv/cv.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
 type ActiveTab   = 'cvs' | 'documents' | 'trash';
 type FilterType  = 'all' | 'pdf' | 'word' | 'image' | 'other';
@@ -17,6 +20,8 @@ type SortBy      = 'name-asc' | 'name-desc' | 'date-newest' | 'date-oldest';
 
 @Component({
     selector: 'app-filemanager',
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, WallClockComponent],
     templateUrl: './filemanager.component.html',
     styleUrls: ['./filemanager.component.scss']
 })

@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { map, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { map, catchError, takeUntil } from 'rxjs/operators';
+import { throwError, Subject } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
@@ -196,7 +196,7 @@ const BASE = `${environment.apiUrl}/public-holidays`;
             <th>{{ 'PUBLIC_HOLIDAYS.TABLE_NAME' | translate }}</th><th>{{ 'PUBLIC_HOLIDAYS.TABLE_DATE' | translate }}</th><th>{{ 'PUBLIC_HOLIDAYS.TABLE_COUNTRY_CODE' | translate }}</th><th>{{ 'PUBLIC_HOLIDAYS.TABLE_TYPE' | translate }}</th><th>{{ 'PUBLIC_HOLIDAYS.TABLE_ACTIONS' | translate }}</th>
           </tr></thead>
           <tbody>
-            <tr *ngFor="let h of holidays">
+            <tr *ngFor="let h of holidays; trackBy: trackById">
               <td class="td-name">{{ h.name }}</td>
               <td>{{ h.holidayDate | date:'dd/MM/yyyy' }}</td>
               <td>{{ h.countryCode || 'MA' }}</td>
@@ -217,7 +217,9 @@ const BASE = `${environment.apiUrl}/public-holidays`;
   </div>
   `
 })
-export class PublicHolidaysComponent implements OnInit {
+export class PublicHolidaysComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
 
   holidays: any[] = [];
   loading  = false;
@@ -236,13 +238,19 @@ export class PublicHolidaysComponent implements OnInit {
 
   ngOnInit(): void { this.load(); }
 
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+
   load(): void {
     this.loading = true;
     this.http.get<any>(BASE).pipe(
       map(r => r?.content ?? r?.data ?? (Array.isArray(r) ? r : [])),
-      catchError(e => { this.error = e?.error?.message || 'Erreur de chargement'; this.loading = false; return []; })
+      catchError(e => { this.error = e?.error?.message || 'Erreur de chargement'; this.loading = false; return []; }),
+      takeUntil(this.destroy$)
     ).subscribe(d => { this.holidays = d; this.loading = false; });
   }
+
+  trackById(_: number, item: any): any { return item.id ?? _; }
+  trackByIndex(index: number): number { return index; }
 
   openCreate(): void { this.editMode = false; this.editId = null; this.form = this.emptyForm(); this.showPanel = true; }
 

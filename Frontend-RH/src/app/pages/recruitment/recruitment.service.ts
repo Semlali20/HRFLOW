@@ -106,7 +106,9 @@ export class RecruitmentService {
 
     scoreApplication(id: number, score: number, notes?: string): Observable<any> {
         if (!id) return throwError(() => new Error('id is required'));
-        return this.http.patch<any>(`${this.CV_BASE}/applications/${id}/score`, { score, notes }).pipe(
+        let params = new HttpParams().set('score', String(score));
+        if (notes != null) params = params.set('notes', notes);
+        return this.http.patch<any>(`${this.CV_BASE}/applications/${id}/score`, null, { params }).pipe(
             map(res => res?.data ?? res),
             catchError(this.handleError)
         );

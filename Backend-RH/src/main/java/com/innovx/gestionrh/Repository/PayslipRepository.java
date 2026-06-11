@@ -20,4 +20,7 @@ public interface PayslipRepository extends JpaRepository<Payslip, Long> {
     Page<Payslip> findAllFiltered(@Param("period") String period,
                                   @Param("status") PayslipStatus status,
                                   Pageable pageable);
+
+    @Query("SELECT p FROM Payslip p WHERE p.year = :year ORDER BY p.collaborateur.lastName ASC, p.period ASC")
+    java.util.List<Payslip> findAllByYear(@Param("year") int year);
 }

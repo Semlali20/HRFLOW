@@ -30,6 +30,9 @@ public class CollaborateurResponse {
     private RefSummary position;
     private ContractType contractType;
     private LocalDate hireDate;
+    private LocalDate contractStartDate;
+    private LocalDate contractEndDate;
+    private Integer noticePeriodDays;
     private int seniorityYears;
     private int seniorityMonths;
     private EmployeeStatus status;

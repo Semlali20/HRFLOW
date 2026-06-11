@@ -8,6 +8,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +20,7 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/files")
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 @Slf4j
 public class FileController {
@@ -29,6 +31,7 @@ public class FileController {
     private String uploadDir;
 
     /** GET /api/files/all */
+    @PreAuthorize("hasAuthority('DOCUMENT_READ')")
     @GetMapping("/all")
     public ResponseEntity<List<String>> listAll() throws IOException {
         Path dir = Paths.get(uploadDir);
@@ -44,6 +47,7 @@ public class FileController {
     }
 
     /** POST /api/files/upload */
+    @PreAuthorize("hasAuthority('DOCUMENT_UPLOAD')")
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public ResponseEntity<Void> upload(@RequestParam("file") MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) return ResponseEntity.badRequest().build();
@@ -56,6 +60,7 @@ public class FileController {
     }
 
     /** GET /api/files/search?keywords=x — searches filename AND extracted text content */
+    @PreAuthorize("hasAuthority('DOCUMENT_READ')")
     @GetMapping("/search")
     public ResponseEntity<List<String>> search(@RequestParam String keywords) throws IOException {
         Path dir = Paths.get(uploadDir);
@@ -84,6 +89,7 @@ public class FileController {
     }
 
     /** DELETE /api/files/delete?filename=x */
+    @PreAuthorize("hasAuthority('DOCUMENT_DELETE')")
     @DeleteMapping("/delete")
     public ResponseEntity<Void> delete(@RequestParam String filename) throws IOException {
         Path base = Paths.get(uploadDir).normalize();
@@ -94,6 +100,7 @@ public class FileController {
     }
 
     /** DELETE /api/files/deleteAll */
+    @PreAuthorize("hasAuthority('DOCUMENT_DELETE')")
     @DeleteMapping("/deleteAll")
     public ResponseEntity<Void> deleteAll() throws IOException {
         Path dir = Paths.get(uploadDir);
@@ -108,6 +115,7 @@ public class FileController {
     }
 
     /** GET /api/files/view?filename=x */
+    @PreAuthorize("hasAuthority('DOCUMENT_READ')")
     @GetMapping("/view")
     public ResponseEntity<Resource> view(@RequestParam String filename) throws IOException {
         Path base = Paths.get(uploadDir).normalize();

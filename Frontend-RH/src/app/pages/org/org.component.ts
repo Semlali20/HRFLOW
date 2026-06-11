@@ -1,20 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
 import { map, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
+import { DepartmentService } from '../../core/services/department.service';
+import { OrgTreeNodeComponent } from './org-tree-node.component';
 
-const BASE_DEPT = `${environment.apiUrl}/departments`;
-const BASE_POS  = `${environment.apiUrl}/positions`;
+interface OrgNode {
+  id: number;
+  name: string;
+  type: 'department' | 'position';
+  children: OrgNode[];
+}
 
 @Component({
   selector: 'app-org',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, WallClockComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, WallClockComponent, OrgTreeNodeComponent],
   styles: [`
     :host{display:block}
     .page{padding:0 24px 60px;font-family:'Inter',sans-serif;animation:fadeIn .35s ease both}
@@ -216,12 +219,45 @@ const BASE_POS  = `${environment.apiUrl}/positions`;
       <app-wall-clock></app-wall-clock>
     </div>
     <!-- Action row -->
-    <div class="action-row">
+    <div class="action-row" style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-sm"
+          [style.background]="viewMode === 'list' ? '#1B7872' : '#F1F5F9'"
+          [style.color]="viewMode === 'list' ? '#fff' : '#4A6080'"
+          [style.border-color]="viewMode === 'list' ? '#1B7872' : '#E2E8F0'"
+          style="border:1.5px solid;border-radius:9px 0 0 9px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s"
+          (click)="viewMode = 'list'">
+          <i class="bx bx-list-ul" style="margin-right:4px"></i>List
+        </button>
+        <button type="button" class="btn btn-sm"
+          [style.background]="viewMode === 'chart' ? '#1B7872' : '#F1F5F9'"
+          [style.color]="viewMode === 'chart' ? '#fff' : '#4A6080'"
+          [style.border-color]="viewMode === 'chart' ? '#1B7872' : '#E2E8F0'"
+          style="border:1.5px solid;border-left:none;border-radius:0 9px 9px 0;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s"
+          (click)="viewMode = 'chart'">
+          <i class="bx bx-sitemap" style="margin-right:4px"></i>Chart
+        </button>
+      </div>
       <button class="big-action-btn" (click)="openCreate()">
         <i class="bx bx-plus"></i> {{ activeTab==='dept' ? ('ORG.BTN_NEW_DEPT' | translate) : ('ORG.BTN_NEW_POS' | translate) }}
       </button>
     </div>
 
+    <!-- Chart View -->
+    <div *ngIf="viewMode === 'chart'" class="card" style="overflow:auto;padding:32px 24px;margin-bottom:18px">
+      <div class="card-head" style="margin:-32px -24px 24px;padding:14px 18px">
+        <span class="card-title">Org Chart</span>
+        <span class="count-badge">{{ departments.length }} departments</span>
+      </div>
+      <div *ngIf="departments.length === 0" class="state-box">
+        <i class="bx bx-sitemap"></i>No departments to display
+      </div>
+      <div *ngIf="departments.length > 0" style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;padding-top:8px">
+        <app-org-tree-node *ngFor="let node of orgTree" [node]="node"></app-org-tree-node>
+      </div>
+    </div>
+
+    <div *ngIf="viewMode === 'list'">
     <div class="tabs-bar">
       <button class="tab-btn" [class.active]="activeTab==='dept'" (click)="setTab('dept')">
         <i class="bx bx-building-house"></i> {{ 'ORG.TAB_DEPARTMENTS' | translate:{count: departments.length} }}
@@ -242,7 +278,7 @@ const BASE_POS  = `${environment.apiUrl}/positions`;
         <div class="spinner"></div>{{ 'ORG.LOADING' | translate }}
       </div>
       <div class="state-box error-txt" *ngIf="!loadingDept && errorDept">
-        <i class="bx bx-error-circle"></i>{{ errorDept }}
+        <i class="bx bx-error-circle"></i>{{ errorDept | translate }}
       </div>
       <div class="state-box" *ngIf="!loadingDept && !errorDept && departments.length===0">
         <i class="bx bx-building"></i>{{ 'ORG.NO_DEPARTMENTS' | translate }}
@@ -283,7 +319,7 @@ const BASE_POS  = `${environment.apiUrl}/positions`;
         <div class="spinner"></div>{{ 'ORG.LOADING' | translate }}
       </div>
       <div class="state-box error-txt" *ngIf="!loadingPos && errorPos">
-        <i class="bx bx-error-circle"></i>{{ errorPos }}
+        <i class="bx bx-error-circle"></i>{{ errorPos | translate }}
       </div>
       <div class="state-box" *ngIf="!loadingPos && !errorPos && positions.length===0">
         <i class="bx bx-briefcase"></i>{{ 'ORG.NO_POSITIONS' | translate }}
@@ -311,15 +347,33 @@ const BASE_POS  = `${environment.apiUrl}/positions`;
         </table>
       </div>
     </div>
+    </div><!-- end viewMode=list -->
   </div>
   `
 })
 export class OrgComponent implements OnInit {
 
   activeTab: 'dept' | 'pos' = 'dept';
+  viewMode: 'list' | 'chart' = 'list';
 
   departments: any[] = [];
   positions:   any[] = [];
+
+  get orgTree(): OrgNode[] {
+    return this.departments.map(dept => ({
+      id: dept.id,
+      name: dept.name,
+      type: 'department' as const,
+      children: this.positions
+        .filter((p: any) => (p.department?.id ?? p.departmentId) === dept.id)
+        .map((pos: any) => ({
+          id: pos.id,
+          name: pos.title || pos.name,
+          type: 'position' as const,
+          children: []
+        }))
+    }));
+  }
 
   loadingDept = false;
   loadingPos  = false;
@@ -340,7 +394,7 @@ export class OrgComponent implements OnInit {
   deptForm: any = this.emptyDept();
   posForm:  any = this.emptyPos();
 
-  constructor(private http: HttpClient, private translate: TranslateService) {}
+  constructor(private deptService: DepartmentService, private translate: TranslateService) {}
 
   ngOnInit(): void {
     this.loadDepts();
@@ -351,17 +405,17 @@ export class OrgComponent implements OnInit {
 
   loadDepts(): void {
     this.loadingDept = true;
-    this.http.get<any>(`${BASE_DEPT}?size=200`).pipe(
-      map(r => r?.content ?? r?.data ?? (Array.isArray(r) ? r : [])),
-      catchError(e => { this.errorDept = e?.error?.message || 'Erreur de chargement'; this.loadingDept = false; return []; })
+    this.deptService.getAllDepartments().pipe(
+      map(r => Array.isArray(r) ? r : ((r as any)?.content ?? (r as any)?.data ?? [])),
+      catchError(e => { this.errorDept = 'ORG.ERROR_LOADING'; this.loadingDept = false; return []; })
     ).subscribe(d => { this.departments = d; this.loadingDept = false; });
   }
 
   loadPositions(): void {
     this.loadingPos = true;
-    this.http.get<any>(`${BASE_POS}?size=200`).pipe(
-      map(r => r?.content ?? r?.data ?? (Array.isArray(r) ? r : [])),
-      catchError(e => { this.errorPos = e?.error?.message || 'Erreur de chargement'; this.loadingPos = false; return []; })
+    this.deptService.getAllPositions().pipe(
+      map(r => Array.isArray(r) ? r : ((r as any)?.content ?? (r as any)?.data ?? [])),
+      catchError(e => { this.errorPos = 'ORG.ERROR_LOADING'; this.loadingPos = false; return []; })
     ).subscribe(d => { this.positions = d; this.loadingPos = false; });
   }
 
@@ -394,9 +448,9 @@ export class OrgComponent implements OnInit {
     if (this.activeTab === 'dept') {
       const body = { ...this.deptForm, version: this.editVersion };
       const req = isEdit
-        ? this.http.put<any>(`${BASE_DEPT}/${this.editId}`, body)
-        : this.http.post<any>(BASE_DEPT, body);
-      req.pipe(map(r => r?.data ?? r)).subscribe({
+        ? this.deptService.updateDepartment(this.editId!, body)
+        : this.deptService.createDepartment(body);
+      req.pipe(map(r => (r as any)?.data ?? r)).subscribe({
         next: d => {
           if (isEdit) this.departments = this.departments.map(x => x.id === d.id ? d : x);
           else this.departments = [d, ...this.departments];
@@ -409,9 +463,9 @@ export class OrgComponent implements OnInit {
     } else {
       const body = { ...this.posForm, version: this.editVersion };
       const req = isEdit
-        ? this.http.put<any>(`${BASE_POS}/${this.editId}`, body)
-        : this.http.post<any>(BASE_POS, body);
-      req.pipe(map(r => r?.data ?? r)).subscribe({
+        ? this.deptService.updatePosition(this.editId!, body)
+        : this.deptService.createPosition(body);
+      req.pipe(map(r => (r as any)?.data ?? r)).subscribe({
         next: p => {
           if (isEdit) this.positions = this.positions.map(x => x.id === p.id ? p : x);
           else this.positions = [p, ...this.positions];
@@ -434,8 +488,10 @@ export class OrgComponent implements OnInit {
     const item = this.confirmItem;
     const type = this.confirmType;
     this.confirmItem = null;
-    const url = type === 'dept' ? `${BASE_DEPT}/${item.id}` : `${BASE_POS}/${item.id}`;
-    this.http.delete<void>(url).subscribe({
+    const req = type === 'dept'
+      ? this.deptService.deleteDepartment(item.id)
+      : this.deptService.deletePosition(item.id);
+    req.subscribe({
       next: () => {
         if (type === 'dept') this.departments = this.departments.filter(d => d.id !== item.id);
         else this.positions = this.positions.filter(p => p.id !== item.id);

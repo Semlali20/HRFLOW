@@ -11,6 +11,11 @@
     </div>
   </div>
 
+  <!-- ── CENTER: Global Search ──────────────────────────────────────── -->
+  <div class="tb-center">
+    <app-global-search></app-global-search>
+  </div>
+
   <!-- ── RIGHT: Actions ───────────────────────────────────────────────── -->
   <div class="tb-right">
 
@@ -65,28 +70,48 @@
       <i class="bx bx-bell"></i>
       <span *ngIf="unreadCount > 0" class="tb-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
 
-
-<div class="tb-dropdown tb-notif-panel" (click)="$event.stopPropagation()">
+      <div class="tb-dropdown tb-notif-panel" (click)="$event.stopPropagation()">
         <div class="tb-notif-head">
-          <span class="tb-notif-title">{{ 'TOPBAR.NOTIFICATIONS' | translate }}
+          <span class="tb-notif-title">
+            {{ 'TOPBAR.NOTIFICATIONS' | translate }}
             <span *ngIf="unreadCount > 0" class="tb-notif-count">{{ unreadCount }}</span>
           </span>
+          <div class="tb-notif-icon-btns">
+            <button class="tb-ni-btn tb-ni-btn--check" *ngIf="unreadCount > 0"
+                    (click)="markAllRead()" title="Mark all as read">
+              <i class="bx bx-check-double"></i>
+            </button>
+            <button class="tb-ni-btn tb-ni-btn--trash" *ngIf="notifications.length > 0"
+                    (click)="clearRead()" title="Clear read notifications">
+              <i class="bx bx-trash"></i>
+            </button>
+            <button class="tb-ni-btn tb-ni-btn--refresh" (click)="refreshNotifications()" title="Refresh">
+              <i class="bx bx-refresh" [class.tb-spin]="refreshing"></i>
+            </button>
+          </div>
         </div>
+
         <div class="tb-notif-list">
           <div *ngIf="notifications.length === 0" class="tb-notif-empty">
-            <i class="bx bx-bell-off"></i>
-            <span>{{ 'TOPBAR.NO_NOTIFICATIONS' | translate }}</span>
+            <div class="tb-notif-empty-icon"><i class="bx bx-bell-off"></i></div>
+            <p class="tb-notif-empty-title">{{ 'TOPBAR.NO_NOTIFICATIONS' | translate }}</p>
+            <p class="tb-notif-empty-sub">You're all caught up!</p>
           </div>
-          <a *ngFor="let n of notifications" class="tb-notif-item" [class.tb-notif-item--unread]="!n.read"
-             [href]="n.actionUrl || 'javascript:void(0)'">
-            <div class="tb-notif-dot" [ngClass]="notifTypeClass(n.type)"></div>
-            <div class="tb-notif-body">
-              <div class="tb-notif-msg">{{ n.title }}</div>
-              <div class="tb-notif-sub">{{ n.message }}</div>
-              <div class="tb-notif-time">{{ n.createdAt | date:'dd MMM, HH:mm' }}</div>
-            </div>
-          </a>
+          <div *ngFor="let n of notifications" class="tb-notif-item" [class.tb-notif-item--unread]="!n.read">
+            <a class="tb-notif-item-link" [href]="n.actionUrl || 'javascript:void(0)'">
+              <div class="tb-notif-dot" [ngClass]="notifTypeClass(n.type)"></div>
+              <div class="tb-notif-body">
+                <div class="tb-notif-msg">{{ n.title }}</div>
+                <div class="tb-notif-sub">{{ n.message }}</div>
+                <div class="tb-notif-time">{{ n.createdAt | date:'dd MMM, HH:mm' }}</div>
+              </div>
+            </a>
+            <button class="tb-notif-del" (click)="deleteNotification(n.id); $event.stopPropagation()" title="Delete">
+              <i class="bx bx-x"></i>
+            </button>
+          </div>
         </div>
+
         <div class="tb-notif-foot">
           <a routerLink="/chat" (click)="notifOpen=false">{{ 'TOPBAR.VIEW_ALL_NOTIFS' | translate }}</a>
         </div>

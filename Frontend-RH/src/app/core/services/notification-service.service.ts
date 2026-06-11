@@ -31,30 +31,39 @@ export class NotificationService implements OnDestroy {
 
     connect(): void {
         if (this.eventSource) return;
-
-        const token = this.authService.getToken();
-        if (!token) return;
+        if (!this.authService.isLoggedIn()) return;
 
         this.loadUnread();
 
-        const sseUrl = `${this.BASE_URL}/stream?access_token=${encodeURIComponent(token)}`;
-        this.eventSource = new EventSource(sseUrl);
+        // S-006: Use a short-lived one-time ticket instead of passing the JWT
+        // as a URL query parameter (which gets recorded in server access logs).
+        this.http.post<{ ticket: string }>(
+            `${environment.apiUrl}/auth/sse-ticket`, {}
+        ).subscribe({
+            next: ({ ticket }) => {
+                const sseUrl = `${this.BASE_URL}/stream?ticket=${encodeURIComponent(ticket)}`;
+                this.eventSource = new EventSource(sseUrl);
 
-        this.eventSource.addEventListener('notification', (event: MessageEvent) => {
-            try {
-                const notification: HrNotification = JSON.parse(event.data);
-                const current = this._notifications.getValue();
-                this._notifications.next([notification, ...current]);
-                this._unreadCount.next(this._unreadCount.getValue() + 1);
-            } catch (e) {
-                console.warn('[NotificationService] Failed to parse SSE event:', e);
+                this.eventSource.addEventListener('notification', (event: MessageEvent) => {
+                    try {
+                        const notification: HrNotification = JSON.parse(event.data);
+                        const current = this._notifications.getValue();
+                        this._notifications.next([notification, ...current]);
+                        this._unreadCount.next(this._unreadCount.getValue() + 1);
+                    } catch (e) {
+                        console.warn('[NotificationService] Failed to parse SSE event:', e);
+                    }
+                });
+
+                this.eventSource.onerror = () => {
+                    console.warn('[NotificationService] SSE connection error, closing.');
+                    this.disconnect();
+                };
+            },
+            error: (err) => {
+                console.warn('[NotificationService] Failed to obtain SSE ticket:', err);
             }
         });
-
-        this.eventSource.onerror = () => {
-            console.warn('[NotificationService] SSE connection error, closing.');
-            this.disconnect();
-        };
     }
 
     disconnect(): void {
@@ -113,9 +122,36 @@ export class NotificationService implements OnDestroy {
         });
     }
 
+    /** DELETE /notifications/clear-read */
+    clearRead(): Observable<void> {
+        return new Observable(observer => {
+            this.http.delete<void>(`${this.BASE_URL}/clear-read`).subscribe({
+                next: () => {
+                    const remaining = this._notifications.getValue().filter(n => !n.read);
+                    this._notifications.next(remaining);
+                    observer.next();
+                    observer.complete();
+                },
+                error: err => observer.error(err)
+            });
+        });
+    }
+
     /** DELETE /notifications/{id} */
     deleteNotification(id: number): Observable<void> {
-        return this.http.delete<void>(`${this.BASE_URL}/${id}`);
+        return new Observable(observer => {
+            this.http.delete<void>(`${this.BASE_URL}/${id}`).subscribe({
+                next: () => {
+                    const remaining = this._notifications.getValue().filter(n => n.id !== id);
+                    this._notifications.next(remaining);
+                    const unread = remaining.filter(n => !n.read).length;
+                    this._unreadCount.next(unread);
+                    observer.next();
+                    observer.complete();
+                },
+                error: err => observer.error(err)
+            });
+        });
     }
 
     ngOnDestroy(): void {

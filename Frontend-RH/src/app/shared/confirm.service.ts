@@ -9,12 +9,28 @@ import { Injectable } from '@angular/core';
  *     if (!(await this.confirmSvc.confirm(`Supprimer "${item.name}" ?`))) return;
  *     ...
  *   }
+ *
+ * S-012: title/message values are HTML-escaped before insertion into innerHTML
+ * to prevent XSS from user-supplied data (e.g. employee names from the database).
  */
 @Injectable({ providedIn: 'root' })
 export class ConfirmService {
 
+  /** Escapes the five HTML special characters to prevent XSS via innerHTML. */
+  private escape(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   confirm(message: string, title = 'Confirmer l\'action'): Promise<boolean> {
     return new Promise(resolve => {
+      // S-012: Escape user-supplied text before inserting into innerHTML
+      const safeTitle   = this.escape(title);
+      const safeMessage = this.escape(message);
 
       // ── Inject keyframe styles once ──────────────────────────────────────
       if (!document.getElementById('_cf-styles')) {
@@ -70,8 +86,8 @@ export class ConfirmService {
           </div>
           <div style="flex:1;min-width:0;padding-top:2px">
             <div style="font-size:15px;font-weight:700;color:#1A2B3C;margin-bottom:7px;
-                        line-height:1.3">${title}</div>
-            <div style="font-size:13.5px;color:#4A6080;line-height:1.55">${message}</div>
+                        line-height:1.3">${safeTitle}</div>
+            <div style="font-size:13.5px;color:#4A6080;line-height:1.55">${safeMessage}</div>
           </div>
         </div>
 
@@ -135,6 +151,9 @@ export class ConfirmService {
    */
   alert(message: string, title = 'Information', type: 'success' | 'error' | 'info' = 'info', autoCloseMs?: number): Promise<void> {
     return new Promise(resolve => {
+      // S-012: Escape user-supplied text before inserting into innerHTML
+      const safeTitle   = this.escape(title);
+      const safeMessage = this.escape(message);
 
       if (!document.getElementById('_cf-styles')) {
         const s = document.createElement('style');
@@ -216,8 +235,8 @@ export class ConfirmService {
             ${cfg.icon}
           </div>
           <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="font-size:18px;font-weight:800;color:#1A2B3C;letter-spacing:-0.3px">${title}</div>
-            <div style="font-size:14px;color:#64748B;line-height:1.6;max-width:300px;margin:0 auto">${message}</div>
+            <div style="font-size:18px;font-weight:800;color:#1A2B3C;letter-spacing:-0.3px">${safeTitle}</div>
+            <div style="font-size:14px;color:#64748B;line-height:1.6;max-width:300px;margin:0 auto">${safeMessage}</div>
           </div>
         </div>
         ${autoCloseMs ? `

@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { ThemeService, AppTheme } from '../../core/services/theme.service';
 import { AuthenticationService } from '../../core/services/auth.service';
 import { AdminService } from '../admin/admin.service';
-import { environment } from 'src/environments/environment';
+import { CollaborateurService } from '../../core/services/collaborateur.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
 
@@ -197,7 +196,7 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
 
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
       <div class="page-header" style="flex:1;margin-bottom:0;">
-        <h4 class="page-title">Settings</h4>
+        <h4 class="page-title">{{ 'SETTING.PAGE_TITLE' | translate }}</h4>
       </div>
       <app-wall-clock></app-wall-clock>
     </div>
@@ -582,7 +581,7 @@ export class SettingComponent implements OnInit {
     private themeService: ThemeService,
     private authService: AuthenticationService,
     private adminService: AdminService,
-    private http: HttpClient,
+    private collaborateurService: CollaborateurService,
     private translate: TranslateService,
   ) {}
 
@@ -731,9 +730,7 @@ export class SettingComponent implements OnInit {
     if (!this.importFile) return;
     this.importing = true;
     this.importMsg = null;
-    const fd = new FormData();
-    fd.append('file', this.importFile);
-    this.http.post(`${environment.apiUrl}/excel/import`, fd).subscribe({
+    this.collaborateurService.importFromExcel(this.importFile).subscribe({
       next: () => {
         this.importing = false;
         this.importFile = null;
@@ -764,7 +761,7 @@ export class SettingComponent implements OnInit {
   ];
   activeTab = 'general';
 
-  org = { name: 'INNOVX' };
+  org = { name: '' };
   user = { fullName: '—', empId: '—', email: '—', role: '—', title: '—' };
 
   emailNotifs = [
@@ -792,8 +789,8 @@ export class SettingComponent implements OnInit {
   security = { currentPassword: '', newPassword: '', confirmPassword: '' };
 
   integrations = [
-    { name: 'Slack',      desc: 'Send HR notifications to Slack channels.',    icon: 'bxl-slack',    bg: '#4A154B22', color: '#4A154B', connected: true  },
-    { name: 'Google Workspace', desc: 'Sync calendar events and employee directory.', icon: 'bxl-google', bg: '#4285F422', color: '#4285F4', connected: true  },
+    { name: 'Slack',      desc: 'Send HR notifications to Slack channels.',    icon: 'bxl-slack',    bg: '#4A154B22', color: '#4A154B', connected: false },
+    { name: 'Google Workspace', desc: 'Sync calendar events and employee directory.', icon: 'bxl-google', bg: '#4285F422', color: '#4285F4', connected: false },
     { name: 'Zoom',       desc: 'Schedule and manage HR interview calls.',     icon: 'bx-video',     bg: '#2D8CFE22', color: '#2D8CFE', connected: false },
     { name: 'Jira',       desc: 'Link HR projects to engineering sprints.',    icon: 'bxl-jira',     bg: '#0052CC22', color: '#0052CC', connected: false },
     { name: 'Zapier',     desc: 'Automate HR workflows with 3000+ apps.',     icon: 'bxs-zap',      bg: '#FF4A0022', color: '#FF4A00', connected: false },

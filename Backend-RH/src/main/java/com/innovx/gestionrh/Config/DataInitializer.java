@@ -9,6 +9,7 @@ import com.innovx.gestionrh.Repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +27,21 @@ public class DataInitializer {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /** Resolved from env var ADMIN_EMAIL or Spring property admin.email — empty string if neither is set. */
+    @Value("${ADMIN_EMAIL:${admin.email:}}")
+    private String adminEmail;
+
+    /** Resolved from env var ADMIN_PASSWORD or Spring property admin.password — empty string if neither is set. */
+    @Value("${ADMIN_PASSWORD:${admin.password:}}")
+    private String adminPassword;
+
     @PostConstruct
     @Transactional
     public void init() {
         log.info("Initializing RBAC permissions and roles...");
         initPermissions();
         initRoles();
+        syncRolePermissions();   // keeps existing roles in sync when new permissions are added
         initAdminUser();
         log.info("RBAC initialization complete.");
     }
@@ -114,7 +124,16 @@ public class DataInitializer {
 
                 // ── Approvals ─────────────────────────────────────────────────
                 new String[]{"APPROVAL_READ",         "APPROVAL",  "View pending approvals"},
-                new String[]{"APPROVAL_PROCESS",      "APPROVAL",  "Approve or reject items"}
+                new String[]{"APPROVAL_PROCESS",      "APPROVAL",  "Approve or reject items"},
+
+                // ── Performance Reviews ───────────────────────────────────────
+                new String[]{"PERFORMANCE_READ",      "PERFORMANCE", "View performance reviews"},
+                new String[]{"PERFORMANCE_WRITE",     "PERFORMANCE", "Create and edit performance reviews"},
+                new String[]{"PERFORMANCE_DELETE",    "PERFORMANCE", "Delete performance reviews"},
+
+                // ── Training & Development ────────────────────────────────────
+                new String[]{"TRAINING_READ",         "TRAINING",  "View training sessions and enrollment"},
+                new String[]{"TRAINING_WRITE",        "TRAINING",  "Create, update, and manage training sessions"}
         );
 
         for (String[] def : permDefs) {
@@ -153,7 +172,9 @@ public class DataInitializer {
                 "LEAVE_REQUEST", "LEAVE_APPROVE", "LEAVE_REJECT", "LEAVE_READ_ALL", "LEAVE_MANAGE_TYPES",
                 "DOCUMENT_READ", "DOCUMENT_UPLOAD", "DOCUMENT_DELETE",
                 "SALARY_READ", "SALARY_CREATE", "SALARY_UPDATE", "SALARY_DELETE",
-                "REPORT_READ", "REPORT_GENERATE", "REPORT_EXPORT");
+                "REPORT_READ", "REPORT_GENERATE", "REPORT_EXPORT",
+                "PERFORMANCE_READ", "PERFORMANCE_WRITE", "PERFORMANCE_DELETE",
+                "TRAINING_READ", "TRAINING_WRITE");
         createRoleIfAbsent("COLLABORATEUR_RH", "Employee HR manager", collaborateurRhPerms);
 
         // ── MANAGER: team oversight ────────────────────────────────────────────
@@ -164,21 +185,36 @@ public class DataInitializer {
                 "LEAVE_APPROVE", "LEAVE_REJECT", "LEAVE_READ_ALL",
                 "DOCUMENT_READ",
                 "REPORT_READ",
-                "APPROVAL_READ", "APPROVAL_PROCESS");
+                "APPROVAL_READ", "APPROVAL_PROCESS",
+                "PERFORMANCE_READ", "PERFORMANCE_WRITE",
+                "TRAINING_READ");
         createRoleIfAbsent("MANAGER", "Team manager with approval rights", managerPerms);
 
         // ── EMPLOYEE: self-service ─────────────────────────────────────────────
         Set<Permission> employeePerms = filterPerms(allPerms,
                 "LEAVE_REQUEST",
                 "PLANNING_READ",
-                "DOCUMENT_READ");
+                "DOCUMENT_READ",
+                "PERFORMANCE_READ",
+                "TRAINING_READ");
         createRoleIfAbsent("EMPLOYEE", "Regular employee — self-service access", employeePerms);
     }
 
     // ── Admin User ────────────────────────────────────────────────────────────
 
     private void initAdminUser() {
-        final String adminEmail = "admin@innovx.com";
+        // adminEmail and adminPassword are injected via @Value (see field declarations above).
+        // They resolve from env vars ADMIN_EMAIL / ADMIN_PASSWORD, Spring profile properties,
+        // or the admin.email / admin.password properties — whichever is present first.
+        if (adminEmail == null || adminEmail.isBlank()) {
+            log.warn("ADMIN_EMAIL not set (env var or Spring property) — admin account NOT created for safety.");
+            return;
+        }
+        if (adminPassword == null || adminPassword.isBlank()) {
+            log.warn("ADMIN_PASSWORD not set (env var or Spring property) — admin account NOT created for safety.");
+            return;
+        }
+
         if (userRepository.existsByEmail(adminEmail)) {
             log.info("Admin user already exists — skipping.");
             return;
@@ -191,14 +227,60 @@ public class DataInitializer {
                 .lastName("System")
                 .email(adminEmail)
                 .title("System Administrator")
-                .password(passwordEncoder.encode("Admin@123"))
+                .password(passwordEncoder.encode(adminPassword))
                 .mustChangePassword(false)
                 .lastPasswordChange(LocalDateTime.now())
                 .roles(new HashSet<>(Set.of(adminRole)))
                 .build();
 
         userRepository.save(admin);
-        log.info("Admin user created — email: {}, password: Admin@123", adminEmail);
+        log.info("Admin user created — email: {} (password injected via ADMIN_PASSWORD)", adminEmail);
+    }
+
+    // ── Sync existing roles when new permissions are added ────────────────────
+
+    /**
+     * Called after every startup so that:
+     *  • ADMIN always has 100 % of all permissions (even ones added later).
+     *  • COLLABORATEUR_RH / MANAGER / EMPLOYEE receive any newly-introduced
+     *    permissions that belong to their scope without manual DB work.
+     */
+    private void syncRolePermissions() {
+        List<Permission> allPerms = permissionRepository.findAll();
+        Set<Permission> allPermsSet = new HashSet<>(allPerms);
+
+        // ADMIN — grant everything unconditionally
+        roleRepository.findByName("ADMIN").ifPresent(role -> {
+            if (!role.getPermissions().containsAll(allPermsSet)) {
+                role.setPermissions(allPermsSet);
+                roleRepository.save(role);
+                log.info("Synced ADMIN role → now has {} permissions", allPermsSet.size());
+            }
+        });
+
+        // COLLABORATEUR_RH — add PERFORMANCE + TRAINING if missing
+        syncPermsForRole("COLLABORATEUR_RH", allPerms,
+                "PERFORMANCE_READ", "PERFORMANCE_WRITE", "PERFORMANCE_DELETE",
+                "TRAINING_READ", "TRAINING_WRITE");
+
+        // MANAGER — add PERFORMANCE_READ/WRITE + TRAINING_READ if missing
+        syncPermsForRole("MANAGER", allPerms,
+                "PERFORMANCE_READ", "PERFORMANCE_WRITE",
+                "TRAINING_READ");
+
+        // EMPLOYEE — add PERFORMANCE_READ + TRAINING_READ if missing
+        syncPermsForRole("EMPLOYEE", allPerms,
+                "PERFORMANCE_READ", "TRAINING_READ");
+    }
+
+    private void syncPermsForRole(String roleName, List<Permission> allPerms, String... permNames) {
+        roleRepository.findByName(roleName).ifPresent(role -> {
+            Set<Permission> toAdd = filterPerms(allPerms, permNames);
+            if (role.getPermissions().addAll(toAdd)) {
+                roleRepository.save(role);
+                log.info("Synced role {} — added missing permissions: {}", roleName, Arrays.toString(permNames));
+            }
+        });
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

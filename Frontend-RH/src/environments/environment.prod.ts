@@ -2,7 +2,7 @@ export const environment = {
   production: true,
   apiUrl: '/api/v1',
   filesUrl: '/api/files',
-  defaultauth: 'fackbackend',
+  defaultauth: 'real',
   firebaseConfig: {
     apiKey: '',
     authDomain: '',

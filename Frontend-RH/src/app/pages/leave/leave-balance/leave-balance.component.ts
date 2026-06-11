@@ -1,14 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
 import { forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { ConfirmService } from 'src/app/shared/confirm.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
-const BASE = `${environment.apiUrl}/leaves`;
+import { LeaveService } from '../leave.service';
 
 @Component({
   selector: 'app-leave-balance',
@@ -401,7 +398,7 @@ export class LeaveBalanceComponent implements OnInit {
 
   toast: string | null = null;
 
-  constructor(private http: HttpClient, private confirmSvc: ConfirmService, private translate: TranslateService) {}
+  constructor(private leaveService: LeaveService, private confirmSvc: ConfirmService, private translate: TranslateService) {}
 
   ngOnInit(): void {
     this.loadTypes();
@@ -410,10 +407,8 @@ export class LeaveBalanceComponent implements OnInit {
 
   loadTypes(): void {
     this.typesLoading = true;
-    this.http.get<any>(`${BASE}/types`).pipe(
-      map(r => r?.data ?? (Array.isArray(r) ? r : []))
-    ).subscribe({
-      next: types => { this.leaveTypes = types; this.typesLoading = false; },
+    this.leaveService.getLeaveTypes().subscribe({
+      next: types => { this.leaveTypes = Array.isArray(types) ? types : []; this.typesLoading = false; },
       error: () => { this.typesLoading = false; }
     });
   }
@@ -421,9 +416,7 @@ export class LeaveBalanceComponent implements OnInit {
   load(): void {
     this.loading = true;
     this.error   = null;
-    const params = new HttpParams().set('year', String(this.selectedYear));
-    this.http.get<any>(`${BASE}/balance`, { params }).pipe(
-      map(r => r?.data ?? (Array.isArray(r) ? r : [])),
+    this.leaveService.getMyBalances(this.selectedYear).pipe(
       catchError(e => { this.error = e?.error?.message || 'Erreur de chargement'; this.loading = false; return []; })
     ).subscribe(d => { this.balances = Array.isArray(d) ? d : []; this.loading = false; });
   }
@@ -435,13 +428,12 @@ export class LeaveBalanceComponent implements OnInit {
       return;
     }
     this.initializing = true;
-    let params = new HttpParams()
-      .set('leaveTypeId', String(this.initForm.leaveTypeId))
-      .set('year', String(this.initForm.year))
-      .set('totalDays', String(this.initForm.totalDays));
-    if (this.initForm.userId) params = params.set('userId', String(this.initForm.userId));
-
-    this.http.post<any>(`${BASE}/balance/init`, null, { params }).subscribe({
+    this.leaveService.initBalance({
+      leaveTypeId: this.initForm.leaveTypeId!,
+      year:        this.initForm.year,
+      totalDays:   this.initForm.totalDays,
+      userId:      this.initForm.userId,
+    }).subscribe({
       next: () => {
         this.initializing = false;
         this.showInit = false;
@@ -474,18 +466,19 @@ export class LeaveBalanceComponent implements OnInit {
   saveType(): void {
     if (!this.typeForm.name) return;
     this.savingType = true;
-    const call = this.editingType
-      ? this.http.put<any>(`${BASE}/types/${this.editingType.id}`, this.typeForm)
-      : this.http.post<any>(`${BASE}/types`, this.typeForm);
-    call.pipe(map(r => r?.data ?? r)).subscribe({
+    const isEditing = !!this.editingType;
+    const call = isEditing
+      ? this.leaveService.updateLeaveType(this.editingType.id, this.typeForm)
+      : this.leaveService.createLeaveType(this.typeForm);
+    call.subscribe({
       next: saved => {
-        if (this.editingType) {
+        if (isEditing) {
           this.leaveTypes = this.leaveTypes.map(t => t.id === saved.id ? saved : t);
         } else {
           this.leaveTypes = [...this.leaveTypes, saved];
         }
         this.closeTypeForm();
-        this.showToast(this.translate.instant(this.editingType ? 'LEAVE_BALANCE.TOAST_TYPE_UPDATED' : 'LEAVE_BALANCE.TOAST_TYPE_CREATED'));
+        this.showToast(this.translate.instant(isEditing ? 'LEAVE_BALANCE.TOAST_TYPE_UPDATED' : 'LEAVE_BALANCE.TOAST_TYPE_CREATED'));
       },
       error: e => { this.savingType = false; this.showToast(e?.error?.message || this.translate.instant('LEAVE_BALANCE.TOAST_ERROR')); }
     });
@@ -493,7 +486,7 @@ export class LeaveBalanceComponent implements OnInit {
 
   async deleteType(t: any): Promise<void> {
     if (!(await this.confirmSvc.confirm(`${this.translate.instant('LEAVE_BALANCE.CONFIRM_DELETE_TYPE').replace('{name}', t.name)}`, this.translate.instant('LEAVE_BALANCE.CONFIRM_DELETE_BTN')))) return;
-    this.http.delete<void>(`${BASE}/types/${t.id}`).subscribe({
+    this.leaveService.deleteLeaveType(t.id).subscribe({
       next: () => { this.leaveTypes = this.leaveTypes.filter(x => x.id !== t.id); this.showToast(this.translate.instant('LEAVE_BALANCE.TOAST_TYPE_DELETED')); },
       error: e => this.showToast(e?.error?.message || this.translate.instant('LEAVE_BALANCE.TOAST_ERROR'))
     });

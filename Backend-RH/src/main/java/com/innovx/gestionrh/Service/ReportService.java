@@ -12,4 +12,12 @@ public interface ReportService {
     byte[] exportInternsExcel() throws IOException;
 
     byte[] exportEmployeesPdf() throws IOException;
+
+    byte[] exportLeaveReportExcel(int year) throws IOException;
+
+    byte[] exportLeaveReportPdf(int year) throws IOException;
+
+    byte[] exportPayrollSummaryExcel(int year) throws IOException;
+
+    byte[] exportPayrollSummaryPdf(int year) throws IOException;
 }

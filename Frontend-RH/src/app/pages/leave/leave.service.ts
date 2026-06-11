@@ -150,6 +150,18 @@ export class LeaveService {
         );
     }
 
+    /** POST /leaves/balance/init — initialize leave balances */
+    initBalance(dto: { leaveTypeId: number; year: number; totalDays: number; userId?: number | null }): Observable<any> {
+        let params = new HttpParams()
+            .set('leaveTypeId', String(dto.leaveTypeId))
+            .set('year', String(dto.year))
+            .set('totalDays', String(dto.totalDays));
+        if (dto.userId) params = params.set('userId', String(dto.userId));
+        return this.http.post<any>(`${this.BASE}/balance/init`, null, { params }).pipe(
+            catchError(this.handleError)
+        );
+    }
+
     private handleError(err: any): Observable<never> {
         console.error('[LeaveService] Error:', err);
         return throwError(() => err);

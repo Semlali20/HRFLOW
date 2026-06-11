@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.component';
@@ -264,7 +265,7 @@ const STATUS_CHIP: Record<string,string> = {
           <label class="f-label">{{ 'MEETINGS.FIELD_INTERN_OPTIONAL' | translate }}</label>
           <select class="f-select" [(ngModel)]="form.internId">
             <option [ngValue]="null">{{ 'MEETINGS.INTERN_NONE' | translate }}</option>
-            <option *ngFor="let s of interns" [ngValue]="s._backendId ?? s.matricule">
+            <option *ngFor="let s of interns; trackBy: trackById" [ngValue]="s._backendId ?? s.matricule">
               {{ s.prenom }} {{ s.nom }}
             </option>
           </select>
@@ -310,7 +311,7 @@ const STATUS_CHIP: Record<string,string> = {
     <div class="filter-bar">
       <select class="filter-select" [(ngModel)]="filterInternId">
         <option [ngValue]="null">{{ 'MEETINGS.FILTER_ALL_INTERNS' | translate }}</option>
-        <option *ngFor="let s of interns" [ngValue]="s._backendId ?? s.matricule">
+        <option *ngFor="let s of interns; trackBy: trackById" [ngValue]="s._backendId ?? s.matricule">
           {{ s.prenom }} {{ s.nom }}
         </option>
       </select>
@@ -345,7 +346,7 @@ const STATUS_CHIP: Record<string,string> = {
             <th>{{ 'MEETINGS.TABLE_INTERN' | translate }}</th><th>{{ 'MEETINGS.TABLE_STATUS' | translate }}</th><th>{{ 'MEETINGS.TABLE_ACTIONS' | translate }}</th>
           </tr></thead>
           <tbody>
-            <tr *ngFor="let m of filteredMeetings" (click)="openDetail(m)">
+            <tr *ngFor="let m of filteredMeetings; trackBy: trackById" (click)="openDetail(m)">
               <td class="td-title">{{ m.title }}</td>
               <td>{{ m.scheduledAt | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>{{ m.durationMinutes ? m.durationMinutes + ' min' : '—' }}</td>
@@ -364,7 +365,9 @@ const STATUS_CHIP: Record<string,string> = {
   </div>
   `
 })
-export class MeetingsComponent implements OnInit {
+export class MeetingsComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
 
   meetings: any[] = [];
   interns:  any[] = [];
@@ -398,16 +401,22 @@ export class MeetingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
-    this.stagiaireService.getAll().subscribe({ next: d => this.interns = d, error: () => {} });
+    this.stagiaireService.getAll().pipe(takeUntil(this.destroy$)).subscribe({ next: d => this.interns = d, error: () => {} });
   }
+
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
   load(): void {
     this.loading = true;
     this.http.get<any>(`${BASE}?size=200`).pipe(
       map(r => r?.content ?? r?.data ?? (Array.isArray(r) ? r : [])),
-      catchError(e => { this.error = e?.error?.message || 'Erreur de chargement'; this.loading = false; return []; })
+      catchError(e => { this.error = e?.error?.message || 'Erreur de chargement'; this.loading = false; return []; }),
+      takeUntil(this.destroy$)
     ).subscribe(d => { this.meetings = d; this.loading = false; });
   }
+
+  trackById(_: number, item: any): any { return item.id ?? item._backendId ?? item.matricule ?? _; }
+  trackByIndex(index: number): number { return index; }
 
   statusLabel(s: string): string {
     const keyMap: Record<string,string> = {

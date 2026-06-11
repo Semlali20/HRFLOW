@@ -25,6 +25,10 @@ export interface Collaborateur {
     readonly date_entree?: string;
     readonly Ancienneté?: number;
     readonly deleted?: boolean;
+    readonly contractStartDate?: string;
+    readonly contractEndDate?: string;
+    readonly noticePeriodDays?: number;
+    readonly status?: string;
 }
 
 export interface CollaborateurCreateDto {

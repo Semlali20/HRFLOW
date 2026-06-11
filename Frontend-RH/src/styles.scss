@@ -1638,3 +1638,23 @@ body[data-theme="dark"] {
   .cp-divider,
   .edp-divider { background: #2A2A2A !important; }
 }
+
+/* ================================================================
+   DARK MODE — PERFORMANCE PAGE
+   ================================================================ */
+body[data-theme="dark"] {
+  .perf-kpi       { background: #111111 !important; box-shadow: none !important; }
+  .perf-kpi__label { color: #6B6B6B !important; }
+  .perf-kpi__value { color: #FFFFFF !important; }
+}
+
+/* ================================================================
+   TEAL MODE — PERFORMANCE PAGE
+   ================================================================ */
+body[data-theme="teal"] {
+  .perf-kpi {
+    border-left: none !important;
+    border-top: 2px solid #00B5AE !important;
+    box-shadow: 0 4px 16px rgba(27,120,114,.1) !important;
+  }
+}

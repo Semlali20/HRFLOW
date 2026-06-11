@@ -10,7 +10,13 @@ import java.time.LocalDateTime;
  * No @Version needed since this entity is write-once.
  */
 @Entity
-@Table(name = "audit_logs")
+@Table(name = "audit_logs",
+       indexes = {
+               @Index(name = "idx_audit_timestamp",  columnList = "timestamp"),
+               @Index(name = "idx_audit_user_email", columnList = "user_email"),
+               @Index(name = "idx_audit_module",     columnList = "module"),
+               @Index(name = "idx_audit_action",     columnList = "action")
+       })
 @Data
 @Builder
 @NoArgsConstructor

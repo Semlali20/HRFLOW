@@ -177,19 +177,30 @@ import { WallClockComponent } from 'src/app/shared/wall-clock/wall-clock.compone
         </table>
       </div>
 
-      <!-- Pagination (only for paginated mode) -->
-      <div class="pagination-row" *ngIf="!loading && !error && totalPages > 1 && !filterActive">
+      <!-- Pagination -->
+      <div class="pagination-row" *ngIf="!loading && !error && totalPages > 1">
         <span class="pagination-info">{{ 'AUDIT_LOG.PAGINATION' | translate | replace:'{x}':(currentPage + 1) | replace:'{y}':totalPages | replace:'{z}':totalElements }}</span>
         <div class="pagination-btns">
-          <button class="page-btn" (click)="loadPage(currentPage - 1)" [disabled]="currentPage === 0">
+          <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">
             <i class="bx bx-chevron-left"></i>
           </button>
-          <button class="page-btn" *ngFor="let p of pageRange()" [class.active]="p === currentPage" (click)="loadPage(p)">{{ p + 1 }}</button>
-          <button class="page-btn" (click)="loadPage(currentPage + 1)" [disabled]="currentPage >= totalPages - 1">
+          <button class="page-btn" *ngFor="let p of pageRange()" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p + 1 }}</button>
+          <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage >= totalPages - 1">
             <i class="bx bx-chevron-right"></i>
           </button>
         </div>
       </div>
+    </div>
+
+    <div class="pagination-bar" *ngIf="totalPages > 1" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 0;">
+      <button class="btn btn-sm btn-secondary" [disabled]="currentPage === 0" (click)="goToPage(currentPage - 1)">
+        <i class="bx bx-chevron-left"></i>
+      </button>
+      <span style="font-size:13px;">{{ 'AUDIT.PAGE_OF' | translate: { current: currentPage + 1, total: totalPages } }}</span>
+      <button class="btn btn-sm btn-secondary" [disabled]="currentPage >= totalPages - 1" (click)="goToPage(currentPage + 1)">
+        <i class="bx bx-chevron-right"></i>
+      </button>
+      <span style="font-size:12px;color:#888;">{{ 'AUDIT.TOTAL_RECORDS' | translate: { count: totalElements } }}</span>
     </div>
 
   </div>
@@ -212,58 +223,48 @@ export class AuditLogComponent implements OnInit {
   filterModule = '';
   filterFrom = '';
   filterTo = '';
-  filterActive = false;
 
-  modules = ['EMPLOYEE', 'STAGIAIRE', 'PLANNING', 'CV', 'ADMIN', 'LEAVE'];
+  modules = ['EMPLOYEE', 'STAGIAIRE', 'PLANNING', 'CV', 'ADMIN', 'LEAVE', 'SALARY', 'MEETING', 'DOCUMENT', 'PUBLIC_HOLIDAY', 'NOTIFICATION', 'DEPARTMENT', 'POSITION'];
 
   constructor(private auditService: AuditService, private translate: TranslateService) {}
 
   ngOnInit(): void {
-    this.loadPage(0);
+    this.applyFilter();
   }
 
   loadPage(page: number): void {
-    this.loading = true;
-    this.error = null;
-    this.filterActive = false;
-    this.auditService.getLogs(page, this.pageSize).subscribe({
-      next: resp => {
-        this.logs = resp.content;
-        this.totalPages = resp.totalPages;
-        this.totalElements = resp.totalElements;
-        this.currentPage = resp.number;
-        this.loading = false;
-      },
-      error: err => {
-        this.error = err?.error?.message || 'Failed to load audit logs.';
-        this.loading = false;
-      }
-    });
+    this.currentPage = page;
+    this.applyFilter();
   }
 
   applyFilter(): void {
     this.loading = true;
     this.error = null;
-    this.filterActive = true;
+    this.auditService.searchLogs({
+      email:   this.filterEmail   || undefined,
+      module:  this.filterModule  || undefined,
+      from:    this.filterFrom    || undefined,
+      to:      this.filterTo      || undefined,
+      page:    this.currentPage,
+      size:    this.pageSize,
+    }).subscribe({
+      next: (res: any) => {
+        this.logs          = res.content ?? res ?? [];
+        this.totalElements = res.totalElements ?? this.logs.length;
+        this.totalPages    = res.totalPages    ?? 1;
+        this.currentPage   = res.number        ?? this.currentPage;
+        this.loading       = false;
+      },
+      error: () => {
+        this.error   = 'AUDIT.FILTER_ERROR';
+        this.loading = false;
+      }
+    });
+  }
 
-    if (this.filterFrom && this.filterTo) {
-      this.auditService.getByDateRange(this.filterFrom + ':00', this.filterTo + ':00').subscribe({
-        next: data => { this.logs = data; this.loading = false; },
-        error: err => { this.error = err?.error?.message || 'Filter failed.'; this.loading = false; }
-      });
-    } else if (this.filterEmail) {
-      this.auditService.getByUser(this.filterEmail).subscribe({
-        next: data => { this.logs = data; this.loading = false; },
-        error: err => { this.error = err?.error?.message || 'Filter failed.'; this.loading = false; }
-      });
-    } else if (this.filterModule) {
-      this.auditService.getByModule(this.filterModule).subscribe({
-        next: data => { this.logs = data; this.loading = false; },
-        error: err => { this.error = err?.error?.message || 'Filter failed.'; this.loading = false; }
-      });
-    } else {
-      this.loadPage(0);
-    }
+  goToPage(page: number): void {
+    this.currentPage = page;
+    this.applyFilter();
   }
 
   resetFilter(): void {
@@ -271,7 +272,8 @@ export class AuditLogComponent implements OnInit {
     this.filterModule = '';
     this.filterFrom = '';
     this.filterTo = '';
-    this.loadPage(0);
+    this.currentPage = 0;
+    this.applyFilter();
   }
 
   pageRange(): number[] {

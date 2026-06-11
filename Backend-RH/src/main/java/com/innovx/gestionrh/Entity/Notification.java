@@ -4,7 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications",
+       indexes = {
+               @Index(name = "idx_notif_recipient", columnList = "recipient_id"),
+               @Index(name = "idx_notif_created_at", columnList = "created_at"),
+               @Index(name = "idx_notif_is_read",   columnList = "is_read")
+       })
 @Data
 @Builder
 @NoArgsConstructor

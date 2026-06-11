@@ -7,7 +7,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "leave_requests")
+@Table(name = "leave_requests",
+       indexes = {
+               @Index(name = "idx_lr_status",    columnList = "status"),
+               @Index(name = "idx_lr_requester", columnList = "user_id"),
+               @Index(name = "idx_lr_dates",     columnList = "start_date,end_date")
+       })
 @Data
 @Builder
 @NoArgsConstructor

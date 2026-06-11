@@ -155,9 +155,13 @@ export class CvService {
         );
     }
 
-    downloadCv(fileName: string): Observable<ArrayBuffer> {
+    /** GET /api/files/view?filename=x — download CV file via the file manager endpoint */
+    downloadCv(fileName: string): Observable<Blob> {
         if (!fileName) return throwError(() => new Error('fileName is required'));
-        return this.http.get(`${this.BASE}/download/${fileName}`, { responseType: 'arraybuffer' }).pipe(
+        return this.http.get(`${environment.filesUrl}/view`, {
+            params: { filename: fileName },
+            responseType: 'blob'
+        }).pipe(
             catchError(this.handleError)
         );
     }

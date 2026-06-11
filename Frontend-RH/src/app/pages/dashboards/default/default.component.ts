@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
 import { ThemeService } from 'src/app/core/services/theme.service';
@@ -8,13 +8,17 @@ import { StagiaireService } from 'src/app/core/services/stagiaire.service';
 import { TranslateService } from '@ngx-translate/core';
 import { AttendanceService } from 'src/app/pages/attendance/attendance.service';
 import { LeaveRequest } from 'src/app/core/models/hr.models';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-default',
   templateUrl: './default.component.html',
   styleUrls: ['./default.component.scss']
 })
-export class DefaultComponent implements OnInit {
+export class DefaultComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
 
   today: Date = new Date();
 
@@ -61,6 +65,10 @@ export class DefaultComponent implements OnInit {
   ];
   deviceActivity: any[] = [];
 
+  // Expiring Contracts widget
+  expiringContracts: any[] = [];
+  expiringContractsLoading = false;
+
   // Heatmap
   heatmapWeekLabels: string[]  = ['W1','W2','W3','W4','W5','',''];
   heatmapColLabels:  string[]  = ['DASHBOARD.DAY_MON','DASHBOARD.DAY_TUE','DASHBOARD.DAY_WED','DASHBOARD.DAY_THU','DASHBOARD.DAY_FRI','DASHBOARD.DAY_SAT','DASHBOARD.DAY_SUN'];
@@ -101,10 +109,24 @@ export class DefaultComponent implements OnInit {
     this.buildGenderChart(0, 0);
     this.fetchData();
     this.fetchAttendance();
+    this.loadExpiringContracts();
   }
+
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+
+  trackById(_: number, item: any): any { return item.id ?? item._backendId ?? item.matricule ?? _; }
+  trackByIndex(index: number): number { return index; }
 
   goAddEmployee(): void {
     this.router.navigate(['/collaborateur']);
+  }
+
+  navigateToEmployees(filter?: string): void {
+    this.router.navigate(['/collaborateur'], filter ? { queryParams: { status: filter } } : {});
+  }
+
+  navigateToLeaves(filter?: string): void {
+    this.router.navigate(['/dayoff'], filter ? { queryParams: { status: filter } } : {});
   }
 
   setTab(tab: string): void {
@@ -121,9 +143,23 @@ export class DefaultComponent implements OnInit {
     return `rgba(47,168,160,${alpha})`;
   }
 
+  loadExpiringContracts(): void {
+    this.expiringContractsLoading = true;
+    this.collaborateurService.getExpiringContracts(30).pipe(takeUntil(this.destroy$)).subscribe({
+      next: data => { this.expiringContracts = data; this.expiringContractsLoading = false; },
+      error: () => { this.expiringContractsLoading = false; }
+    });
+  }
+
+  contractAlertClass(daysLeft: number): string {
+    if (daysLeft <= 7)  return 'exp-chip--danger';
+    if (daysLeft <= 14) return 'exp-chip--warn';
+    return 'exp-chip--ok';
+  }
+
   private fetchData(): void {
     // Load employees from /Collaborateurs
-    this.collaborateurService.getAll().subscribe({
+    this.collaborateurService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
       next: data => {
         this.allEmployees = data;
         this.totalCollaborateurs = data.length;
@@ -152,7 +188,7 @@ export class DefaultComponent implements OnInit {
     });
 
     // Load KPIs from /reports/kpi
-    this.reportService.getKpis().subscribe({
+    this.reportService.getKpis().pipe(takeUntil(this.destroy$)).subscribe({
       next: kpi => {
         this.totalInterns  = kpi.totalInterns  ?? 0;
         this.pendingLeaves = kpi.pendingLeaves ?? 0;
@@ -178,7 +214,7 @@ export class DefaultComponent implements OnInit {
     });
 
     // Load interns from /stagiares
-    this.stagiaireService.getAll().subscribe({
+    this.stagiaireService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
       next: data => { if (data.length > 0) this.totalInterns = data.length; },
       error: () => {}
     });
@@ -263,7 +299,7 @@ export class DefaultComponent implements OnInit {
   }
 
   private fetchAttendance(): void {
-    this.attendanceService.getAllLeaves().subscribe({
+    this.attendanceService.getAllLeaves().pipe(takeUntil(this.destroy$)).subscribe({
       next: leaves => {
         this.cachedLeaves = leaves;
         this.computeAttendance(leaves);

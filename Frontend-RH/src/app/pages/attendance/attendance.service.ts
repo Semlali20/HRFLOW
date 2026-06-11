@@ -1,9 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LeaveRequest, LeaveBalance } from 'src/app/core/models/hr.models';
+
+/** Shape returned by every paginated backend endpoint */
+interface PagedResponse<T> {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+    first: boolean;
+}
 
 /**
  * AttendanceService
@@ -19,14 +30,27 @@ export class AttendanceService {
 
     constructor(private http: HttpClient) {}
 
-    /** GET /leaves — all leave requests (used as attendance records) */
+    /** GET /leaves — all leave requests (used as attendance records).
+     *  Backend returns PagedResponse<LeaveRequestResponse> — we unwrap content here. */
     getAllLeaves(): Observable<LeaveRequest[]> {
-        return this.http.get<LeaveRequest[]>(this.LEAVES_BASE).pipe(catchError(this.handleError));
+        const params = new HttpParams().set('size', '1000').set('page', '0');
+        return this.http
+            .get<PagedResponse<LeaveRequest>>(this.LEAVES_BASE, { params })
+            .pipe(
+                map(res => Array.isArray(res) ? res : (res?.content ?? [])),
+                catchError(this.handleError)
+            );
     }
 
-    /** GET /leaves/my — current user's leave requests */
+    /** GET /leaves/my — current user's own leave requests (also paginated). */
     getMyLeaves(): Observable<LeaveRequest[]> {
-        return this.http.get<LeaveRequest[]>(`${this.LEAVES_BASE}/my`).pipe(catchError(this.handleError));
+        const params = new HttpParams().set('size', '500').set('page', '0');
+        return this.http
+            .get<PagedResponse<LeaveRequest>>(`${this.LEAVES_BASE}/my`, { params })
+            .pipe(
+                map(res => Array.isArray(res) ? res : (res?.content ?? [])),
+                catchError(this.handleError)
+            );
     }
 
     /** GET /leaves/balance?year=N */

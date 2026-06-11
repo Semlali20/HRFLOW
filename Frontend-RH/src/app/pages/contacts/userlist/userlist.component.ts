@@ -1,20 +1,14 @@
 import { Component, QueryList, ViewChildren, OnInit, ViewChild } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
-import { Observable } from 'rxjs';
 import { BsModalService, BsModalRef, ModalDirective } from 'ngx-bootstrap/modal';
-import { UntypedFormBuilder, UntypedFormGroup, UntypedFormArray, UntypedFormControl, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
-
-import { userListModel } from './userlist.model';
-import { userList } from './data';
-import { userListService } from './userlist.service';
+import { CollaborateurService } from '../../../core/services/collaborateur.service';
 import { NgbdUserListSortableHeader, SortEvent } from './userlist-sortable.directive';
 
 @Component({
   selector: 'app-userlist',
   templateUrl: './userlist.component.html',
-  styleUrls: ['./userlist.component.scss'],
-  providers: [userListService, DecimalPipe]
+  styleUrls: ['./userlist.component.scss']
 })
 
 /**
@@ -24,44 +18,58 @@ export class UserlistComponent implements OnInit {
   // bread crumb items
   breadCrumbItems: Array<{}>;
 
-  // Table data
-  contactsList!: Observable<userListModel[]>;
-  total: Observable<number>;
+  employees: any[] = [];
+  loading = false;
+  error: string | null = null;
+
   createContactForm!: UntypedFormGroup;
   submitted = false;
-  contacts: any;
-  files: File[] = [];
 
   @ViewChildren(NgbdUserListSortableHeader) headers!: QueryList<NgbdUserListSortableHeader>;
   @ViewChild('newContactModal', { static: false }) newContactModal?: ModalDirective;
   @ViewChild('removeItemModal', { static: false }) removeItemModal?: ModalDirective;
   deleteId: any;
 
-  // constructor(){}
-
-  constructor(private modalService: BsModalService, public service: userListService, private formBuilder: UntypedFormBuilder) {
-    this.contactsList = service.countries$;
-    this.total = service.total$;
-  }
+  constructor(
+    private collaborateurService: CollaborateurService,
+    private formBuilder: UntypedFormBuilder
+  ) {}
 
   ngOnInit() {
     this.breadCrumbItems = [{ label: 'Contacts' }, { label: 'Users List', active: true }];
 
-    setTimeout(() => {
-      this.contactsList.subscribe(x => {
-        this.contacts = Object.assign([], x);
-      });
-      document.getElementById('elmLoader')?.classList.add('d-none')
-    }, 1200);
-
     this.createContactForm = this.formBuilder.group({
-      id: [''],
-      name: ['', [Validators.required]],
+      _backendId: [''],
+      prenom: ['', [Validators.required]],
+      nom: ['', [Validators.required]],
       email: ['', [Validators.required]],
-      position: ['', [Validators.required]],
-      tags: ['', [Validators.required]],
-      img: ['', [Validators.required]],
-    })
+      Fonction: [''],
+      Département: [''],
+      status: ['ACTIVE'],
+      Type: ['CDI'],
+    });
+
+    this.loadEmployees();
+  }
+
+  loadEmployees(): void {
+    this.loading = true;
+    this.error = null;
+    this.collaborateurService.getAll().subscribe({
+      next: (data) => {
+        this.employees = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Failed to load employees.';
+        this.loading = false;
+        console.error(err);
+      }
+    });
+  }
+
+  trackById(index: number, emp: any): any {
+    return emp._backendId ?? emp.matricule ?? index;
   }
 
   // File Upload
@@ -75,66 +83,92 @@ export class UserlistComponent implements OnInit {
       document.querySelectorAll('#member-img').forEach((element: any) => {
         element.src = this.imageURL;
       });
-      this.createContactForm.controls['img'].setValue(this.imageURL);
-    }
-    reader.readAsDataURL(file)
+    };
+    reader.readAsDataURL(file);
   }
 
-  // Save User
+  // Save User (create or update)
   saveUser() {
+    this.submitted = true;
     if (this.createContactForm.valid) {
-      if (this.createContactForm.get('id')?.value) {
-        this.service.products = userList.map((data: { id: any; }) => data.id === this.createContactForm.get('id')?.value ? { ...data, ...this.createContactForm.value } : data)
+      const formData = this.createContactForm.value;
+      const id = formData._backendId;
+
+      if (id) {
+        // Edit existing employee
+        this.collaborateurService.update(id, formData).subscribe({
+          next: () => {
+            this.loadEmployees();
+            this.createContactForm.reset();
+            this.submitted = false;
+            this.newContactModal?.hide();
+          },
+          error: (err) => {
+            console.error('Update failed:', err);
+          }
+        });
+      } else {
+        // Create new employee
+        this.collaborateurService.create(formData).subscribe({
+          next: () => {
+            this.loadEmployees();
+            this.createContactForm.reset();
+            this.submitted = false;
+            this.newContactModal?.hide();
+          },
+          error: (err) => {
+            console.error('Create failed:', err);
+          }
+        });
       }
-      else {
-        const name = this.createContactForm.get('name')?.value;
-        const email = this.createContactForm.get('email')?.value;
-        const position = this.createContactForm.get('position')?.value;
-        const tags = this.createContactForm.get('tags')?.value;
-        userList.push({
-          id: userList.length + 1,
-          profile: this.imageURL,
-          name,
-          email,
-          position,
-          tags,
-          project: "136",
-          isSelected: false
-        })
-      }
-      this.createContactForm.reset();
-      this.newContactModal.hide()
     }
   }
 
   // Edit User
-  editUser(id: any) {
+  editUser(index: number) {
     this.submitted = false;
-    this.newContactModal.show();
+    this.newContactModal?.show();
 
-    var modelTitle = document.querySelector('.modal-title') as HTMLAreaElement;
-    modelTitle.innerHTML = 'Edit Profile';
-    var updateBtn = document.getElementById('addContact-btn') as HTMLAreaElement;
-    updateBtn.innerHTML = "Update";
+    const modelTitle = document.querySelector('.modal-title') as HTMLAreaElement;
+    if (modelTitle) modelTitle.innerHTML = 'Edit Employee';
+    const updateBtn = document.getElementById('addContact-btn') as HTMLAreaElement;
+    if (updateBtn) updateBtn.innerHTML = 'Update';
 
-    var listData = this.contacts[id];
-
-    this.createContactForm.controls['id'].setValue(listData.id);
-    this.createContactForm.controls['name'].setValue(listData.name);
-    this.createContactForm.controls['email'].setValue(listData.email);
-    this.createContactForm.controls['position'].setValue(listData.position);
-    this.createContactForm.controls['tags'].setValue(listData.tags);
-    this.createContactForm.controls['img'].setValue(listData.profile);
+    const emp = this.employees[index];
+    this.createContactForm.patchValue({
+      _backendId: emp._backendId ?? emp.matricule,
+      prenom: emp.prenom,
+      nom: emp.nom,
+      email: emp.email,
+      Fonction: emp.Fonction,
+      Département: emp.Département,
+      status: emp.status,
+      Type: emp.Type,
+    });
   }
 
   // Delete User
-  removeUser(id: any) {
-    this.deleteId=id
-    this.removeItemModal.show();
+  removeUser(index: number) {
+    this.deleteId = index;
+    this.removeItemModal?.show();
   }
 
   confirmDelete() {
-    userList.splice(this.deleteId, 1);
-    this.removeItemModal.hide();
+    const emp = this.employees[this.deleteId];
+    const id = emp?._backendId ?? emp?.matricule;
+    if (id) {
+      this.collaborateurService.delete(id).subscribe({
+        next: () => {
+          this.loadEmployees();
+          this.removeItemModal?.hide();
+        },
+        error: (err) => {
+          console.error('Delete failed:', err);
+          this.removeItemModal?.hide();
+        }
+      });
+    } else {
+      this.removeItemModal?.hide();
+    }
   }
 }

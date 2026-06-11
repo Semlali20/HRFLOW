@@ -8,9 +8,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "payslips", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_payslip_collab_period", columnNames = {"collaborateur_id", "period"})
-})
+@Table(name = "payslips",
+       uniqueConstraints = {
+               @UniqueConstraint(name = "uk_payslip_collab_period", columnNames = {"collaborateur_id", "period", "year"})
+       },
+       indexes = {
+               @Index(name = "idx_payslip_collab",  columnList = "collaborateur_id"),
+               @Index(name = "idx_payslip_period",  columnList = "period,year")
+       })
 @SQLRestriction("is_deleted = false")
 @Data
 @AllArgsConstructor
@@ -34,6 +39,10 @@ public class Payslip extends BaseEntity {
 
     @Column(nullable = false, length = 7)
     private String period;
+
+    /** Four-digit year, e.g. 2024. Stored separately to support efficient range queries and the unique constraint. */
+    @Column(nullable = false)
+    private Integer year;
 
     @Column(name = "base_salary", nullable = false, precision = 12, scale = 2)
     private BigDecimal baseSalary;

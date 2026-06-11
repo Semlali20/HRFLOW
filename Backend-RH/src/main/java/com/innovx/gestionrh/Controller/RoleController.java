@@ -4,6 +4,7 @@ import com.innovx.gestionrh.Entity.Permission;
 import com.innovx.gestionrh.Entity.Role;
 import com.innovx.gestionrh.Service.RoleService;
 import com.innovx.gestionrh.dto.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class RoleController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_MANAGE')")
-    public ResponseEntity<ApiResponse<Role>> createRole(@RequestBody Role role) {
+    public ResponseEntity<ApiResponse<Role>> createRole(@Valid @RequestBody Role role) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(roleService.createRole(role)));
     }

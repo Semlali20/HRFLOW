@@ -226,9 +226,14 @@
             <i class="bx bxs-conversation"></i><span>{{ 'SIDEBAR.MEETINGS' | translate }}</span>
           </a>
         </li>
-        <li *ngIf="canSee('DEPARTMENT_READ')">
-          <a routerLink="/org" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
-            <i class="bx bxs-building-house"></i><span>{{ 'SIDEBAR.DEPARTMENTS' | translate }}</span>
+        <li *ngIf="canSee('PERFORMANCE_READ')">
+          <a routerLink="/performance" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+            <i class="bx bxs-star-half"></i><span>{{ 'SIDEBAR.PERFORMANCE' | translate }}</span>
+          </a>
+        </li>
+        <li *ngIf="canSee('EMPLOYEE_READ')">
+          <a routerLink="/onboarding" routerLinkActive="wiko-active" class="wiko-sb-nav-item">
+            <i class="bx bxs-user-check"></i><span>{{ 'SIDEBAR.ONBOARDING' | translate }}</span>
           </a>
         </li>
       </ul>

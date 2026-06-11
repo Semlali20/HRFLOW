@@ -114,4 +114,13 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.delete(notification);
     }
+
+    @Override
+    @Transactional
+    public void clearRead(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        }
+        notificationRepository.deleteReadByRecipientId(userId);
+    }
 }

@@ -153,17 +153,15 @@ public class JwtUtils {
     // Request helpers
     // -----------------------------------------------------------------------
 
-    /** Extracts the Bearer token from the Authorization header or the access_token query param (SSE). */
+    /** Extracts the Bearer token from the Authorization header. */
     public String extractTokenFromRequest(HttpServletRequest request) {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             return header.substring(7);
         }
-        // EventSource cannot set headers — SSE endpoints pass the token as a query param
-        String param = request.getParameter("access_token");
-        if (StringUtils.hasText(param)) {
-            return param;
-        }
+        // Note: the former access_token query-param fallback for SSE has been removed.
+        // SSE authentication now uses short-lived tickets via POST /api/v1/auth/sse-ticket
+        // so that JWT tokens are never exposed in URLs / server access logs (S-006).
         return null;
     }
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaveService, LeaveRequest } from '../leave.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AuthenticationService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-leave-list',
@@ -44,6 +45,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     .act-btn:hover{background:#E2E8F0;}
     .act-btn.approve:hover{background:#DCFCE7;color:#15803D;}
     .act-btn.reject:hover{background:#FFE4E6;color:#BE123C;}
+    .act-btn.cancel:hover{background:#FEF3C7;color:#B45309;}
 
     .state-box{padding:48px 0;text-align:center;color:#8FA3B8;font-size:14px;}
     .state-box i{font-size:36px;display:block;margin-bottom:10px;}
@@ -134,6 +136,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     :host-context([data-theme="dark"]) .act-btn:hover { background:#2A2A2A !important; color:#FFFFFF !important; }
     :host-context([data-theme="dark"]) .act-btn.approve:hover { background:rgba(21,128,61,.15) !important; color:#4ade80 !important; }
     :host-context([data-theme="dark"]) .act-btn.reject:hover  { background:rgba(190,18,60,.15) !important; color:#f87171 !important; }
+    :host-context([data-theme="dark"]) .act-btn.cancel:hover  { background:rgba(180,83,9,.15) !important; color:#fcd34d !important; }
 
     /* Detail panel */
     :host-context([data-theme="dark"]) .rp { background:#111111 !important; box-shadow:-8px 0 40px rgba(0,0,0,.5); }
@@ -312,7 +315,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           {{ t | translate }} <span *ngIf="t !== 'LEAVE.TAB_ALL'" style="font-size:11px;opacity:.7">({{ countTab(t) }})</span>
         </button>
         <div class="tabs-right">
-          <select class="filter-select" [(ngModel)]="filterRequesterId" (ngModelChange)="onRequesterFilter()">
+          <select class="filter-select" *ngIf="isAdminView" [(ngModel)]="filterRequesterId" (ngModelChange)="onRequesterFilter()">
             <option [ngValue]="null">{{ 'LEAVE.ALL_EMPLOYEES' | translate }}</option>
             <option *ngFor="let r of uniqueRequesters" [ngValue]="r.id">{{ r.name }}</option>
           </select>
@@ -342,7 +345,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <thead>
             <tr>
               <th>{{ 'LEAVE.TABLE_NUM' | translate }}</th>
-              <th>{{ 'LEAVE.TABLE_EMPLOYEE' | translate }}</th>
+              <th *ngIf="isAdminView">{{ 'LEAVE.REQUESTER' | translate }}</th>
               <th>{{ 'LEAVE.TABLE_LEAVE_TYPE' | translate }}</th>
               <th>{{ 'LEAVE.TABLE_START' | translate }}</th>
               <th>{{ 'LEAVE.TABLE_END' | translate }}</th>
@@ -355,7 +358,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <tbody>
             <tr *ngFor="let r of filtered; let i = index" (click)="selected = r">
               <td class="td-id">{{ i + 1 }}</td>
-              <td class="td-name">{{ r.requester.name }}</td>
+              <td *ngIf="isAdminView" class="td-name">{{ r.requester?.name || '—' }}</td>
               <td><span class="role-chip">{{ r.leaveType.name }}</span></td>
               <td>{{ r.startDate | date:'dd/MM/yyyy' }}</td>
               <td>{{ r.endDate   | date:'dd/MM/yyyy' }}</td>
@@ -363,8 +366,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               <td style="font-size:12px">{{ r.createdAt | date:'dd/MM/yy' }}</td>
               <td><span class="status-chip" [ngClass]="chipClass(r.status)">{{ r.status }}</span></td>
               <td (click)="$event.stopPropagation()">
-                <button class="act-btn approve" [title]="'LEAVE.BTN_APPROVE' | translate" *ngIf="r.status==='PENDING'" (click)="approve(r)"><i class="bx bx-check"></i></button>
-                <button class="act-btn reject"  [title]="'LEAVE.BTN_REJECT' | translate"  *ngIf="r.status==='PENDING'" (click)="reject(r)"><i class="bx bx-x"></i></button>
+                <button class="act-btn approve" [title]="'LEAVE.BTN_APPROVE' | translate" *ngIf="isAdminView && r.status==='PENDING'" (click)="approve(r)"><i class="bx bx-check"></i></button>
+                <button class="act-btn reject"  [title]="'LEAVE.BTN_REJECT' | translate"  *ngIf="isAdminView && r.status==='PENDING'" (click)="reject(r)"><i class="bx bx-x"></i></button>
+                <button class="act-btn cancel"  [title]="'LEAVE.CANCEL_REQUEST' | translate" *ngIf="r.status==='PENDING'" (click)="cancelLeave(r)"><i class="bx bx-block"></i></button>
               </td>
             </tr>
           </tbody>
@@ -397,14 +401,25 @@ export class LeaveListComponent implements OnInit {
   createForm: { leaveTypeId: number | null; startDate: string; endDate: string; reason: string } = this.emptyForm();
   previewDays  = 0;
 
-  constructor(private leaveService: LeaveService, private translate: TranslateService) {}
+  constructor(
+    private leaveService: LeaveService,
+    private translate: TranslateService,
+    private authService: AuthenticationService
+  ) {}
+
+  get isAdminView(): boolean {
+    return this.authService.hasPermission('LEAVE_READ_ALL');
+  }
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true;
     this.error   = null;
-    this.leaveService.getAllRequests().subscribe({
+    const obs = this.isAdminView
+      ? this.leaveService.getAllRequests()
+      : this.leaveService.getMyRequests();
+    obs.subscribe({
       next:  data  => { this.allRows = data; this.loading = false; },
       error: err   => { this.error = err?.error?.message || 'Failed to load leave requests.'; this.loading = false; }
     });
@@ -476,6 +491,19 @@ export class LeaveListComponent implements OnInit {
     this.leaveService.reject(req.id, '').subscribe({
       next:  updated => { this.saving = false; this.updateRow(updated); this.showToast(this.translate.instant('LEAVE.TOAST_REJECTED')); },
       error: err     => { this.saving = false; this.showToast(err?.error?.message || this.translate.instant('LEAVE.TOAST_REJECTED')); }
+    });
+  }
+
+  cancelLeave(req: LeaveRequest): void {
+    this.leaveService.cancel(req.id).subscribe({
+      next: () => {
+        this.load();
+        this.showToast(this.translate.instant('LEAVE.TOAST_CANCELLED'));
+      },
+      error: err => {
+        console.error('Cancel failed', err);
+        this.showToast(err?.error?.message || this.translate.instant('LEAVE.TOAST_CANCEL_FAILED'));
+      }
     });
   }
 

@@ -9,9 +9,9 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import { Subject, firstValueFrom } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
-import { CollaborateurService } from 'src/app/core/services/collaborateur.service';
-import { StagiaireService } from 'src/app/core/services/stagiaire.service';
+import { SharedCacheService } from 'src/app/core/services/shared-cache.service';
 
 @Component({
   selector: 'app-calendar',
@@ -57,12 +57,12 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     private modalService: BsModalService,
     private formBuilder: UntypedFormBuilder,
     private authService: AuthenticationService,
-    private collaborateurService: CollaborateurService,
-    private stagiaireService: StagiaireService
+    private sharedCacheService: SharedCacheService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
-    this.breadCrumbItems = [{ label: 'Innovx' }, { label: 'Calendar', active: true }];
+    this.breadCrumbItems = [{ label: this.translate.instant('CALENDAR.BREADCRUMB_HOME') }, { label: this.translate.instant('CALENDAR.BREADCRUMB_TITLE'), active: true }];
     this.userRole = this.authService.getUserRole();
     this._fetchData();
 
@@ -93,7 +93,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   async fetchCollaborateurs(): Promise<any[]> {
     try {
-      const collaborateurs = await firstValueFrom(this.collaborateurService.getAll());
+      const collaborateurs = await firstValueFrom(this.sharedCacheService.getEmployees());
       const currentYear = new Date().getFullYear();
       return collaborateurs.filter(c => c.date_naissance).map(collaborateur => {
         const { date_naissance, nom, prenom } = collaborateur;
@@ -111,7 +111,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
         const birthday = new Date(currentYear, month - 1, day);
         return {
           id: `${nom}-${prenom}-birthday`,
-          title: `Anniversaire de ${nom} ${prenom}`,
+          title: this.translate.instant('CALENDAR.BIRTHDAY_EVENT', { name: `${nom} ${prenom}` }),
           start: this.formatDate(birthday),
           allDay: true,
           className: 'bg-primary text-white',
@@ -126,28 +126,28 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   async fetchAllStagiaireMeetings(): Promise<any[]> {
     try {
-      const stagiaires = await firstValueFrom(this.stagiaireService.getAll());
+      const stagiaires = await firstValueFrom(this.sharedCacheService.getInterns());
       return stagiaires.flatMap(stagiaire => [
         {
-          title: `${stagiaire.nom} ${stagiaire.prenom} - Accueil RH`,
+          title: `${stagiaire.nom} ${stagiaire.prenom} - ${this.translate.instant('CALENDAR.ONBOARDING_EVENT')}`,
           start: stagiaire.accueilRhDate, allDay: true,
           className: this.isDateValid(stagiaire.accueilRhDate) ? 'bg-success text-white' : 'bg-danger text-white',
           extendedProps: { done: false, type: 'meeting' }
         },
         {
-          title: `${stagiaire.nom} ${stagiaire.prenom} - Point stagiaires (7 jours)`,
+          title: `${stagiaire.nom} ${stagiaire.prenom} - ${this.translate.instant('CALENDAR.INTERN_CHECKIN_7D')}`,
           start: stagiaire.pointStagiaires7DaysDate, allDay: true,
           className: this.isDateValid(stagiaire.pointStagiaires7DaysDate) ? 'bg-success text-white' : 'bg-danger text-white',
           extendedProps: { done: false, type: 'meeting' }
         },
         {
-          title: `${stagiaire.nom} ${stagiaire.prenom} - Point stagiaires (1 mois)`,
+          title: `${stagiaire.nom} ${stagiaire.prenom} - ${this.translate.instant('CALENDAR.INTERN_CHECKIN_1M')}`,
           start: stagiaire.pointStagiaires1MonthDate, allDay: true,
           className: this.isDateValid(stagiaire.pointStagiaires1MonthDate) ? 'bg-success text-white' : 'bg-danger text-white',
           extendedProps: { done: false, type: 'meeting' }
         },
         {
-          title: `${stagiaire.nom} ${stagiaire.prenom} - Point stagiaires (3 mois)`,
+          title: `${stagiaire.nom} ${stagiaire.prenom} - ${this.translate.instant('CALENDAR.INTERN_CHECKIN_3M')}`,
           start: stagiaire.pointStagiaires3MonthsDate, allDay: true,
           className: this.isDateValid(stagiaire.pointStagiaires3MonthsDate) ? 'bg-success text-white' : 'bg-danger text-white',
           extendedProps: { done: false, type: 'meeting' }
@@ -174,7 +174,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     const type = event.extendedProps.type;
     if (type === 'birthday') {
       this.eventDetails = {
-        title: `Anniversaire de ${event.extendedProps.nom} ${event.extendedProps.prenom}`,
+        title: this.translate.instant('CALENDAR.BIRTHDAY_EVENT', { name: `${event.extendedProps.nom} ${event.extendedProps.prenom}` }),
         message: event.extendedProps.message
       };
     } else if (type === 'meeting') {
@@ -189,14 +189,14 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   private _fetchData() {
     this.category = [
-      { value: 'bg-primary', name: 'Birthday' },
-      { value: 'bg-warning', name: 'Warning' },
-      { value: 'bg-success', name: 'Success' }
+      { value: 'bg-primary', name: this.translate.instant('CALENDAR.CAT_BIRTHDAY') },
+      { value: 'bg-warning', name: this.translate.instant('CALENDAR.CAT_WARNING') },
+      { value: 'bg-success', name: this.translate.instant('CALENDAR.CAT_SUCCESS') }
     ];
   }
 
   getBirthdayMessage(nom: string, prenom: string): string {
-    return `Cher(e) ${nom} ${prenom},\n\nÀ l'occasion de votre anniversaire, toute l'équipe se joint à moi pour vous souhaiter une journée pleine de joie et de succès.\n\nJoyeux anniversaire !\n\nCordialement,`;
+    return this.translate.instant('CALENDAR.BIRTHDAY_MESSAGE', { name: `${nom} ${prenom}` });
   }
 
   formatDate(date: Date): string {

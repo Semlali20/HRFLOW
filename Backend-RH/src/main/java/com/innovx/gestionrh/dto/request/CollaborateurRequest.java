@@ -56,6 +56,12 @@ public class CollaborateurRequest {
     @PastOrPresent(message = "Hire date must be today or in the past")
     private LocalDate hireDate;
 
+    private LocalDate contractStartDate;
+
+    private LocalDate contractEndDate;
+
+    private Integer noticePeriodDays;
+
     private EmployeeStatus status;
 
     /** Optional: ID of the User account to link to this employee. */
